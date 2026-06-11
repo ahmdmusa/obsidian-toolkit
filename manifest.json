@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-toolkit",
+  "name": "Obsidian Toolkit",
+  "version": "2.3",
+  "minAppVersion": "0.15.0",
+  "description": "Enhanced formatting and image control toolkit for Obsidian with security and performance fixes.",
+  "author": "Ahmed-Moussa -EG",
+  "authorUrl": "https://github.com/ahmed",
+  "isDesktopOnly": false
+}
