@@ -10,17 +10,38 @@ Obsidian Toolkit is a collection of practical tools designed to improve the writ
 
 Create cleaner and more professional-looking notes with improved styling for headings, tables, code blocks, and other document elements.
 
+<img width="908" height="855" alt="3" src="https://github.com/user-attachments/assets/60c289a3-317f-41fa-8357-e6146155b67d" />
+
+<img width="913" height="838" alt="3 2" src="https://github.com/user-attachments/assets/5e456f3d-e106-46c2-a5c3-a0b648528f96" />
+
 ### Image Management
 
 Quickly align images to the left, right, or center and control how they appear within your notes.
+
+<img width="718" height="100" alt="55" src="https://github.com/user-attachments/assets/c05ecf38-9ae3-4d9b-99de-8894806c6635" />
+
 
 ### Focus Mode
 
 Work in a distraction-free environment with a dedicated fullscreen writing mode designed to keep your attention on the content.
 
+<img width="276" height="193" alt="1" src="https://github.com/user-attachments/assets/1cf5035a-aa14-4989-85a8-f38e9b25e8c5" />
+
+
 ### Command Palette Integration
 
 Access all toolkit features directly from Obsidian's Command Palette and assign your preferred keyboard shortcuts.
+
+### Premium File Tree
+Apple-style icons, image thumbnails & refined spacing in the file explorer
+<img width="872" height="210" alt="image" src="https://github.com/user-attachments/assets/c9ba2bd8-2d2f-4842-8af7-dbc46bd4977c" />
+
+<img width="371" height="262" alt="2" src="https://github.com/user-attachments/assets/91a2ff9e-a2dc-4f0f-a067-03d1acddae7a" />
+
+### settings 
+<img width="982" height="586" alt="4" src="https://github.com/user-attachments/assets/f639eced-194e-4e41-9425-9e9b5ae16dd9" />
+
+<img width="996" height="431" alt="5" src="https://github.com/user-attachments/assets/bfc58a22-fa4b-478f-9331-b541442b936e" />
 
 ---
 
