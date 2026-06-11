@@ -31,10 +31,10 @@ Work in a distraction-free environment with a dedicated fullscreen writing mode 
 ### Command Palette Integration
 
 Access all toolkit features directly from Obsidian's Command Palette and assign your preferred keyboard shortcuts.
+<img width="872" height="210" alt="image" src="https://github.com/user-attachments/assets/c9ba2bd8-2d2f-4842-8af7-dbc46bd4977c" />
 
 ### Premium File Tree
 Apple-style icons, image thumbnails & refined spacing in the file explorer
-<img width="872" height="210" alt="image" src="https://github.com/user-attachments/assets/c9ba2bd8-2d2f-4842-8af7-dbc46bd4977c" />
 
 <img width="371" height="262" alt="2" src="https://github.com/user-attachments/assets/91a2ff9e-a2dc-4f0f-a067-03d1acddae7a" />
 
