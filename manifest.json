@@ -1,10 +1,11 @@
 {
   "id": "obsidian-toolkit",
   "name": "Obsidian Toolkit",
-  "version": "2.3",
+  "version": "2.6.0",
   "minAppVersion": "0.15.0",
-  "description": "Enhanced formatting and image control toolkit for Obsidian with security and performance fixes.",
-  "author": "Ahmed-Moussa -EG",
-  "authorUrl": "https://github.com/ahmed",
+  "description": "All-in-one productivity suite: Formatting Palette, AI Smart Templates, Image Control, Fullscreen Note, Premium File Tree, Quick Access Bar, and Folder Focus Mode.",
+  "author": "Ahmed Moussa",
+  "authorUrl": "https://github.com/ahmdmusa",
+  "fundingUrl": "",
   "isDesktopOnly": false
 }

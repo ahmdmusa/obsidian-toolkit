@@ -1,130 +1,166 @@
 # Obsidian Toolkit
 
-Obsidian Toolkit is a collection of practical tools designed to improve the writing and editing experience inside Obsidian. It helps you format documents more efficiently, manage images with ease, and stay focused while working, all without requiring any CSS knowledge.
+An all-in-one productivity suite for Obsidian. Seven integrated modules in a single plugin — no configuration required to get started.
 
 ---
 
 ## Features
 
-### Advanced Formatting
+### 🎨 Formatting Palette — `Ctrl+Shift+F`
+A searchable command palette with 60+ formatting elements organised by category.
 
-Create cleaner and more professional-looking notes with improved styling for headings, tables, code blocks, and other document elements.
+- **Insert**: Dates, times, progress bars, AI smart suggestions, AI template generator
+- **Callouts**: All 12 built-in Obsidian callouts (note, tip, warning, danger…)
+- **Custom callouts**: Goal, Idea, Task, Formula, Remember, Blocker, Command, Config…
+- **Islamic**: Ayah, Hadith, Dua — with RTL and Arabic typography
+- **Headings, Text, Lists, Code, Dividers**: Bold, italic, highlight, strikethrough, subscript, superscript, bullet/numbered/task lists, code blocks, math, decorative dividers
 
-<img width="908" height="855" alt="3" src="https://github.com/user-attachments/assets/60c289a3-317f-41fa-8357-e6146155b67d" />
+Keyboard navigation: `↑↓` to move, `Enter` to insert, `Esc` to close.
 
-<img width="913" height="838" alt="3 2" src="https://github.com/user-attachments/assets/5e456f3d-e106-46c2-a5c3-a0b648528f96" />
+---
 
-### Image Management
+### 🤖 AI Smart Templates (requires AI Provider)
+Two AI-powered features accessible from the Formatting Palette or via commands:
 
-Quickly align images to the left, right, or center and control how they appear within your notes.
+**AI Smart Suggestion — `Ctrl+Shift+G`**
+Reads the last 12 lines of context (or your selection) and suggests a single continuation — a callout, heading, checklist, or paragraph.
 
-<img width="718" height="100" alt="55" src="https://github.com/user-attachments/assets/c05ecf38-9ae3-4d9b-99de-8894806c6635" />
+**AI Template Generator — `Ctrl+Shift+T`**
+Describe what you want to create (e.g. "weekly meeting notes", "book review", "lesson plan") with optional extra instructions, and the AI generates a complete structured markdown template.
 
+**Compatible providers:**
+- **Ollama** (local, free) — auto-fetches your installed models from `/api/tags`
+- **OpenAI** (gpt-4o-mini, gpt-4o…)
+- **Custom** (any OpenAI-compatible endpoint: OpenRouter, Groq, Anthropic proxy…)
 
-### Focus Mode
+Configure in **Settings → Obsidian Toolkit → AI Provider**.
 
-Work in a distraction-free environment with a dedicated fullscreen writing mode designed to keep your attention on the content.
+---
 
-<img width="276" height="193" alt="1" src="https://github.com/user-attachments/assets/1cf5035a-aa14-4989-85a8-f38e9b25e8c5" />
+### 🖼 Image Control *(Reading View)*
+Click any image to reveal a floating toolbar:
 
+| Button | Action |
+|--------|--------|
+| `−` / `+` | Resize by 30px steps |
+| `⬤← ⬤ →⬤` | Float left / center / float right |
+| `↻` | Rotate 90° |
+| `✎` | Add a caption |
+| `⟲` | Reset to original size and position |
+| `⎘` | Copy Obsidian markdown link with current width |
+| `⤢` | Open in fullscreen lightbox |
 
-### Command Palette Integration
+The lightbox supports pan (drag), zoom (scroll wheel), and rotation.
 
-Access all toolkit features directly from Obsidian's Command Palette and assign your preferred keyboard shortcuts.
-<img width="872" height="210" alt="image" src="https://github.com/user-attachments/assets/c9ba2bd8-2d2f-4842-8af7-dbc46bd4977c" />
+**Special layouts** (add CSS classes to a div wrapping images in markdown):
+- `.img-grid-2` / `.img-grid-3` / `.img-grid-4` — photo grid
+- `.img-col` / `.img-col-right` — text + image column layout
+- `.img-caption` — image with caption below
 
-### Premium File Tree
-Apple-style icons, image thumbnails & refined spacing in the file explorer
+---
 
-<img width="371" height="262" alt="2" src="https://github.com/user-attachments/assets/91a2ff9e-a2dc-4f0f-a067-03d1acddae7a" />
+### ⛶ Fullscreen Note — `Ctrl+Shift+Z`
+Floating fullscreen button on every note. Optionally enters fullscreen automatically after a configurable inactivity period (5–120 seconds), with a 3-second soft-hint and cancel button before switching.
 
-### settings 
-<img width="982" height="586" alt="4" src="https://github.com/user-attachments/assets/f639eced-194e-4e41-9425-9e9b5ae16dd9" />
+---
 
-<img width="996" height="431" alt="5" src="https://github.com/user-attachments/assets/bfc58a22-fa4b-478f-9331-b541442b936e" />
+### 🌳 Premium File Tree
+Apple-style SF Symbols-inspired icons for every file type in the file explorer.
+
+| Type | Icon |
+|------|------|
+| Folder (open/closed) | Custom SVG folder |
+| Markdown | Document with M symbol |
+| Canvas | Four-grid layout |
+| PDF | Document with lines |
+| Image | Photo frame with mountain |
+| Video | Film frame |
+| Audio | Waveform |
+| Code | `</>` |
+| Archive | Box |
+| Link | Chain link |
+
+Image files show a real 18×18px thumbnail in the tree. Row height is configurable: Compact / Default / Spacious.
+
+---
+
+### ⚡ Quick Access Bar
+A persistent bar of pinned buttons above the file tree. Each button opens a specific note or folder with one click.
+
+Add items from Settings → add the current file, the current folder, or any manual path.
+
+---
+
+### 📁 Folder Focus Mode
+Right-click any folder → **"📁 Focus on this folder"** to make it the visual root of the sidebar — all other folders and files disappear, sub-folders start collapsed.
+
+**Main Folders** (Settings → Folder Focus Mode): define a list of top-level folders that appear as tabs in a persistent bar above the tree. Click a tab → instant focus. Click again → return to full vault view.
+
+> Note: Search, Graph View, and Quick Switcher (`Ctrl+O`) always cover the entire vault regardless of focus state.
 
 ---
 
 ## Installation
 
-### Option 1: Install via BRAT (Recommended)
+### From Obsidian Community Plugins *(recommended)*
+1. Open Obsidian → Settings → Community Plugins → Browse
+2. Search for **Obsidian Toolkit**
+3. Install → Enable
 
-1. Install the BRAT plugin in Obsidian.
-2. Open BRAT and select **Add Beta Plugin**.
-3. Enter the repository:
-
-```text
-ahmdmusa/obsidian-toolkit
-```
-
-4. Install and enable the plugin.
+### Manual installation
+1. Download `main.js`, `styles.css`, and `manifest.json` from the [latest release](https://github.com/ahmdmusa/obsidian-toolkit/releases/latest)
+2. Copy them to `<vault>/.obsidian/plugins/obsidian-toolkit/`
+3. Reload Obsidian → Settings → Community Plugins → enable **Obsidian Toolkit**
 
 ---
 
-### Option 2: Manual Installation
+## Settings overview
 
-1. Download the latest release from the Releases page.
-2. Extract the downloaded folder into:
+| Section | Key options |
+|---------|-------------|
+| 🎨 Formatting Palette | Enable / disable |
+| 🖼 Image Control | Enable / disable (Reading View only) |
+| ⛶ Fullscreen Note | Enable, auto-fullscreen toggle, inactivity timer |
+| 🤖 AI Provider | Provider dropdown, model selector, API key, response language, system prompt |
+| 🌳 Premium File Tree | Enable, image thumbnails toggle, row height |
+| ⚡ Quick Access Bar | Enable, manage pinned items |
+| 📁 Folder Focus Mode | Enable, manage main folder tabs |
 
-```text
-.obsidian/plugins/
+---
+
+## Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+F` | Open Formatting Palette |
+| `Ctrl+Shift+Z` | Toggle Fullscreen |
+| `Ctrl+Shift+G` | AI Smart Suggestion |
+| `Ctrl+Shift+T` | AI Template Generator |
+
+---
+
+## AI Provider setup (Ollama)
+
+1. Install Ollama: [ollama.com](https://ollama.com)
+2. Pull a model: `ollama pull qwen2.5:3b`
+3. Run: `ollama serve`
+4. In Obsidian settings: Provider = Ollama → click **Fetch models** → select your model → **Test Connection**
+
+If you get a CORS error, start Ollama with:
+```bash
+OLLAMA_ORIGINS="app://obsidian.md*" ollama serve
 ```
 
-3. Restart Obsidian.
-4. Enable **Obsidian Toolkit** from **Settings → Community Plugins**.
+---
+
+## Compatibility
+
+- Obsidian `0.15.0` or later
+- Desktop and mobile (Image Control and Fullscreen are desktop-optimised)
+- Works with any community theme
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
-
----
-
-# Obsidian Toolkit / ع
-
-مجموعة أدوات عملية تهدف إلى تحسين تجربة الكتابة والتحرير داخل Obsidian. تساعدك الإضافة على تنسيق المستندات بشكل أفضل، وإدارة الصور بسهولة، والحفاظ على التركيز أثناء العمل، دون الحاجة إلى أي معرفة مسبقة بـ CSS.
-
----
-
-## المميزات
-
-### تنسيق متقدم للمستندات
-
-احصل على ملاحظات أكثر احترافية وتنظيماً من خلال تحسين مظهر العناوين والجداول وكتل الأكواد والعناصر المختلفة داخل المستند.
-
-### إدارة الصور
-
-قم بمحاذاة الصور إلى اليمين أو اليسار أو الوسط بسهولة، مع تحكم أفضل في طريقة عرضها داخل الملاحظات.
-
-### وضع التركيز
-
-استمتع ببيئة كتابة خالية من المشتتات عبر وضع ملء الشاشة المصمم لمساعدتك على التركيز على المحتوى.
-
-### التكامل مع لوحة الأوامر
-
-يمكنك الوصول إلى جميع الأدوات مباشرة من Command Palette وتخصيص اختصارات لوحة المفاتيح حسب احتياجاتك.
-
----
-
-## التثبيت
-
-### الطريقة التثبيت اليدوي
-
-1. قم بتنزيل أحدث إصدار من صفحة Releases.
-2. فك ضغط المجلد داخل المسار:
-
-```text
-.obsidian/plugins/
-```
-
-3. أعد تشغيل Obsidian.
-4. فعّل إضافة **Obsidian Toolkit** من **Settings → Community Plugins**.
-
----
-
-## الترخيص
-
-هذا المشروع يحمل رخصة MIT.
-#### by : ahmedmousa 
-##### thanks ❤️
+MIT — see [LICENSE](LICENSE)

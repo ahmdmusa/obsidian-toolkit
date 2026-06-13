@@ -1,5 +1,5 @@
 'use strict';
-const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice, TFile, TFolder } = require('obsidian');
 
 /* ══════════════════════════════════════════════
    LANGUAGE DETECTION
@@ -44,6 +44,52 @@ const TR = {
     lightbox:'Open in lightbox', copyMd:'Copy Markdown', copied:'✅ Copied!',
     progressTitle:'Insert Progress Bar', progressValue:'Value',
     progressPreview:'Preview', progressInsert:'Insert', progressCancel:'Cancel',
+    reset:'Reset to original',
+    aiName:'🤖 AI Provider (Custom / Ollama)', aiDesc:'Connect any OpenAI-compatible API (OpenRouter, Groq, Ollama, Anthropic proxy…) to power Smart Template suggestions.',
+    aiUrlName:'API Base URL', aiUrlDesc:'e.g. https://openrouter.ai/api/v1 or http://localhost:11434/v1 for Ollama',
+    aiKeyName:'API Key', aiKeyDesc:'Leave empty for providers that don\'t require a key (e.g. local Ollama)',
+    aiModelName:'Model name', aiModelDesc:'e.g. gpt-4o-mini, llama3, anthropic/claude-3.5-sonnet',
+    aiTest:'Test Connection', aiTestOk:'✅ Connection successful!', aiTestFail:'❌ Connection failed: ',
+    aiOn:'✅ AI Provider enabled', aiOff:'⛔ AI Provider disabled',
+    iSmartTemplate:'AI Smart Suggestion',
+    aiSuggestTitle:'✨ Smart Template Suggestion', aiThinking:'Thinking…',
+    aiNoContext:'Write some text first so the AI has context to work with.',
+    aiDisabled:'Enable the AI Provider in Settings first.',
+    aiRegenerate:'Regenerate', aiInsertSuggestion:'Insert', aiCloseModal:'Close',
+    aiError:'⚠️ Request failed: ',
+    aiProviderName:'AI Provider', aiProviderDesc:'Choose which AI provider to use',
+    aiProviderOllama:'Ollama (local)', aiProviderOpenAI:'OpenAI', aiProviderCustom:'Custom (OpenAI-compatible)',
+    aiModelDropdownName:'Ollama Model', aiModelDropdownDesc:'Select an installed Ollama model. Make sure Ollama is running (ollama serve).',
+    aiFetchModels:'Fetch models', aiFetchingModels:'Fetching…',
+    aiModelsFetchOk:'✅ Found {n} model(s)', aiModelsFetchFail:'❌ Could not reach Ollama: ',
+    aiNoModelsYet:'Click "Fetch models" to load your installed Ollama models',
+    aiLangName:'Response Language', aiLangDesc:'Language used for AI Smart Template suggestions',
+    aiLangAuto:'Auto (match your text)', aiLangAr:'Arabic', aiLangEn:'English',
+    aiPromptName:'Edit System Prompt', aiPromptDesc:'Customize how the AI generates Smart Template suggestions',
+    aiPromptReset:'Reset to default',
+    iTemplateGen:'AI Template Generator',
+    tgTitle:'📐 AI Template Generator',
+    tgDescLabel:'What do you want to create?', tgDescPlaceholder:'e.g. weekly meeting notes, book review, daily planner, lesson plan…',
+    tgPromptLabel:'Extra instructions (optional)', tgPromptPlaceholder:'e.g. include a callout for action items, keep it short, use Arabic headings…',
+    tgGenerate:'Generate', tgRegenerate:'↻ Regenerate', tgInsert:'Insert', tgCancel:'Cancel',
+    tgEmptyDesc:'Describe what kind of template you want first.',
+    tgThinking:'Generating template…',
+    qbName:'⚡ Quick Access Bar', qbDesc:'A pinned row of buttons above your file explorer for one-click access to favorite notes and folders.',
+    qbItemsLabel:'Pinned items',
+    qbPathPlaceholder:'folder/note.md or folder/subfolder',
+    qbLabelPlaceholder:'Display name (optional)',
+    qbAdd:'Add', qbAddCurrent:'+ Add current file', qbAddCurrentFolder:'+ Add current folder',
+    qbRemove:'Remove', qbEmpty:'No pinned items yet — add some below.',
+    qbNotFound:'⚠️ Not found in vault: ', qbNoActiveFile:'No active file to add.',
+    qbInvalidPath:'Enter a path first.', qbDuplicate:'Already pinned.',
+    ffFocusMenuItem:'📁 Focus on this folder', ffUnfocusMenuItem:'✕ Exit folder focus',
+    ffBack:'All files', ffFocusOn:'📁 Focused on: ', ffFocusOff:'Folder focus cleared',
+    ffName:'📁 Folder Focus Mode', ffDesc:'Right-click any folder → "Focus on this folder" to make it look like the vault root in the sidebar. (Search, graph, and Quick Switcher still cover the whole vault.)',
+    mfName:'📂 Main Folders (auto-focus)', mfDesc:'Folders in this list jump straight into Focus Mode when clicked — their sub-folders stay collapsed.',
+    mfPathPlaceholder:'folder/subfolder', mfAddCurrent:'+ Add current folder',
+    mfAdd:'Add', mfRemove:'Remove', mfEmpty:'No main folders yet — add some below.',
+    mfDuplicate:'Already a main folder.', mfNoActiveFile:'No active file to detect its folder.',
+    mfInvalidPath:'Enter a path first.',
   },
   ar: {
     paletteTitle:'لوحة التنسيق', searchPlaceholder:'ابحث عن تنسيق…', noResults:'لا توجد نتائج',
@@ -75,6 +121,52 @@ const TR = {
     lightbox:'فتح في lightbox', copyMd:'نسخ Markdown', copied:'✅ تم النسخ!',
     progressTitle:'إدراج شريط تقدم', progressValue:'النسبة',
     progressPreview:'معاينة', progressInsert:'إدراج', progressCancel:'إلغاء',
+    reset:'إعادة الضبط للوضع الأصلي',
+    aiName:'🤖 مزوّد الذكاء الاصطناعي (مخصص / Ollama)', aiDesc:'اربط أي API متوافق مع OpenAI (OpenRouter, Groq, Ollama, Anthropic proxy…) لتشغيل اقتراحات Smart Template.',
+    aiUrlName:'رابط API الأساسي', aiUrlDesc:'مثال: https://openrouter.ai/api/v1 أو http://localhost:11434/v1 لـ Ollama',
+    aiKeyName:'مفتاح API', aiKeyDesc:'اتركه فاضي للمزوّدات التي لا تتطلب مفتاح (مثل Ollama المحلي)',
+    aiModelName:'اسم الموديل', aiModelDesc:'مثال: gpt-4o-mini, llama3, anthropic/claude-3.5-sonnet',
+    aiTest:'اختبار الاتصال', aiTestOk:'✅ الاتصال ناجح!', aiTestFail:'❌ فشل الاتصال: ',
+    aiOn:'✅ مزوّد الذكاء الاصطناعي مفعّل', aiOff:'⛔ مزوّد الذكاء الاصطناعي معطّل',
+    iSmartTemplate:'اقتراح ذكي (AI)',
+    aiSuggestTitle:'✨ اقتراح Smart Template', aiThinking:'جاري التفكير…',
+    aiNoContext:'اكتب بعض النص أولاً حتى يكون للذكاء الاصطناعي سياق للعمل عليه.',
+    aiDisabled:'فعّل مزوّد الذكاء الاصطناعي من الإعدادات أولاً.',
+    aiRegenerate:'إعادة المحاولة', aiInsertSuggestion:'إدراج', aiCloseModal:'إغلاق',
+    aiError:'⚠️ فشل الطلب: ',
+    aiProviderName:'مزوّد الذكاء الاصطناعي', aiProviderDesc:'اختر مزوّد الذكاء الاصطناعي المستخدم',
+    aiProviderOllama:'Ollama (محلي)', aiProviderOpenAI:'OpenAI', aiProviderCustom:'مخصص (متوافق مع OpenAI)',
+    aiModelDropdownName:'موديل Ollama', aiModelDropdownDesc:'اختر موديل مثبّت على Ollama. تأكد إن Ollama شغّال (ollama serve).',
+    aiFetchModels:'جلب الموديلات', aiFetchingModels:'جاري الجلب…',
+    aiModelsFetchOk:'✅ تم العثور على {n} موديل', aiModelsFetchFail:'❌ تعذّر الوصول لـ Ollama: ',
+    aiNoModelsYet:'اضغط "جلب الموديلات" لتحميل الموديلات المثبتة على Ollama',
+    aiLangName:'لغة الرد', aiLangDesc:'اللغة المستخدمة في اقتراحات Smart Template',
+    aiLangAuto:'تلقائي (حسب نصك)', aiLangAr:'العربية', aiLangEn:'الإنجليزية',
+    aiPromptName:'تعديل System Prompt', aiPromptDesc:'تحكم في طريقة توليد اقتراحات Smart Template',
+    aiPromptReset:'إعادة الضبط للوضع الافتراضي',
+    iTemplateGen:'مولّد قوالب (AI)',
+    tgTitle:'📐 مولّد القوالب بالذكاء الاصطناعي',
+    tgDescLabel:'عايز تعمل إيه؟', tgDescPlaceholder:'مثال: محضر اجتماع أسبوعي، مراجعة كتاب، خطة يومية، خطة درس…',
+    tgPromptLabel:'تعليمات إضافية (اختياري)', tgPromptPlaceholder:'مثال: ضيف callout لـ action items، خليه مختصر، استخدم عناوين عربية…',
+    tgGenerate:'توليد', tgRegenerate:'↻ إعادة المحاولة', tgInsert:'إدراج', tgCancel:'إلغاء',
+    tgEmptyDesc:'اكتب وصف لنوع القالب اللي عايزه أولاً.',
+    tgThinking:'جاري توليد القالب…',
+    qbName:'⚡ شريط الوصول السريع', qbDesc:'شريط أزرار ثابت فوق شجرة الملفات للوصول بضغطة واحدة لملفاتك وفولدراتك المفضلة.',
+    qbItemsLabel:'العناصر المثبّتة',
+    qbPathPlaceholder:'folder/note.md أو folder/subfolder',
+    qbLabelPlaceholder:'الاسم المعروض (اختياري)',
+    qbAdd:'إضافة', qbAddCurrent:'+ إضافة الملف الحالي', qbAddCurrentFolder:'+ إضافة الفولدر الحالي',
+    qbRemove:'حذف', qbEmpty:'لا توجد عناصر مثبّتة — أضف عناصر من الأسفل.',
+    qbNotFound:'⚠️ غير موجود في الـ vault: ', qbNoActiveFile:'لا يوجد ملف مفتوح لإضافته.',
+    qbInvalidPath:'اكتب المسار أولاً.', qbDuplicate:'العنصر مثبّت مسبقاً.',
+    ffFocusMenuItem:'📁 ركّز على هذا الفولدر', ffUnfocusMenuItem:'✕ إلغاء التركيز',
+    ffBack:'كل الملفات', ffFocusOn:'📁 مُركَّز على: ', ffFocusOff:'تم إلغاء التركيز',
+    ffName:'📁 وضع التركيز على فولدر', ffDesc:'كليك يمين على أي فولدر → "ركّز على هذا الفولدر" يخليه يبان كأنه جذر الـ vault في الشريط الجانبي. (البحث، الـ graph، و Quick Switcher بيفضلوا يشملوا الـ vault كامل.)',
+    mfName:'📂 الفولدرات الرئيسية (تركيز تلقائي)', mfDesc:'الفولدرات في هذه القائمة تدخل في Focus Mode فوراً عند الضغط عليها — والفولدرات الفرعية بداخلها تفضل مقفولة.',
+    mfPathPlaceholder:'folder/subfolder', mfAddCurrent:'+ إضافة الفولدر الحالي',
+    mfAdd:'إضافة', mfRemove:'حذف', mfEmpty:'لا توجد فولدرات رئيسية — أضف عناصر من الأسفل.',
+    mfDuplicate:'موجود مسبقاً في القائمة.', mfNoActiveFile:'لا يوجد ملف مفتوح لمعرفة فولدره.',
+    mfInvalidPath:'اكتب المسار أولاً.',
   }
 };
 const t = (k) => { const l = getAppLang(); return TR[l]?.[k] ?? TR.en[k] ?? k; };
@@ -97,6 +189,22 @@ const DEFAULT_SETTINGS = {
   enableFileTree:       true,
   fileTreeThumbnails:   true,
   fileTreeRowHeight:    'default',
+  /* ── AI / Smart Template Engine ── */
+  enableAI:       false,
+  aiProvider:     'ollama',          // 'ollama' | 'openai' | 'custom'
+  aiApiUrl:       'http://localhost:11434/v1',
+  aiApiKey:       '',
+  aiModel:        'qwen2.5:3b',
+  aiResponseLang: 'auto',            // 'auto' | 'ar' | 'en'
+  aiSystemPrompt: '',                // empty = use built-in default
+  aiOllamaModels: [],                 // cached list from /api/tags
+  /* ── Quick Access Bar ── */
+  enableQuickBar: true,
+  quickBarItems: [],                  // [{ id, path, label }]
+  /* ── Folder Focus Mode ── */
+  enableFolderFocus: true,
+  focusedFolder: null,                // path of folder currently treated as vault root
+  mainFolders: [],                    // paths that auto-enter Focus Mode on click
 };
 
 /* ══════════════════════════════════════════════
@@ -137,8 +245,263 @@ function getFileType(name) {
 }
 
 /* ══════════════════════════════════════════════
-   PROGRESS BAR MODAL
+   AI PROVIDER PRESETS
 ══════════════════════════════════════════════ */
+const AI_PROVIDER_PRESETS = {
+  ollama: { url: 'http://localhost:11434/v1', model: 'qwen2.5:3b' },
+  openai: { url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+  custom: { url: '', model: '' },
+};
+
+/* Convert an OpenAI-compatible base URL (…/v1) to the Ollama root for /api/tags */
+function ollamaTagsUrl(aiApiUrl) {
+  const base = (aiApiUrl || AI_PROVIDER_PRESETS.ollama.url).replace(/\/+$/, '');
+  const root = base.replace(/\/v1$/, '');
+  return `${root}/api/tags`;
+}
+
+async function fetchOllamaModels(aiApiUrl) {
+  const res = await fetch(ollamaTagsUrl(aiApiUrl));
+  if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  return (data?.models || []).map(m => m.name).filter(Boolean);
+}
+
+/* ══════════════════════════════════════════════
+   AI CLIENT (OpenAI-compatible Custom API / Ollama)
+══════════════════════════════════════════════ */
+async function callAI(plugin, messages, opts = {}) {
+  const { aiApiUrl, aiApiKey, aiModel } = plugin.settings;
+  const base = (aiApiUrl || '').replace(/\/+$/, '');
+  const url  = `${base}/chat/completions`;
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (aiApiKey) headers['Authorization'] = `Bearer ${aiApiKey}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      model: aiModel || 'gpt-4o-mini',
+      messages,
+      temperature: opts.temperature ?? 0.6,
+      max_tokens: opts.maxTokens ?? 400,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} ${res.statusText} ${body.slice(0, 180)}`);
+  }
+
+  const data = await res.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error('Empty response from model');
+  return content.trim();
+}
+
+const DEFAULT_SMART_TEMPLATE_PROMPT =
+  'You are a writing assistant embedded in Obsidian (a markdown note-taking app). ' +
+  'Given the context the user is currently writing, suggest ONE short, useful continuation: ' +
+  'this can be a relevant Obsidian callout block (e.g. "> [!tip]"), a heading, a checklist, ' +
+  'a table skeleton, or a short paragraph continuation — whatever best fits the context. ' +
+  'Reply with ONLY the raw markdown snippet to insert, no explanations, no code fences, no extra commentary. ' +
+  'Match the language of the provided context (Arabic or English).';
+
+function buildSystemPrompt(plugin) {
+  let prompt = (plugin.settings.aiSystemPrompt || '').trim() || DEFAULT_SMART_TEMPLATE_PROMPT;
+  const lang = plugin.settings.aiResponseLang;
+  if (lang === 'ar') prompt += ' Always reply in Arabic, regardless of the input language.';
+  else if (lang === 'en') prompt += ' Always reply in English, regardless of the input language.';
+  return prompt;
+}
+
+/* strip accidental ```fences``` some local models add despite instructions */
+function stripCodeFences(text) {
+  const trimmed = text.trim();
+  const fenceMatch = trimmed.match(/^```[a-zA-Z]*\n([\s\S]*?)\n```$/);
+  return fenceMatch ? fenceMatch[1].trim() : trimmed;
+}
+
+/* ══════════════════════════════════════════════
+   SMART TEMPLATE SUGGESTION MODAL
+══════════════════════════════════════════════ */
+class AISuggestModal extends Modal {
+  constructor(app, plugin, editor, context) {
+    super(app);
+    this.plugin = plugin; this.editor = editor; this.context = context;
+    this.suggestion = '';
+  }
+
+  onOpen() {
+    const { contentEl, modalEl } = this;
+    contentEl.empty();
+    modalEl.addClass('ai-modal-root');
+    contentEl.addClass('ai-modal');
+
+    contentEl.createEl('div', { text: t('aiSuggestTitle'), cls: 'ai-modal-title' });
+    this.bodyEl = contentEl.createDiv('ai-modal-body');
+
+    this.actionsEl = contentEl.createDiv('ai-modal-actions');
+    this.regenBtn  = this.actionsEl.createEl('button', { text: '↻ ' + t('aiRegenerate'), cls:'progress-btn progress-btn-cancel' });
+    this.insertBtn = this.actionsEl.createEl('button', { text: t('aiInsertSuggestion'), cls:'progress-btn progress-btn-insert' });
+    this.closeBtn  = this.actionsEl.createEl('button', { text: t('aiCloseModal'), cls:'progress-btn progress-btn-cancel' });
+
+    this.regenBtn.style.display  = 'none';
+    this.insertBtn.style.display = 'none';
+
+    this.regenBtn.addEventListener('click', () => this.fetchSuggestion());
+    this.insertBtn.addEventListener('click', () => {
+      if (this.suggestion) this.editor.replaceSelection(this.suggestion);
+      this.close();
+    });
+    this.closeBtn.addEventListener('click', () => this.close());
+
+    this.fetchSuggestion();
+  }
+
+  setLoading() {
+    this.bodyEl.empty();
+    const loading = this.bodyEl.createDiv('ai-loading');
+    loading.createDiv('ai-spinner');
+    loading.createEl('span', { text: t('aiThinking') });
+    this.regenBtn.style.display  = 'none';
+    this.insertBtn.style.display = 'none';
+  }
+
+  async fetchSuggestion() {
+    this.setLoading();
+    try {
+      const messages = [
+        { role: 'system', content: buildSystemPrompt(this.plugin) },
+        { role: 'user', content: this.context },
+      ];
+      const result = stripCodeFences(await callAI(this.plugin, messages));
+      this.suggestion = result;
+      this.bodyEl.empty();
+      const pre = this.bodyEl.createEl('pre', { cls: 'ai-suggestion-box' });
+      pre.textContent = result;
+      this.regenBtn.style.display  = '';
+      this.insertBtn.style.display = '';
+    } catch (err) {
+      this.bodyEl.empty();
+      this.bodyEl.createEl('div', { text: t('aiError') + err.message, cls: 'ai-error-box' });
+      this.regenBtn.style.display = '';
+    }
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+/* ══════════════════════════════════════════════
+   TEMPLATE GENERATOR (full multi-section templates)
+══════════════════════════════════════════════ */
+const DEFAULT_TEMPLATE_GEN_PROMPT =
+  'You are a template-generation assistant for Obsidian (a markdown note-taking app). ' +
+  'The user will describe what kind of note or template they want to create. ' +
+  'Generate a COMPLETE, well-structured markdown template: use headings (##, ###), ' +
+  'Obsidian callouts ("> [!type]") where relevant, checklists, tables, and clear ' +
+  'placeholders (e.g. "...") for the user to fill in. ' +
+  'Reply with ONLY the raw markdown template — no explanations, no code fences, no extra commentary. ' +
+  'Match the language of the user\'s description (Arabic or English) unless told otherwise.';
+
+function buildTemplateSystemPrompt(plugin) {
+  let prompt = DEFAULT_TEMPLATE_GEN_PROMPT;
+  const lang = plugin.settings.aiResponseLang;
+  if (lang === 'ar') prompt += ' Always write the template in Arabic, regardless of the input language.';
+  else if (lang === 'en') prompt += ' Always write the template in English, regardless of the input language.';
+  return prompt;
+}
+
+class TemplateGeneratorModal extends Modal {
+  constructor(app, plugin, editor) {
+    super(app);
+    this.plugin = plugin; this.editor = editor;
+    this.result = '';
+  }
+
+  onOpen() {
+    const { contentEl, modalEl } = this;
+    contentEl.empty();
+    modalEl.addClass('ai-modal-root');
+    contentEl.addClass('ai-modal');
+
+    contentEl.createEl('div', { text: t('tgTitle'), cls: 'ai-modal-title' });
+
+    contentEl.createEl('div', { text: t('tgDescLabel'), cls: 'progress-label' });
+    this.descEl = contentEl.createEl('textarea', { cls: 'ai-textarea', placeholder: t('tgDescPlaceholder') });
+    this.descEl.rows = 2;
+
+    contentEl.createEl('div', { text: t('tgPromptLabel'), cls: 'progress-label ai-label-spaced' });
+    this.extraEl = contentEl.createEl('textarea', { cls: 'ai-textarea', placeholder: t('tgPromptPlaceholder') });
+    this.extraEl.rows = 2;
+
+    this.bodyEl = contentEl.createDiv('ai-modal-body');
+
+    this.actionsEl = contentEl.createDiv('ai-modal-actions');
+    this.generateBtn = this.actionsEl.createEl('button', { text: t('tgGenerate'), cls:'progress-btn progress-btn-insert' });
+    this.regenBtn    = this.actionsEl.createEl('button', { text: t('tgRegenerate'), cls:'progress-btn progress-btn-cancel' });
+    this.insertBtn   = this.actionsEl.createEl('button', { text: t('tgInsert'), cls:'progress-btn progress-btn-insert' });
+    this.cancelBtn   = this.actionsEl.createEl('button', { text: t('tgCancel'), cls:'progress-btn progress-btn-cancel' });
+
+    this.regenBtn.style.display  = 'none';
+    this.insertBtn.style.display = 'none';
+
+    this.generateBtn.addEventListener('click', () => this.generate());
+    this.regenBtn.addEventListener('click',    () => this.generate());
+    this.insertBtn.addEventListener('click', () => {
+      if (this.result) this.editor.replaceSelection(this.result);
+      this.close();
+    });
+    this.cancelBtn.addEventListener('click', () => this.close());
+
+    setTimeout(() => this.descEl.focus(), 30);
+  }
+
+  setLoading() {
+    this.bodyEl.empty();
+    const loading = this.bodyEl.createDiv('ai-loading');
+    loading.createDiv('ai-spinner');
+    loading.createEl('span', { text: t('tgThinking') });
+    this.generateBtn.style.display = 'none';
+    this.regenBtn.style.display    = 'none';
+    this.insertBtn.style.display   = 'none';
+  }
+
+  async generate() {
+    const description = this.descEl.value.trim();
+    if (!description) { new Notice(t('tgEmptyDesc')); return; }
+    const extra = this.extraEl.value.trim();
+
+    this.setLoading();
+    try {
+      let userMsg = description;
+      if (extra) userMsg += `\n\nAdditional instructions: ${extra}`;
+
+      const messages = [
+        { role: 'system', content: buildTemplateSystemPrompt(this.plugin) },
+        { role: 'user', content: userMsg },
+      ];
+      const result = stripCodeFences(await callAI(this.plugin, messages, { maxTokens: 900 }));
+      this.result = result;
+      this.bodyEl.empty();
+      const pre = this.bodyEl.createEl('pre', { cls: 'ai-suggestion-box' });
+      pre.textContent = result;
+      this.regenBtn.style.display  = '';
+      this.insertBtn.style.display = '';
+    } catch (err) {
+      this.bodyEl.empty();
+      this.bodyEl.createEl('div', { text: t('aiError') + err.message, cls: 'ai-error-box' });
+      this.regenBtn.style.display = '';
+    } finally {
+      this.generateBtn.style.display = 'none';
+    }
+  }
+
+  onClose() { this.contentEl.empty(); }
+}
+
+
 function makeProgressBar(pct) {
   const filled = Math.round(pct / 10);
   return `[${'█'.repeat(filled)}${'░'.repeat(10 - filled)}] ${pct}%`;
@@ -199,7 +562,7 @@ class ProgressInputModal extends Modal {
 /* ══════════════════════════════════════════════
    FORMATTING ITEMS
 ══════════════════════════════════════════════ */
-function buildItems(editor, app) {
+function buildItems(editor, app, plugin) {
   const insertCallout = (type) => {
     const body  = editor.getSelection() || '…';
     const lines = body.split('\n').map(l => `> ${l}`).join('\n');
@@ -221,8 +584,28 @@ function buildItems(editor, app) {
     editor.replaceSelection(text);
   };
 
+  const openSmartSuggestion = () => {
+    if (!plugin?.settings?.enableAI) { new Notice(t('aiDisabled')); return; }
+    const cursor = editor.getCursor();
+    const selection = editor.getSelection();
+    let context = selection;
+    if (!context) {
+      const fromLine = Math.max(0, cursor.line - 12);
+      context = editor.getRange({ line: fromLine, ch: 0 }, cursor);
+    }
+    if (!context || !context.trim()) { new Notice(t('aiNoContext')); return; }
+    new AISuggestModal(app, plugin, editor, context).open();
+  };
+
+  const openTemplateGenerator = () => {
+    if (!plugin?.settings?.enableAI) { new Notice(t('aiDisabled')); return; }
+    new TemplateGeneratorModal(app, plugin, editor).open();
+  };
+
   return [
     /* ── INSERT ── */
+    { id:'i-template',  label:t('iTemplateGen'), icon:'📐', cat:'Insert', color:'#0ea5e9', mdpreview:'AI: ## … > [!tip] …', action:openTemplateGenerator },
+    { id:'i-smart',    label:t('iSmartTemplate'), icon:'✨', cat:'Insert', color:'#9333ea', mdpreview:'AI: > [!tip] …', action:openSmartSuggestion },
     { id:'i-date',     label:t('iDateLocale'), icon:'📅', cat:'Insert', color:'#0f766e', mdpreview:'June 11, 2025',         action:()=>insertDateTime('date') },
     { id:'i-date-iso', label:t('iDateIso'),    icon:'🗓️', cat:'Insert', color:'#0891b2', mdpreview:'2025-06-11',            action:()=>insertDateTime('date-iso') },
     { id:'i-time',     label:t('iTimeLocale'), icon:'🕐', cat:'Insert', color:'#7c3aed', mdpreview:'2:30 PM',               action:()=>insertDateTime('time') },
@@ -303,10 +686,10 @@ function buildItems(editor, app) {
    FORMATTING PALETTE MODAL
 ══════════════════════════════════════════════ */
 class FormattingPaletteModal extends Modal {
-  constructor(app, editor) { super(app); this.editor = editor; this.allItems = []; this.filtered = []; this.activeIdx = 0; this.cardEls = []; }
+  constructor(app, editor, plugin) { super(app); this.editor = editor; this.plugin = plugin; this.allItems = []; this.filtered = []; this.activeIdx = 0; this.cardEls = []; }
 
   onOpen() {
-    this.allItems = buildItems(this.editor, this.app);
+    this.allItems = buildItems(this.editor, this.app, this.plugin);
     this.filtered = [...this.allItems];
     const { contentEl, modalEl } = this;
     contentEl.empty(); modalEl.addClass('fp-modal-root'); contentEl.addClass('fp-palette');
@@ -441,7 +824,8 @@ class ImageControlManager {
 
   wrapImage(img) {
     const src = img.src;
-    let width = img.naturalWidth > 0 ? Math.min(img.naturalWidth, 400) : 360;
+    const originalWidth = img.naturalWidth > 0 ? Math.min(img.naturalWidth, 400) : 360;
+    let width = originalWidth;
     let align = 'center', rotate = 0;
 
     const outer = document.createElement('div'); outer.className = 'ic-block-center';
@@ -483,6 +867,12 @@ class ImageControlManager {
     tb.appendChild(mkBtn('↻', t('rotate'), () => { rotate=(rotate+90)%360; img.style.transform=`rotate(${rotate}deg)`; }));
     let captionVisible = false;
     tb.appendChild(mkBtn('✎', t('caption'), () => { captionVisible=!captionVisible; captIn.classList.toggle('visible',captionVisible); if(captionVisible) setTimeout(()=>captIn.focus(),50); }));
+    tb.appendChild(sep());
+    tb.appendChild(mkBtn('⟲', t('reset'), () => {
+      width = originalWidth; align = 'center'; rotate = 0;
+      applySize(); applyAlign();
+      img.style.transform = '';
+    }));
     tb.appendChild(sep());
     tb.appendChild(mkBtn('⎘', t('copyMd'), () => { navigator.clipboard.writeText(`![[${img.src}|${width}]]`).then(()=>new Notice(t('copied'))); }));
     tb.appendChild(mkBtn('⤢', t('lightbox'), () => this.openLightbox(src)));
@@ -592,12 +982,17 @@ class FullscreenManager {
    PREMIUM FILE TREE MANAGER
 ══════════════════════════════════════════════ */
 class FileTreeManager {
-  constructor(plugin) { this.plugin=plugin; this._obs=null; }
+  constructor(plugin) { this.plugin=plugin; this._obs=null; this._rafId=null; this._imageMap=null; }
 
   register() {
     document.body.classList.add('ft-active', `ft-height-${this.plugin.settings.fileTreeRowHeight}`);
 
-    this._obs = new MutationObserver(()=>this.processTree());
+    this._buildImageMap();
+    this.plugin.registerEvent(this.plugin.app.vault.on('create', () => this._buildImageMap()));
+    this.plugin.registerEvent(this.plugin.app.vault.on('delete', () => this._buildImageMap()));
+    this.plugin.registerEvent(this.plugin.app.vault.on('rename', () => this._buildImageMap()));
+
+    this._obs = new MutationObserver(()=>this.scheduleProcessTree());
 
     const attach = () => {
       const nav = document.querySelector('.nav-files-container');
@@ -609,18 +1004,39 @@ class FileTreeManager {
     };
 
     this.plugin.registerEvent(this.plugin.app.workspace.on('layout-change', attach));
-    this.plugin.registerEvent(this.plugin.app.workspace.on('file-open',     ()=>this.processTree()));
+    this.plugin.registerEvent(this.plugin.app.workspace.on('file-open',     ()=>this.scheduleProcessTree()));
     attach();
   }
 
+  /* Build a cached filename → resource-path lookup once, instead of
+     calling vault.getFiles() on every single row render. */
+  _buildImageMap() {
+    this._imageMap = new Map();
+    for (const file of this.plugin.app.vault.getFiles()) {
+      if (getFileType(file.name) === 'image') this._imageMap.set(file.name, file.path);
+    }
+  }
+
+  /* Coalesce bursts of MutationObserver events (e.g. during file-tree
+     scroll/virtualization) into a single pass per animation frame. */
+  scheduleProcessTree() {
+    if (this._rafId != null) return;
+    this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      this.processTree();
+    });
+  }
+
   processTree() {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav) return;
     /* folders */
-    document.querySelectorAll('.nav-folder-title:not([data-ft])').forEach(el=>{
+    nav.querySelectorAll('.nav-folder-title:not([data-ft])').forEach(el=>{
       el.setAttribute('data-ft','1');
       this._enhanceFolder(el);
     });
     /* files */
-    document.querySelectorAll('.nav-file-title:not([data-ft])').forEach(el=>{
+    nav.querySelectorAll('.nav-file-title:not([data-ft])').forEach(el=>{
       el.setAttribute('data-ft','1');
       this._enhanceFile(el);
     });
@@ -652,15 +1068,16 @@ class FileTreeManager {
     icon.innerHTML = FT_ICONS[type] || FT_ICONS.text;
     titleEl.prepend(icon);
 
-    /* image thumbnail */
+    /* image thumbnail — uses the cached map, no full vault scan */
     if (type === 'image' && this.plugin.settings.fileTreeThumbnails) {
-      const file = this.plugin.app.vault.getFiles().find(f => f.name === filename);
-      if (file) {
-        const src  = this.plugin.app.vault.adapter.getResourcePath(file.path);
-        const img  = document.createElement('img');
+      const path = this._imageMap?.get(filename);
+      if (path) {
+        const src = this.plugin.app.vault.adapter.getResourcePath(path);
+        const img = document.createElement('img');
         img.className = 'ft-thumb';
         img.src = src;
         img.alt = '';
+        img.loading = 'lazy';
         img.onload = () => { icon.innerHTML=''; icon.appendChild(img); icon.classList.add('ft-has-thumb'); };
       }
     }
@@ -673,6 +1090,7 @@ class FileTreeManager {
 
   destroy() {
     this._obs?.disconnect();
+    if (this._rafId != null) { cancelAnimationFrame(this._rafId); this._rafId = null; }
     document.body.classList.remove('ft-active','ft-height-compact','ft-height-default','ft-height-spacious');
     document.querySelectorAll('[data-ft]').forEach(el=>{ el.removeAttribute('data-ft'); el.querySelectorAll('.ft-icon').forEach(i=>i.remove()); });
     delete document.querySelector('.nav-files-container')?.dataset.ftObserved;
@@ -680,8 +1098,259 @@ class FileTreeManager {
 }
 
 /* ══════════════════════════════════════════════
-   SETTINGS TAB
+   QUICK ACCESS BAR
 ══════════════════════════════════════════════ */
+class QuickBarManager {
+  constructor(plugin) { this.plugin = plugin; this.barEl = null; }
+
+  register() {
+    const attach = () => this.injectBar();
+    this.plugin.registerEvent(this.plugin.app.workspace.on('layout-change', attach));
+    attach();
+  }
+
+  injectBar() {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav || !nav.parentElement) return;
+    const parent = nav.parentElement;
+
+    if (this.barEl && this.barEl.isConnected) { this.render(); return; }
+
+    this.barEl = document.createElement('div');
+    this.barEl.className = 'qb-bar';
+    parent.insertBefore(this.barEl, nav);
+    this.render();
+  }
+
+  render() {
+    if (!this.barEl) return;
+    this.barEl.empty ? this.barEl.empty() : (this.barEl.innerHTML = '');
+
+    const items = this.plugin.settings.quickBarItems || [];
+    if (!items.length) {
+      this.barEl.style.display = 'none';
+      return;
+    }
+    this.barEl.style.display = 'flex';
+
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'qb-item';
+      btn.title = item.path;
+
+      const af = this.plugin.app.vault.getAbstractFileByPath(item.path);
+      const isFolder = af instanceof TFolder;
+      const iconKey = isFolder ? 'folder' : (FT_ICONS[getFileType(item.path)] ? getFileType(item.path) : 'text');
+
+      const icon = document.createElement('span');
+      icon.className = `qb-icon ft-icon ft-${iconKey}`;
+      icon.innerHTML = FT_ICONS[iconKey] || FT_ICONS.text;
+
+      const label = document.createElement('span');
+      label.className = 'qb-label';
+      label.textContent = item.label || item.path.split('/').pop();
+
+      btn.append(icon, label);
+      btn.addEventListener('click', () => this.openItem(item));
+      this.barEl.appendChild(btn);
+    });
+  }
+
+  openItem(item) {
+    const af = this.plugin.app.vault.getAbstractFileByPath(item.path);
+    if (!af) { new Notice(t('qbNotFound') + item.path); return; }
+
+    if (af instanceof TFolder) {
+      const explorerLeaf = this.plugin.app.workspace.getLeavesOfType('file-explorer')[0];
+      explorerLeaf?.view?.revealInFolder?.(af);
+    } else if (af instanceof TFile) {
+      this.plugin.app.workspace.getLeaf(false).openFile(af);
+    }
+  }
+
+  destroy() {
+    this.barEl?.remove();
+    this.barEl = null;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   FOLDER FOCUS MODE
+══════════════════════════════════════════════ */
+class FolderFocusManager {
+  constructor(plugin) { this.plugin = plugin; this._obs = null; this._rafId = null; this.breadcrumbEl = null; this._navEl = null; this._clickHandler = null; }
+
+  register() {
+    this.plugin.registerEvent(this.plugin.app.workspace.on('file-menu', (menu, file) => {
+      if (!(file instanceof TFolder)) return;
+      if (this.plugin.settings.focusedFolder === file.path) {
+        menu.addItem(item => item.setTitle(t('ffUnfocusMenuItem')).setIcon('x-circle').onClick(() => this.clearFocus()));
+      } else {
+        menu.addItem(item => item.setTitle(t('ffFocusMenuItem')).setIcon('focus').onClick(() => this.setFocus(file.path)));
+      }
+    }));
+
+    this._obs = new MutationObserver(() => this.schedule());
+
+    this._clickHandler = (e) => {
+      const titleEl = e.target.closest('.nav-folder-title');
+      if (!titleEl) return;
+      const path = titleEl.dataset.path;
+      if (!path) return;
+      if (!(this.plugin.settings.mainFolders || []).includes(path)) return;
+      if (this.plugin.settings.focusedFolder === path) return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.setFocus(path, { collapseChildren: true });
+    };
+
+    const attach = () => {
+      const nav = document.querySelector('.nav-files-container');
+      if (nav && !nav.dataset.ffObserved) {
+        nav.dataset.ffObserved = '1';
+        this._obs.observe(nav, { childList:true, subtree:true });
+        nav.addEventListener('click', this._clickHandler, true);
+        this._navEl = nav;
+        this.applyFocus();
+      }
+    };
+
+    this.plugin.registerEvent(this.plugin.app.workspace.on('layout-change', attach));
+    attach();
+  }
+
+  schedule() {
+    if (this._rafId != null) return;
+    this._rafId = requestAnimationFrame(() => {
+      this._rafId = null;
+      this.applyFocus();
+    });
+  }
+
+  setFocus(path, opts = {}) {
+    this.plugin.settings.focusedFolder = path;
+    this.plugin.saveSettings();
+    this.applyFocus({ collapseChildren: opts.collapseChildren });
+  }
+
+  clearFocus() {
+    this.plugin.settings.focusedFolder = null;
+    this.plugin.saveSettings();
+    new Notice(t('ffFocusOff'));
+    this.applyFocus();
+  }
+
+  applyFocus(opts = {}) {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav) return;
+    const focus = this.plugin.settings.focusedFolder;
+    const mainFolders = this.plugin.settings.mainFolders || [];
+
+    /* reset previous state */
+    nav.querySelectorAll('.ff-hidden').forEach(el => el.classList.remove('ff-hidden'));
+    nav.querySelectorAll('.ff-self').forEach(el => el.classList.remove('ff-self'));
+    nav.querySelectorAll('.ff-main-badge').forEach(el => el.remove());
+    document.body.classList.toggle('ff-active', !!focus);
+    this.renderBreadcrumb();
+
+    /* decorate main-folder titles with a small indicator */
+    mainFolders.forEach(mfPath => {
+      const mfTitle = nav.querySelector(`.nav-folder-title[data-path="${CSS.escape(mfPath)}"]`);
+      if (!mfTitle || mfTitle.querySelector('.ff-main-badge')) return;
+      const badge = document.createElement('span');
+      badge.className = 'ff-main-badge';
+      badge.title = 'Main folder — click to focus';
+      mfTitle.appendChild(badge);
+    });
+
+    if (!focus) return;
+
+    /* data-path lives on .nav-folder-title, not .nav-folder */
+    const titleEl = nav.querySelector(`.nav-folder-title[data-path="${CSS.escape(focus)}"]`);
+    const focusEl = titleEl?.closest('.nav-folder');
+    if (!focusEl) return;
+
+    focusEl.classList.add('ff-self');
+    focusEl.classList.remove('is-collapsed');
+
+    /* optionally collapse all direct sub-folders */
+    if (opts.collapseChildren) {
+      focusEl.querySelectorAll('.nav-folder').forEach(sub => {
+        sub.classList.add('is-collapsed');
+      });
+    }
+
+    nav.querySelectorAll('.nav-folder, .nav-file').forEach(el => {
+      if (el === focusEl || focusEl.contains(el)) return;
+      el.classList.add('ff-hidden');
+    });
+  }
+
+  renderBreadcrumb() {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav || !nav.parentElement) return;
+    const parent = nav.parentElement;
+    const focus = this.plugin.settings.focusedFolder;
+    const mainFolders = this.plugin.settings.mainFolders || [];
+
+    /* always show the bar if we have main folders or an active focus */
+    const shouldShow = mainFolders.length > 0 || !!focus;
+
+    if (!shouldShow) { this.breadcrumbEl?.remove(); this.breadcrumbEl = null; return; }
+
+    if (!this.breadcrumbEl || !this.breadcrumbEl.isConnected) {
+      this.breadcrumbEl = document.createElement('div');
+      this.breadcrumbEl.className = 'ff-breadcrumb';
+      parent.insertBefore(this.breadcrumbEl, nav);
+    }
+    this.breadcrumbEl.innerHTML = '';
+
+    /* ← back button */
+    if (focus) {
+      const back = document.createElement('button');
+      back.className = 'ff-back-btn';
+      back.textContent = '← ' + t('ffBack');
+      back.addEventListener('click', () => this.clearFocus());
+      this.breadcrumbEl.appendChild(back);
+    }
+
+    /* main-folder tabs */
+    mainFolders.forEach(mfPath => {
+      const name = mfPath.split('/').pop();
+      const btn = document.createElement('button');
+      btn.className = 'ff-tab' + (mfPath === focus ? ' ff-tab-active' : '');
+      btn.textContent = name;
+      btn.title = mfPath;
+      btn.addEventListener('click', () => {
+        if (mfPath === focus) this.clearFocus();
+        else this.setFocus(mfPath, { collapseChildren: true });
+      });
+      this.breadcrumbEl.appendChild(btn);
+    });
+
+    /* current-folder label (if focused on a non-main folder) */
+    if (focus && !mainFolders.includes(focus)) {
+      const label = document.createElement('span');
+      label.className = 'ff-label';
+      label.textContent = focus.split('/').pop();
+      this.breadcrumbEl.appendChild(label);
+    }
+  }
+
+  destroy() {
+    this._obs?.disconnect();
+    if (this._rafId != null) { cancelAnimationFrame(this._rafId); this._rafId = null; }
+    if (this._navEl && this._clickHandler) this._navEl.removeEventListener('click', this._clickHandler, true);
+    document.body.classList.remove('ff-active');
+    document.querySelectorAll('.ff-hidden,.ff-self').forEach(el=>el.classList.remove('ff-hidden','ff-self'));
+    document.querySelectorAll('.ff-main-badge').forEach(el=>el.remove());
+    this.breadcrumbEl?.remove();
+    this.breadcrumbEl = null;
+    delete document.querySelector('.nav-files-container')?.dataset.ffObserved;
+  }
+}
+
+
 class ToolkitSettingsTab extends PluginSettingTab {
   constructor(app, plugin) { super(app, plugin); this.plugin=plugin; }
 
@@ -725,6 +1394,132 @@ class ToolkitSettingsTab extends PluginSettingTab {
 
     containerEl.createEl('hr');
 
+    new Setting(containerEl).setName(t('aiName')).setDesc(t('aiDesc'))
+      .addToggle(tog=>tog.setValue(this.plugin.settings.enableAI).onChange(async val=>{
+        this.plugin.settings.enableAI=val; await this.plugin.saveSettings();
+        new Notice(val?t('aiOn'):t('aiOff'));
+        this.display();
+      }));
+
+    if (this.plugin.settings.enableAI) {
+      const isOllama = this.plugin.settings.aiProvider === 'ollama';
+
+      /* ── Provider ── */
+      new Setting(containerEl).setName(t('aiProviderName')).setDesc(t('aiProviderDesc'))
+        .addDropdown(dd=>dd
+          .addOption('ollama', t('aiProviderOllama'))
+          .addOption('openai', t('aiProviderOpenAI'))
+          .addOption('custom', t('aiProviderCustom'))
+          .setValue(this.plugin.settings.aiProvider)
+          .onChange(async val=>{
+            this.plugin.settings.aiProvider = val;
+            const preset = AI_PROVIDER_PRESETS[val] || AI_PROVIDER_PRESETS.custom;
+            this.plugin.settings.aiApiUrl = preset.url;
+            if (preset.model) this.plugin.settings.aiModel = preset.model;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+
+      /* ── Base URL ── */
+      new Setting(containerEl).setName(t('aiUrlName')).setDesc(t('aiUrlDesc'))
+        .addText(tx=>tx.setPlaceholder('http://localhost:11434/v1')
+          .setValue(this.plugin.settings.aiApiUrl)
+          .onChange(async val=>{ this.plugin.settings.aiApiUrl = val.trim(); await this.plugin.saveSettings(); }));
+
+      /* ── API Key (hidden-but-optional for Ollama) ── */
+      new Setting(containerEl).setName(t('aiKeyName')).setDesc(t('aiKeyDesc'))
+        .addText(tx=>{
+          tx.inputEl.type = 'password';
+          tx.setPlaceholder(isOllama ? '(not required)' : 'sk-…')
+            .setValue(this.plugin.settings.aiApiKey)
+            .onChange(async val=>{ this.plugin.settings.aiApiKey = val.trim(); await this.plugin.saveSettings(); });
+        });
+
+      /* ── Model ── */
+      if (isOllama) {
+        const models = this.plugin.settings.aiOllamaModels || [];
+        const modelSetting = new Setting(containerEl).setName(t('aiModelDropdownName')).setDesc(t('aiModelDropdownDesc'));
+
+        if (models.length) {
+          modelSetting.addDropdown(dd=>{
+            models.forEach(m => dd.addOption(m, m));
+            if (!models.includes(this.plugin.settings.aiModel)) dd.addOption(this.plugin.settings.aiModel, this.plugin.settings.aiModel);
+            dd.setValue(this.plugin.settings.aiModel)
+              .onChange(async val=>{ this.plugin.settings.aiModel = val; await this.plugin.saveSettings(); });
+          });
+        } else {
+          modelSetting.setDesc(t('aiModelDropdownDesc') + '  —  ' + t('aiNoModelsYet'));
+          modelSetting.addText(tx=>tx.setPlaceholder('qwen2.5:3b')
+            .setValue(this.plugin.settings.aiModel)
+            .onChange(async val=>{ this.plugin.settings.aiModel = val.trim(); await this.plugin.saveSettings(); }));
+        }
+
+        modelSetting.addButton(btn=>btn.setButtonText(t('aiFetchModels')).onClick(async ()=>{
+          btn.setButtonText(t('aiFetchingModels')).setDisabled(true);
+          try {
+            const fetched = await fetchOllamaModels(this.plugin.settings.aiApiUrl);
+            this.plugin.settings.aiOllamaModels = fetched;
+            if (fetched.length && !fetched.includes(this.plugin.settings.aiModel)) {
+              this.plugin.settings.aiModel = fetched[0];
+            }
+            await this.plugin.saveSettings();
+            new Notice(t('aiModelsFetchOk').replace('{n}', fetched.length));
+          } catch (err) {
+            new Notice(t('aiModelsFetchFail') + err.message);
+          } finally {
+            this.display();
+          }
+        }));
+      } else {
+        new Setting(containerEl).setName(t('aiModelName')).setDesc(t('aiModelDesc'))
+          .addText(tx=>tx.setPlaceholder('gpt-4o-mini')
+            .setValue(this.plugin.settings.aiModel)
+            .onChange(async val=>{ this.plugin.settings.aiModel = val.trim(); await this.plugin.saveSettings(); }));
+      }
+
+      /* ── Test connection ── */
+      new Setting(containerEl).setName(t('aiTest')).setDesc('')
+        .addButton(btn=>btn.setButtonText(t('aiTest')).onClick(async ()=>{
+          btn.setDisabled(true);
+          try {
+            await callAI(this.plugin, [{ role:'user', content:'Reply with the single word: OK' }]);
+            new Notice(t('aiTestOk'));
+          } catch (err) {
+            new Notice(t('aiTestFail') + err.message);
+          } finally {
+            btn.setDisabled(false);
+          }
+        }));
+
+      /* ── Response language ── */
+      new Setting(containerEl).setName(t('aiLangName')).setDesc(t('aiLangDesc'))
+        .addDropdown(dd=>dd
+          .addOption('auto', t('aiLangAuto'))
+          .addOption('ar',   t('aiLangAr'))
+          .addOption('en',   t('aiLangEn'))
+          .setValue(this.plugin.settings.aiResponseLang)
+          .onChange(async val=>{ this.plugin.settings.aiResponseLang = val; await this.plugin.saveSettings(); }));
+
+      /* ── System prompt ── */
+      const promptSetting = new Setting(containerEl).setName(t('aiPromptName')).setDesc(t('aiPromptDesc'));
+      promptSetting.settingEl.style.flexDirection = 'column';
+      promptSetting.settingEl.style.alignItems = 'stretch';
+      promptSetting.addTextArea(ta=>{
+        ta.inputEl.rows = 5;
+        ta.inputEl.style.width = '100%';
+        ta.setPlaceholder(DEFAULT_SMART_TEMPLATE_PROMPT)
+          .setValue(this.plugin.settings.aiSystemPrompt)
+          .onChange(async val=>{ this.plugin.settings.aiSystemPrompt = val; await this.plugin.saveSettings(); });
+      });
+      promptSetting.addButton(btn=>btn.setButtonText(t('aiPromptReset')).onClick(async ()=>{
+        this.plugin.settings.aiSystemPrompt = '';
+        await this.plugin.saveSettings();
+        this.display();
+      }));
+    }
+
+    containerEl.createEl('hr');
+
     new Setting(containerEl).setName(t('ftName')).setDesc(t('ftDesc'))
       .addToggle(tog=>tog.setValue(this.plugin.settings.enableFileTree).onChange(async val=>{
         this.plugin.settings.enableFileTree=val; await this.plugin.saveSettings();
@@ -753,7 +1548,142 @@ class ToolkitSettingsTab extends PluginSettingTab {
         );
     }
 
-    containerEl.createEl('p', { text:'Obsidian Toolkit v2.2 — by Ahmed', cls:'setting-item-description' });
+    containerEl.createEl('hr');
+
+    new Setting(containerEl).setName(t('qbName')).setDesc(t('qbDesc'))
+      .addToggle(tog=>tog.setValue(this.plugin.settings.enableQuickBar).onChange(async val=>{
+        this.plugin.settings.enableQuickBar=val; await this.plugin.saveSettings();
+        val ? this.plugin.quickBarMgr.injectBar() : this.plugin.quickBarMgr.destroy();
+        this.display();
+      }));
+
+    if (this.plugin.settings.enableQuickBar) {
+      containerEl.createEl('div', { text: t('qbItemsLabel'), cls: 'setting-item-name', attr: { style: 'margin: 8px 0 4px;' } });
+
+      const items = this.plugin.settings.quickBarItems || [];
+      if (!items.length) {
+        containerEl.createEl('p', { text: t('qbEmpty'), cls: 'setting-item-description' });
+      } else {
+        items.forEach((item, idx) => {
+          new Setting(containerEl)
+            .setName(item.label || item.path.split('/').pop())
+            .setDesc(item.path)
+            .addExtraButton(btn=>btn.setIcon('x').setTooltip(t('qbRemove')).onClick(async ()=>{
+              this.plugin.settings.quickBarItems.splice(idx, 1);
+              await this.plugin.saveSettings();
+              this.plugin.quickBarMgr.render();
+              this.display();
+            }));
+        });
+      }
+
+      /* quick-add buttons */
+      new Setting(containerEl)
+        .addButton(btn=>btn.setButtonText(t('qbAddCurrent')).onClick(async ()=>{
+          const file = this.plugin.app.workspace.getActiveFile();
+          if (!file) { new Notice(t('qbNoActiveFile')); return; }
+          await this.addQuickItem(file.path, file.name);
+        }))
+        .addButton(btn=>btn.setButtonText(t('qbAddCurrentFolder')).onClick(async ()=>{
+          const file = this.plugin.app.workspace.getActiveFile();
+          if (!file || !file.parent) { new Notice(t('qbNoActiveFile')); return; }
+          const folder = file.parent;
+          await this.addQuickItem(folder.path, folder.name || folder.path);
+        }));
+
+      /* manual add */
+      let manualPath = '', manualLabel = '';
+      new Setting(containerEl)
+        .addText(tx=>tx.setPlaceholder(t('qbPathPlaceholder')).onChange(val=>{ manualPath = val.trim(); }))
+        .addText(tx=>tx.setPlaceholder(t('qbLabelPlaceholder')).onChange(val=>{ manualLabel = val.trim(); }))
+        .addButton(btn=>btn.setButtonText(t('qbAdd')).setCta().onClick(async ()=>{
+          if (!manualPath) { new Notice(t('qbInvalidPath')); return; }
+          await this.addQuickItem(manualPath, manualLabel);
+        }));
+    }
+
+    containerEl.createEl('hr');
+
+    new Setting(containerEl).setName(t('ffName')).setDesc(t('ffDesc'))
+      .addToggle(tog=>tog.setValue(this.plugin.settings.enableFolderFocus).onChange(async val=>{
+        this.plugin.settings.enableFolderFocus=val; await this.plugin.saveSettings();
+        if (val) { this.plugin.folderFocusMgr.register(); }
+        else { this.plugin.settings.focusedFolder = null; await this.plugin.saveSettings(); this.plugin.folderFocusMgr.destroy(); }
+        this.display();
+      }));
+
+    if (this.plugin.settings.enableFolderFocus && this.plugin.settings.focusedFolder) {
+      new Setting(containerEl)
+        .setName(t('ffFocusOn') + this.plugin.settings.focusedFolder)
+        .addButton(btn=>btn.setButtonText(t('ffUnfocusMenuItem')).onClick(async ()=>{
+          this.plugin.folderFocusMgr.clearFocus();
+          this.display();
+        }));
+    }
+
+    if (this.plugin.settings.enableFolderFocus) {
+      containerEl.createEl('div', { text: t('mfName'), cls: 'setting-item-name', attr:{ style:'margin:10px 0 2px;' } });
+      containerEl.createEl('div', { text: t('mfDesc'), cls: 'setting-item-description', attr:{ style:'margin-bottom:8px;' } });
+
+      const mf = this.plugin.settings.mainFolders || [];
+      if (!mf.length) {
+        containerEl.createEl('p', { text: t('mfEmpty'), cls: 'setting-item-description' });
+      } else {
+        mf.forEach((path, idx) => {
+          new Setting(containerEl)
+            .setName(path.split('/').pop())
+            .setDesc(path)
+            .addExtraButton(btn=>btn.setIcon('arrow-up').onClick(async ()=>{
+              if (idx === 0) return;
+              [mf[idx-1], mf[idx]] = [mf[idx], mf[idx-1]];
+              await this.plugin.saveSettings(); this.plugin.folderFocusMgr.applyFocus(); this.display();
+            }))
+            .addExtraButton(btn=>btn.setIcon('arrow-down').onClick(async ()=>{
+              if (idx === mf.length-1) return;
+              [mf[idx], mf[idx+1]] = [mf[idx+1], mf[idx]];
+              await this.plugin.saveSettings(); this.plugin.folderFocusMgr.applyFocus(); this.display();
+            }))
+            .addExtraButton(btn=>btn.setIcon('x').setTooltip(t('mfRemove')).onClick(async ()=>{
+              mf.splice(idx, 1);
+              await this.plugin.saveSettings(); this.plugin.folderFocusMgr.applyFocus(); this.display();
+            }));
+        });
+      }
+
+      new Setting(containerEl)
+        .addButton(btn=>btn.setButtonText(t('mfAddCurrent')).onClick(async ()=>{
+          const file = this.plugin.app.workspace.getActiveFile();
+          if (!file?.parent) { new Notice(t('mfNoActiveFile')); return; }
+          const path = file.parent.path;
+          if (!path || path === '/') { new Notice(t('mfInvalidPath')); return; }
+          const mf = this.plugin.settings.mainFolders || (this.plugin.settings.mainFolders = []);
+          if (mf.includes(path)) { new Notice(t('mfDuplicate')); return; }
+          mf.push(path);
+          await this.plugin.saveSettings(); this.plugin.folderFocusMgr.applyFocus(); this.display();
+        }));
+
+      let mfManual = '';
+      new Setting(containerEl)
+        .addText(tx=>tx.setPlaceholder(t('mfPathPlaceholder')).onChange(val=>{ mfManual = val.trim(); }))
+        .addButton(btn=>btn.setButtonText(t('mfAdd')).setCta().onClick(async ()=>{
+          if (!mfManual) { new Notice(t('mfInvalidPath')); return; }
+          const mf = this.plugin.settings.mainFolders || (this.plugin.settings.mainFolders = []);
+          if (mf.includes(mfManual)) { new Notice(t('mfDuplicate')); return; }
+          mf.push(mfManual);
+          await this.plugin.saveSettings(); this.plugin.folderFocusMgr.applyFocus(); this.display();
+        }));
+    }
+
+    containerEl.createEl('p', { text:'Obsidian Toolkit v2.6 — by Ahmed', cls:'setting-item-description' });
+  }
+
+  async addQuickItem(path, label) {
+    const items = this.plugin.settings.quickBarItems || (this.plugin.settings.quickBarItems = []);
+    if (items.some(i => i.path === path)) { new Notice(t('qbDuplicate')); return; }
+    items.push({ id: `${Date.now()}`, path, label: label || path.split('/').pop() });
+    await this.plugin.saveSettings();
+    this.plugin.quickBarMgr.render();
+    this.display();
   }
 }
 
@@ -764,19 +1694,17 @@ class ObsidianToolkitPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
-    this._styleEl = document.createElement('link'); this._styleEl.rel='stylesheet';
-    this._styleEl.href = this.app.vault.adapter.getResourcePath(this.app.vault.configDir+'/plugins/obsidian-toolkit/styles.css');
-    document.head.appendChild(this._styleEl);
+    /* CSS auto-loaded by Obsidian from styles.css */
 
     if (this.settings.enableFormatting) {
       this.addRibbonIcon('wand-2', 'Formatting Palette (Ctrl+Shift+F)', ()=>{
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (view) new FormattingPaletteModal(this.app, view.editor).open();
+        if (view) new FormattingPaletteModal(this.app, view.editor, this).open();
         else new Notice(t('openMd'));
       });
       this.addCommand({ id:'open-formatting-palette', name:'Open Formatting Palette',
         hotkeys:[{modifiers:['Ctrl','Shift'],key:'f'}],
-        editorCallback:(editor)=>new FormattingPaletteModal(this.app, editor).open() });
+        editorCallback:(editor)=>new FormattingPaletteModal(this.app, editor, this).open() });
     }
 
     if (this.settings.enableImageControl) {
@@ -794,15 +1722,43 @@ class ObsidianToolkitPlugin extends Plugin {
     this.fileTreeMgr = new FileTreeManager(this);
     if (this.settings.enableFileTree) this.fileTreeMgr.register();
 
+    this.quickBarMgr = new QuickBarManager(this);
+    if (this.settings.enableQuickBar) this.quickBarMgr.register();
+
+    this.folderFocusMgr = new FolderFocusManager(this);
+    if (this.settings.enableFolderFocus) this.folderFocusMgr.register();
+
+    this.addCommand({ id:'ai-smart-suggestion', name:'AI Smart Template Suggestion',
+      hotkeys:[{modifiers:['Ctrl','Shift'],key:'g'}],
+      editorCallback:(editor)=>{
+        if (!this.settings.enableAI) { new Notice(t('aiDisabled')); return; }
+        const cursor = editor.getCursor();
+        const selection = editor.getSelection();
+        let context = selection;
+        if (!context) {
+          const fromLine = Math.max(0, cursor.line - 12);
+          context = editor.getRange({ line: fromLine, ch: 0 }, cursor);
+        }
+        if (!context || !context.trim()) { new Notice(t('aiNoContext')); return; }
+        new AISuggestModal(this.app, this, editor, context).open();
+      } });
+
+    this.addCommand({ id:'ai-template-generator', name:'AI Template Generator',
+      hotkeys:[{modifiers:['Ctrl','Shift'],key:'t'}],
+      editorCallback:(editor)=>{
+        if (!this.settings.enableAI) { new Notice(t('aiDisabled')); return; }
+        new TemplateGeneratorModal(this.app, this, editor).open();
+      } });
+
     this.addSettingTab(new ToolkitSettingsTab(this.app, this));
-    console.log('✅ Obsidian Toolkit v2.2 — lang:', getAppLang());
   }
 
   onunload() {
-    this._styleEl?.remove();
     this.imgMgr?.destroy();
     this.fullscreenMgr?.destroy();
     this.fileTreeMgr?.destroy();
+    this.quickBarMgr?.destroy();
+    this.folderFocusMgr?.destroy();
     document.querySelectorAll('.ic-lightbox-overlay').forEach(e=>e.remove());
   }
 
