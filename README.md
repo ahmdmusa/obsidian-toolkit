@@ -35,6 +35,9 @@ A searchable command palette with 60+ formatting elements organised by category.
 
 Press `Ctrl+Shift+F` (or click the wand icon in the ribbon) to open it. Use `↑↓` to navigate, `Enter` to insert, `Esc` to close.
 
+<img width="994" height="867" alt="1" src="https://github.com/user-attachments/assets/cfe5e484-d84e-45dd-8e70-1032c5cd826f" />
+
+
 **Categories:**
 - **Insert** — Dates, times, progress bar generator, AI smart suggestion, AI template generator
 - **Callouts** — All 12 built-in Obsidian callouts (note, tip, warning, danger, bug…)
@@ -52,12 +55,16 @@ Press `Ctrl+Shift+F` (or click the wand icon in the ribbon) to open it. Use `↑
 
 Connect any OpenAI-compatible API — or run models locally for free with Ollama.
 
+<img width="683" height="504" alt="2" src="https://github.com/user-attachments/assets/589ca5fe-d551-4c82-a64f-ccbd9af199b7" />
+
 **Supported providers:**
 - **Ollama** (local, free) — auto-fetches your installed models
 - **OpenAI** — gpt-4o-mini, gpt-4o…
 - **Custom** — OpenRouter, Groq, Anthropic proxy, or any `/v1/chat/completions` endpoint
 
 **Configure:** Settings → Obsidian Toolkit → 🤖 AI Provider
+<img width="1137" height="860" alt="55" src="https://github.com/user-attachments/assets/0650bde7-8977-4205-a98e-dc8848ab91f7" />
+
 
 ### AI Smart Suggestion `Ctrl+Shift+G`
 
@@ -69,6 +76,8 @@ Describe what you want to create and the AI generates a complete, structured mar
 
 > *"Weekly meeting notes with action items"*
 > → Full template with headings, callouts, checklists, and placeholders
+
+<img width="683" height="504" alt="2" src="https://github.com/user-attachments/assets/eafad452-5ee5-4ecc-a195-5c638ef2a3af" />
 
 Optional extra instructions: *"Use Arabic headings"*, *"Keep it short"*, *"Include a progress bar"*
 
@@ -98,6 +107,8 @@ Click any image in Reading View to reveal a floating toolbar.
 | `⎘` | Copy Obsidian markdown link with current width |
 | `⤢` | Open fullscreen lightbox (pan, zoom, rotate) |
 
+<img width="617" height="326" alt="image" src="https://github.com/user-attachments/assets/9a561c12-9d6f-42a2-b1fb-85a883908d81" />
+
 **Special layouts** — add these CSS classes to a `div` wrapping images in your markdown:
 
 ```html
@@ -111,18 +122,23 @@ Click any image in Reading View to reveal a floating toolbar.
 ## ⛶ Fullscreen Note
 
 Floating fullscreen button (`⛶`) appears on every note. Toggle with `Ctrl+Shift+Z`.
+<img width="166" height="134" alt="3" src="https://github.com/user-attachments/assets/88f8366a-736a-4074-8e36-c19bf06c0e8e" />
 
 **Auto-fullscreen:** Enable in settings to automatically enter fullscreen after a configurable inactivity period (5–120 seconds). A soft hint bar appears 3 seconds before with a Cancel button.
+
+<img width="1137" height="537" alt="5" src="https://github.com/user-attachments/assets/1db45739-6fac-4af4-bad6-38c97d142c96" />
 
 ---
 
 ## 🌳 Premium File Tree
 
 Apple-style SF Symbols-inspired icons for every file type in the file explorer — Markdown, PDF, Image, Video, Audio, Code, Archive, Canvas, Link, and plain text.
+<img width="334" height="340" alt="8" src="https://github.com/user-attachments/assets/8b7c7677-06d6-4c22-ad0b-835210e419f8" />
 
 Image files display a real 18×18 px thumbnail in the tree.
 
 **Row height:** Compact / Default / Spacious — configurable in settings.
+<img width="1086" height="442" alt="3 2" src="https://github.com/user-attachments/assets/45e1025c-7639-4701-bf19-dbfc0c15e16a" />
 
 ---
 
@@ -134,6 +150,9 @@ A persistent bar of pinned buttons above the file tree. Each button opens a spec
 - **"+ Add current file"** — pins the file currently open in the editor
 - **"+ Add current folder"** — pins its parent folder
 - **Manual path** — type any vault-relative path
+<img width="1085" height="539" alt="6" src="https://github.com/user-attachments/assets/37f2f1d9-3632-4e2a-ac94-304df369a7c5" />
+
+<img width="344" height="491" alt="4" src="https://github.com/user-attachments/assets/8438522f-085b-4818-85f9-932860a4aaaf" />
 
 ---
 
@@ -144,6 +163,7 @@ Right-click any folder → **"📁 Focus on this folder"** — the sidebar shows
 A back button ("← All files") appears at the top to exit focus.
 
 **Main Folders** (Settings → Folder Focus Mode): define a list of top-level folders that appear as **tabs** in a persistent bar above the tree. One click on a tab → instant focus. Click again → exit.
+<img width="1067" height="556" alt="7" src="https://github.com/user-attachments/assets/320ae64e-4b29-4bf9-ae1a-1e8386fb57c0" />
 
 > Note: Search, Graph View, and Quick Switcher (`Ctrl+O`) always cover the full vault regardless of focus state.
 
@@ -205,7 +225,7 @@ All shortcuts can be changed in Settings → Hotkeys.
 
 <div dir="rtl">
 
-# Obsidian Toolkit — بالعربي
+# Obsidian Toolkit — ع
 
 **مجموعة أدوات متكاملة لـ Obsidian — سبع وحدات في إضافة واحدة**
 
@@ -253,9 +273,21 @@ All shortcuts can be changed in Settings → Hotkeys.
 3. أعد فتح Obsidian → Settings → Community Plugins → فعّل **Obsidian Toolkit**
 
 ---
+<img width="994" height="867" alt="1" src="https://github.com/user-attachments/assets/c00977c7-87c4-47c3-ab6e-472775d28d50" />
+<img width="683" height="504" alt="2" src="https://github.com/user-attachments/assets/f51727b3-37db-4c9d-b808-db47216412ac" />
 
-## الترخيص
+<img width="166" height="134" alt="3" src="https://github.com/user-attachments/assets/3a5a1500-b548-4de4-a5ff-d0c28e8fdaee" />
 
-MIT — by [Ahmed Moussa](https://github.com/ahmdmusa)
+<img width="344" height="491" alt="4" src="https://github.com/user-attachments/assets/8d7b35ee-d706-45ce-81be-1b69b9da606e" />
+<img width="1137" height="537" alt="5" src="https://github.com/user-attachments/assets/559fa6c9-f0ae-4578-9d74-9d4dcd3866fe" />
+<img width="1137" height="860" alt="55" src="https://github.com/user-attachments/assets/d5aedd1d-aa8e-4563-9a3d-29f333a55aa2" />
+<img width="1086" height="442" alt="3 2" src="https://github.com/user-attachments/assets/095888d5-77e7-421e-81c4-90c2c1ceecdf" />
+<img width="1085" height="539" alt="6" src="https://github.com/user-attachments/assets/74021700-f2f8-4504-9909-c0bb36a7269b" />
+<img width="1067" height="556" alt="7" src="https://github.com/user-attachments/assets/1b5ba115-8339-49cf-9ce0-ffb8c5be2a66" />
 
+
+### licence 
+
+MIT — by [ Ahmed Mousa - EG26 ](https://github.com/ahmdmusa)
+#### thanks
 </div>
