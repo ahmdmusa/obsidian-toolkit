@@ -42,6 +42,8 @@ const TR = {
     alignL:'Float left', alignC:'Center', alignR:'Float right',
     rotate:'Rotate 90°', caption:'Caption', captionPH:'Add a caption…',
     lightbox:'Open in lightbox', copyMd:'Copy Markdown', copied:'✅ Copied!',
+    lbFlipH:'Flip horizontal', lbFlipV:'Flip vertical', lbInvert:'Invert colors',
+    lbGallery:'Images in this note', lbMoveHint:'← → next/prev image · Shift+arrows to pan · Scroll to zoom',
     progressTitle:'Insert Progress Bar', progressValue:'Value',
     progressPreview:'Preview', progressInsert:'Insert', progressCancel:'Cancel',
     reset:'Reset to original',
@@ -119,6 +121,8 @@ const TR = {
     alignL:'يسار', alignC:'وسط', alignR:'يمين',
     rotate:'تدوير 90°', caption:'Caption', captionPH:'اكتب الـ caption هنا...',
     lightbox:'فتح في lightbox', copyMd:'نسخ Markdown', copied:'✅ تم النسخ!',
+    lbFlipH:'قلب أفقي', lbFlipV:'قلب رأسي', lbInvert:'عكس الألوان',
+    lbGallery:'صور هذه الملاحظة', lbMoveHint:'← → الصورة التالية/السابقة · Shift+سهم للتحريك · التمرير للتكبير',
     progressTitle:'إدراج شريط تقدم', progressValue:'النسبة',
     progressPreview:'معاينة', progressInsert:'إدراج', progressCancel:'إلغاء',
     reset:'إعادة الضبط للوضع الأصلي',
@@ -798,20 +802,26 @@ class ImageControlManager {
 
   _closeActive() { this._activeWrapper?.classList.remove('ic-active'); this._activeWrapper = null; }
 
+  /* Collect all image sources within the same rendered note, in document order */
+  _allImageSrcsIn(el) {
+    const root = el.closest('.markdown-preview-view, .markdown-reading-view, .markdown-rendered') || el.ownerDocument;
+    return Array.from(root.querySelectorAll('img')).map(i => i.src);
+  }
+
   processSpecialLayouts(el) {
     el.querySelectorAll('.img-caption').forEach(div => {
       div.classList.add('ic-caption-layout');
-      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src)));
+      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src, this._allImageSrcsIn(img))));
       div.querySelectorAll('em').forEach(em => em.classList.add('ic-cap-text'));
     });
     el.querySelectorAll('.img-col').forEach(div => {
       div.classList.add('ic-col-layout');
       if (div.classList.contains('img-col-right')) div.classList.add('reversed');
-      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src)));
+      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src, this._allImageSrcsIn(img))));
     });
     [2,3,4].forEach(n => el.querySelectorAll(`.img-grid-${n}`).forEach(div => {
       div.classList.add('ic-grid', `ic-grid-${n}`);
-      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src)));
+      div.querySelectorAll('img').forEach(img => img.addEventListener('click', () => this.openLightbox(img.src, this._allImageSrcsIn(img))));
     }));
   }
 
@@ -875,7 +885,7 @@ class ImageControlManager {
     }));
     tb.appendChild(sep());
     tb.appendChild(mkBtn('⎘', t('copyMd'), () => { navigator.clipboard.writeText(`![[${img.src}|${width}]]`).then(()=>new Notice(t('copied'))); }));
-    tb.appendChild(mkBtn('⤢', t('lightbox'), () => this.openLightbox(src)));
+    tb.appendChild(mkBtn('⤢', t('lightbox'), () => this.openLightbox(src, this._allImageSrcsIn(img))));
 
     img.style.width=width+'px'; img.style.height='auto'; img.style.cursor='pointer';
     img.addEventListener('click', (e) => {
@@ -889,27 +899,138 @@ class ImageControlManager {
     wrapper.append(tb, img); outer.append(wrapper, captIn, captEl);
   }
 
-  openLightbox(src) {
-    let scale=1, rot=0, tx=0, ty=0, dragging=false, startX, startY;
+  openLightbox(src, allSrcs = []) {
+    let scale=1, rot=0, tx=0, ty=0, flipX=1, flipY=1, inverted=false;
+    let dragging=false, startX, startY;
+    let currentIdx = allSrcs.indexOf(src);
+    if (currentIdx < 0) currentIdx = 0;
+
+    /* ── overlay ── */
     const overlay = document.createElement('div'); overlay.className='ic-lightbox-overlay';
     const inner   = document.createElement('div'); inner.className='ic-lightbox-inner';
     const image   = document.createElement('img'); image.className='ic-lightbox-img'; image.src=src;
-    const applyT  = () => { image.style.transform=`translate(${tx}px,${ty}px) scale(${scale}) rotate(${rot}deg)`; zoomVal.textContent=Math.round(scale*100)+'%'; };
-    const closeBtn= document.createElement('button'); closeBtn.className='ic-lb-close'; closeBtn.innerHTML='✕'; closeBtn.onclick=()=>close();
+
+    const applyT = () => {
+      image.style.transform = `translate(${tx}px,${ty}px) scale(${scale*flipX},${scale*flipY}) rotate(${rot}deg)`;
+      image.style.filter = inverted ? 'invert(1) hue-rotate(180deg)' : '';
+      zoomVal.textContent = Math.round(scale*100)+'%';
+    };
+
+    const loadImg = (newSrc) => {
+      image.src = newSrc;
+      scale=1; rot=0; tx=0; ty=0; flipX=1; flipY=1; inverted=false;
+      applyT();
+      updateGalleryActive();
+    };
+
+    /* ── close button ── */
+    const closeBtn = document.createElement('button'); closeBtn.className='ic-lb-close'; closeBtn.innerHTML='✕'; closeBtn.onclick=()=>close();
+
+    /* ── top bar ── */
     const bar     = document.createElement('div'); bar.className='ic-lb-bar';
     const zoomVal = document.createElement('span'); zoomVal.className='ic-lb-zoom-val'; zoomVal.textContent='100%';
-    const lbBtn   = (l,fn)=>{ const b=document.createElement('button'); b.className='ic-lb-btn'; b.textContent=l; b.addEventListener('click',e=>{e.stopPropagation();fn();applyT();}); return b; };
-    bar.append(lbBtn('−',()=>{scale=Math.max(0.1,scale-.15);}), zoomVal, lbBtn('+',()=>{scale=Math.min(6,scale+.15);}), lbBtn('↻',()=>{rot=(rot+90)%360;}), lbBtn('↺',()=>{rot=(rot-90+360)%360;}), lbBtn('1:1',()=>{scale=1;rot=0;tx=0;ty=0;}));
-    inner.addEventListener('mousedown', e => { if(e.button!==0)return; dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; inner.classList.add('dragging'); });
-    const onMove=e=>{ if(!dragging)return; tx=e.clientX-startX; ty=e.clientY-startY; applyT(); };
-    const onUp  =()=>{ dragging=false; inner.classList.remove('dragging'); };
-    window.addEventListener('mousemove',onMove); window.addEventListener('mouseup',onUp);
-    overlay.addEventListener('wheel',e=>{e.preventDefault();scale=Math.min(6,Math.max(.1,scale-e.deltaY*.0012));applyT();},{passive:false});
-    overlay.addEventListener('click',e=>{if(e.target===overlay)close();});
-    const onKey=e=>{if(e.key==='Escape')close();};
-    document.addEventListener('keydown',onKey);
-    const close=()=>{ overlay.remove(); window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); document.removeEventListener('keydown',onKey); };
-    inner.appendChild(image); overlay.append(closeBtn,inner,bar); document.body.appendChild(overlay);
+
+    const lbBtn = (l, title, fn) => {
+      const b = document.createElement('button'); b.className='ic-lb-btn'; b.textContent=l; b.title=title;
+      b.addEventListener('click', e=>{ e.stopPropagation(); fn(); applyT(); }); return b;
+    };
+
+    const invertBtn = lbBtn('⬛', t('lbInvert'), ()=>{ inverted=!inverted; invertBtn.classList.toggle('ic-lb-active', inverted); });
+
+    bar.append(
+      lbBtn('−',   'Zoom out',       ()=>{ scale=Math.max(0.1,scale-.15); }),
+      zoomVal,
+      lbBtn('+',   'Zoom in',        ()=>{ scale=Math.min(6,scale+.15); }),
+      lbBtn('↻',   'Rotate right',   ()=>{ rot=(rot+90)%360; }),
+      lbBtn('↺',   'Rotate left',    ()=>{ rot=(rot-90+360)%360; }),
+      lbBtn('↔',   t('lbFlipH'),     ()=>{ flipX*=-1; }),
+      lbBtn('↕',   t('lbFlipV'),     ()=>{ flipY*=-1; }),
+      invertBtn,
+      lbBtn('1:1', 'Reset',          ()=>{ scale=1;rot=0;tx=0;ty=0;flipX=1;flipY=1;inverted=false; invertBtn.classList.remove('ic-lb-active'); }),
+    );
+
+    /* ── drag ── */
+    inner.addEventListener('mousedown', e => {
+      if (e.button!==0) return;
+      dragging=true; startX=e.clientX-tx; startY=e.clientY-ty; inner.classList.add('dragging');
+    });
+    const onMove = e=>{ if(!dragging)return; tx=e.clientX-startX; ty=e.clientY-startY; applyT(); };
+    const onUp   = ()=>{ dragging=false; inner.classList.remove('dragging'); };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup',   onUp);
+
+    /* ── scroll zoom ── */
+    overlay.addEventListener('wheel', e=>{
+      e.preventDefault();
+      scale=Math.min(6,Math.max(.1,scale-e.deltaY*.0012));
+      applyT();
+    }, {passive:false});
+
+    /* ── arrow keys + escape ── */
+    const STEP = 20;
+    const onKey = e => {
+      switch(e.key) {
+        case 'Escape':
+          close(); break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (allSrcs.length > 1 && !e.shiftKey) { currentIdx=(currentIdx-1+allSrcs.length)%allSrcs.length; loadImg(allSrcs[currentIdx]); }
+          else { tx-=STEP; applyT(); }
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (allSrcs.length > 1 && !e.shiftKey) { currentIdx=(currentIdx+1)%allSrcs.length; loadImg(allSrcs[currentIdx]); }
+          else { tx+=STEP; applyT(); }
+          break;
+        case 'ArrowUp':    e.preventDefault(); ty-=STEP; applyT(); break;
+        case 'ArrowDown':  e.preventDefault(); ty+=STEP; applyT(); break;
+      }
+    };
+    document.addEventListener('keydown', onKey);
+
+    overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+
+    /* ── gallery navbar ── */
+    let galleryEl = null;
+    const updateGalleryActive = () => {
+      if (!galleryEl) return;
+      galleryEl.querySelectorAll('.ic-gal-thumb').forEach((el,i)=>{
+        el.classList.toggle('ic-gal-active', allSrcs[i] === image.src);
+      });
+    };
+
+    if (allSrcs.length > 1) {
+      galleryEl = document.createElement('div'); galleryEl.className='ic-gallery-bar';
+      const label = document.createElement('span'); label.className='ic-gal-label'; label.textContent=t('lbGallery');
+      galleryEl.appendChild(label);
+
+      const strip = document.createElement('div'); strip.className='ic-gal-strip';
+      allSrcs.forEach((s, i) => {
+        const thumb = document.createElement('img');
+        thumb.className='ic-gal-thumb'; thumb.src=s; thumb.alt='';
+        thumb.classList.toggle('ic-gal-active', s===src);
+        thumb.addEventListener('click', e=>{ e.stopPropagation(); currentIdx=i; loadImg(s); });
+        strip.appendChild(thumb);
+      });
+      galleryEl.appendChild(strip);
+      overlay.appendChild(galleryEl);
+    }
+
+    /* ── hint ── */
+    const hint = document.createElement('div'); hint.className='ic-lb-hint'; hint.textContent=t('lbMoveHint');
+    setTimeout(()=>{ hint.style.opacity='0'; }, 2500);
+
+    const close = () => {
+      overlay.remove();
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup',   onUp);
+      document.removeEventListener('keydown', onKey);
+    };
+
+    inner.appendChild(image);
+    overlay.append(closeBtn, inner, bar, hint);
+    document.body.appendChild(overlay);
+    applyT();
   }
 }
 
@@ -917,7 +1038,7 @@ class ImageControlManager {
    FULLSCREEN MANAGER
 ══════════════════════════════════════════════ */
 class FullscreenManager {
-  constructor(plugin) { this.plugin=plugin; this._timer=null; this._hintTimer=null; this._hintEl=null; this._bound={}; }
+  constructor(plugin) { this.plugin=plugin; this._timer=null; this._hintTimer=null; this._hintEl=null; this._bound={}; this._zenActive=false; }
 
   register() {
     this.plugin.registerEvent(this.plugin.app.workspace.on('layout-change',      ()=>this.injectButton()));
@@ -932,6 +1053,21 @@ class FullscreenManager {
     else document.exitFullscreen();
   }
 
+  /* ── Zen Mode: CSS-only "fullscreen" — works without a fresh user
+     gesture, unlike the real Fullscreen API which Chromium silently
+     rejects when triggered from a setTimeout. ── */
+  enterZen() {
+    if (this._zenActive) return;
+    this._zenActive = true;
+    document.body.classList.add('toolkit-zen-mode');
+  }
+
+  exitZen() {
+    if (!this._zenActive) return;
+    this._zenActive = false;
+    document.body.classList.remove('toolkit-zen-mode');
+  }
+
   injectButton() {
     document.querySelectorAll('.fs-float-btn').forEach(b=>b.remove());
     const leaf = this.plugin.app.workspace.activeLeaf; if (!leaf) return;
@@ -944,21 +1080,30 @@ class FullscreenManager {
 
   startActivityWatch() {
     this._bound.reset = ()=>this.resetTimer();
-    ['mousemove','mousedown','keydown','wheel','touchstart'].forEach(ev=>document.addEventListener(ev,this._bound.reset,{passive:true}));
+    this._bound.escExit = (e)=>{ if (e.key==='Escape' && this._zenActive) this.exitZen(); };
+    /* Listen on window with capture so events firing inside Settings
+       modals or other dialogs are still detected — document-level
+       bubble listeners can miss those if a modal stops propagation. */
+    ['mousemove','mousedown','keydown','wheel','touchstart'].forEach(ev=>window.addEventListener(ev,this._bound.reset,{passive:true,capture:true}));
+    window.addEventListener('keydown', this._bound.escExit, true);
     this.resetTimer();
   }
 
   stopActivityWatch() {
-    ['mousemove','mousedown','keydown','wheel','touchstart'].forEach(ev=>document.removeEventListener(ev,this._bound.reset));
+    ['mousemove','mousedown','keydown','wheel','touchstart'].forEach(ev=>window.removeEventListener(ev,this._bound.reset,true));
+    if (this._bound.escExit) window.removeEventListener('keydown', this._bound.escExit, true);
     clearTimeout(this._timer); clearTimeout(this._hintTimer); this.removeHint();
+    this.exitZen();
   }
 
   resetTimer() {
+    /* any activity exits zen mode immediately */
+    this.exitZen();
     clearTimeout(this._timer); clearTimeout(this._hintTimer); this.removeHint();
     if (!this.plugin.settings.enableAutoFullscreen || document.fullscreenElement) return;
     const delay = Math.max(5,Math.min(120,this.plugin.settings.autoFullscreenDelay))*1000;
     this._hintTimer = setTimeout(()=>this.showHint(), Math.max(0,delay-3000));
-    this._timer     = setTimeout(()=>{ this.removeHint(); this.toggle(); }, delay);
+    this._timer     = setTimeout(()=>{ this.removeHint(); this.enterZen(); }, delay);
   }
 
   showHint() {
@@ -975,7 +1120,7 @@ class FullscreenManager {
 
   removeHint() { this._hintEl?.remove(); this._hintEl=null; }
 
-  destroy() { document.querySelectorAll('.fs-float-btn').forEach(b=>b.remove()); this.stopActivityWatch(); this.removeHint(); }
+  destroy() { document.querySelectorAll('.fs-float-btn').forEach(b=>b.remove()); this.stopActivityWatch(); this.removeHint(); this.exitZen(); }
 }
 
 /* ══════════════════════════════════════════════
@@ -1199,9 +1344,12 @@ class FolderFocusManager {
       if (!path) return;
       if (!(this.plugin.settings.mainFolders || []).includes(path)) return;
       if (this.plugin.settings.focusedFolder === path) return;
-      e.preventDefault();
-      e.stopPropagation();
-      this.setFocus(path, { collapseChildren: true });
+      /* Let Obsidian's own click handler run first (expands the folder,
+         renders its children) — only THEN apply our focus/hide logic.
+         Blocking the native click here was the bug: it prevented
+         Obsidian from ever expanding/rendering the folder, so focus
+         mode appeared to do nothing. */
+      setTimeout(() => this.setFocus(path, { collapseChildren: true }), 0);
     };
 
     const attach = () => {
@@ -1233,6 +1381,31 @@ class FolderFocusManager {
     this.applyFocus({ collapseChildren: opts.collapseChildren });
   }
 
+  /* Adds a small hover-revealed "focus" icon next to EVERY folder in
+     the tree (not just pinned Main Folders), so the user can jump
+     into Focus Mode with one click instead of needing the right-click
+     menu every time. */
+  decorateAllFolders(nav) {
+    nav.querySelectorAll('.nav-folder-title:not([data-ff-icon])').forEach(titleEl => {
+      titleEl.setAttribute('data-ff-icon', '1');
+      const path = titleEl.dataset.path;
+      if (!path) return;
+
+      const icon = document.createElement('span');
+      icon.className = 'ff-quick-icon';
+      icon.title = t('ffFocusMenuItem');
+      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/></svg>`;
+      icon.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentPath = titleEl.dataset.path;
+        if (this.plugin.settings.focusedFolder === currentPath) this.clearFocus();
+        else this.setFocus(currentPath, { collapseChildren: true });
+      });
+      titleEl.appendChild(icon);
+    });
+  }
+
   clearFocus() {
     this.plugin.settings.focusedFolder = null;
     this.plugin.saveSettings();
@@ -1246,9 +1419,22 @@ class FolderFocusManager {
     const focus = this.plugin.settings.focusedFolder;
     const mainFolders = this.plugin.settings.mainFolders || [];
 
+    /* Pause our own observer while WE mutate the tree (badges,
+       hide/show classes, is-collapsed toggles). Without this, our
+       own DOM changes (e.g. appending a badge <span>) re-trigger the
+       observer, which calls applyFocus() again, which resets all the
+       hiding state we just set — a self-cancelling loop where tabs
+       highlight as active but the tree never actually filters. */
+    this._obs?.disconnect();
+    const reconnect = () => {
+      const n = document.querySelector('.nav-files-container');
+      if (n && this._obs) this._obs.observe(n, { childList:true, subtree:true });
+    };
+
     /* reset previous state */
     nav.querySelectorAll('.ff-hidden').forEach(el => el.classList.remove('ff-hidden'));
     nav.querySelectorAll('.ff-self').forEach(el => el.classList.remove('ff-self'));
+    nav.querySelectorAll('.ff-ancestor').forEach(el => el.classList.remove('ff-ancestor'));
     nav.querySelectorAll('.ff-main-badge').forEach(el => el.remove());
     document.body.classList.toggle('ff-active', !!focus);
     this.renderBreadcrumb();
@@ -1263,26 +1449,62 @@ class FolderFocusManager {
       mfTitle.appendChild(badge);
     });
 
-    if (!focus) return;
+    /* hover-revealed quick-focus icon on every folder */
+    this.decorateAllFolders(nav);
+
+    if (!focus) { reconnect(); return; }
 
     /* data-path lives on .nav-folder-title, not .nav-folder */
     const titleEl = nav.querySelector(`.nav-folder-title[data-path="${CSS.escape(focus)}"]`);
     const focusEl = titleEl?.closest('.nav-folder');
-    if (!focusEl) return;
+    if (!focusEl) { reconnect(); return; }
 
     focusEl.classList.add('ff-self');
+
+    /* If the folder is collapsed and was reached via a tab/menu click
+       (not a direct click on the folder in the tree), Obsidian never
+       ran its own native expand handler — meaning lazily-rendered
+       children may not exist in the DOM yet. Just removing the
+       'is-collapsed' CSS class doesn't fix that, since it's purely
+       cosmetic. Dispatching a real click on the title makes Obsidian
+       expand it the normal way, mounting its children for real. */
+    const wasCollapsed = focusEl.classList.contains('is-collapsed');
+    if (wasCollapsed) {
+      const indicator = titleEl.querySelector('.nav-folder-collapse-indicator') || titleEl;
+      indicator.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    }
     focusEl.classList.remove('is-collapsed');
 
-    /* optionally collapse all direct sub-folders */
-    if (opts.collapseChildren) {
-      focusEl.querySelectorAll('.nav-folder').forEach(sub => {
-        sub.classList.add('is-collapsed');
-      });
-    }
+    /* Defer the collapse/hide pass to the next frame so any DOM
+       Obsidian just inserted (from the native expand above) is in
+       place before we decide what to hide. The observer stays
+       disconnected through this entire deferred step too. */
+    requestAnimationFrame(() => {
+      if (opts.collapseChildren) {
+        focusEl.querySelectorAll('.nav-folder').forEach(sub => {
+          sub.classList.add('is-collapsed');
+        });
+      }
 
-    nav.querySelectorAll('.nav-folder, .nav-file').forEach(el => {
-      if (el === focusEl || focusEl.contains(el)) return;
-      el.classList.add('ff-hidden');
+      /* Walk up from focusEl to nav, marking every ancestor folder.
+         This matters when one "main folder" is nested inside another
+         (e.g. Habits inside Journaling) — without this, hiding the
+         outer folder would also hide the focused folder living inside
+         it, since a hidden parent hides its descendants too. */
+      const ancestors = new Set();
+      let walker = focusEl.parentElement;
+      while (walker && walker !== nav) {
+        if (walker.classList?.contains('nav-folder')) ancestors.add(walker);
+        walker = walker.parentElement;
+      }
+      ancestors.forEach(a => a.classList.add('ff-ancestor'));
+
+      nav.querySelectorAll('.nav-folder, .nav-file').forEach(el => {
+        if (el === focusEl || focusEl.contains(el) || ancestors.has(el)) return;
+        el.classList.add('ff-hidden');
+      });
+
+      reconnect();
     });
   }
 
@@ -1293,7 +1515,8 @@ class FolderFocusManager {
     const focus = this.plugin.settings.focusedFolder;
     const mainFolders = this.plugin.settings.mainFolders || [];
 
-    /* always show the bar if we have main folders or an active focus */
+    /* show the bar whenever main folders are pinned, or a one-off
+       focus is active (via right-click) even without pinned tabs */
     const shouldShow = mainFolders.length > 0 || !!focus;
 
     if (!shouldShow) { this.breadcrumbEl?.remove(); this.breadcrumbEl = null; return; }
@@ -1305,14 +1528,19 @@ class FolderFocusManager {
     }
     this.breadcrumbEl.innerHTML = '';
 
-    /* ← back button */
-    if (focus) {
-      const back = document.createElement('button');
-      back.className = 'ff-back-btn';
-      back.textContent = '← ' + t('ffBack');
-      back.addEventListener('click', () => this.clearFocus());
-      this.breadcrumbEl.appendChild(back);
-    }
+    /* 🏠 Home — always present and always clickable, regardless of
+       focus state. Acts as a guaranteed "return to normal view"
+       affordance, and doubles as a safety reset for Zen Mode in
+       case it ever gets stuck active. */
+    const home = document.createElement('button');
+    home.className = 'ff-home-btn' + (focus ? '' : ' ff-home-active');
+    home.textContent = focus ? ('← ' + t('ffBack')) : ('🏠 ' + t('ffBack'));
+    home.title = t('ffBack');
+    home.addEventListener('click', () => {
+      this.clearFocus();
+      this.plugin.fullscreenMgr?.exitZen();
+    });
+    this.breadcrumbEl.appendChild(home);
 
     /* main-folder tabs */
     mainFolders.forEach(mfPath => {
@@ -1342,8 +1570,10 @@ class FolderFocusManager {
     if (this._rafId != null) { cancelAnimationFrame(this._rafId); this._rafId = null; }
     if (this._navEl && this._clickHandler) this._navEl.removeEventListener('click', this._clickHandler, true);
     document.body.classList.remove('ff-active');
-    document.querySelectorAll('.ff-hidden,.ff-self').forEach(el=>el.classList.remove('ff-hidden','ff-self'));
+    document.querySelectorAll('.ff-hidden,.ff-self,.ff-ancestor').forEach(el=>el.classList.remove('ff-hidden','ff-self','ff-ancestor'));
     document.querySelectorAll('.ff-main-badge').forEach(el=>el.remove());
+    document.querySelectorAll('.ff-quick-icon').forEach(el=>el.remove());
+    document.querySelectorAll('[data-ff-icon]').forEach(el=>el.removeAttribute('data-ff-icon'));
     this.breadcrumbEl?.remove();
     this.breadcrumbEl = null;
     delete document.querySelector('.nav-files-container')?.dataset.ffObserved;
