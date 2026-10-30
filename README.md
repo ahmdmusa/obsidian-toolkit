@@ -1,5 +1,5 @@
 <div align="center">
-<img width="34" height="34" alt="Toolkit Logo" src="https://github.com/user-attachments/assets/2470633d-b5d0-4590-b45a-d7a5b95e19e5" />
+<img width="76" height="76" alt="FlowKit Logo" src="icon.svg" />
 
 # ⚡ FlowKit (formerly My Toolkit)
 
