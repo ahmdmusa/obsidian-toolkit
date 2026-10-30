@@ -1,12 +1,16 @@
 'use strict';
-const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice, TFile, TFolder } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice, TFile, TFolder, EditorSuggest } = require('obsidian');
 
 /* ══════════════════════════════════════════════
-   LANGUAGE DETECTION
+   LANGUAGE DETECTION (English by default, Arabic optional)
 ══════════════════════════════════════════════ */
+let CURRENT_PLUGIN_INSTANCE = null;
+
 const getAppLang = () => {
-  if (window.i18next?.language) return window.i18next.language.startsWith('ar') ? 'ar' : 'en';
-  if (document.documentElement.lang?.startsWith('ar')) return 'ar';
+  if (CURRENT_PLUGIN_INSTANCE && CURRENT_PLUGIN_INSTANCE.settings) {
+    if (CURRENT_PLUGIN_INSTANCE.settings.enableArabicUi) return 'ar';
+    return 'en';
+  }
   return 'en';
 };
 
@@ -23,7 +27,20 @@ const TR = {
     iDateLocale:'Date (Long)', iDateIso:'Date (ISO)', iTimeLocale:'Time',
     iTime24:'Time (24h)', iDatetime:'Date & Time', iProgress:'Progress Bar',
     settingsTitle:'Obsidian Toolkit',
-    fmtName:'🎨 Formatting Palette', fmtDesc:'Insert callouts, formatting & dividers — Ctrl+Shift+F',
+    supportTitle:'☕ ادعم تطوير الإضافة',
+    supportDesc:'إذا كانت إضافة My Toolkit بتفيدك وتسهّل تنظيم ملاحظاتك ودراستك في Obsidian، يسعدني جداً دعمك بكوب قهوة للاستمرار في تطوير ميزات جديدة وصيانتها باستمرار! ❤️',
+    supportBtn:'☕ اشتري لي قهوة (PayPal)',
+    starBtn:'⭐ نجمة على GitHub', feedbackBtn:'✉️ أرسل اقتراحاً أو ملاحظة',
+    supportFooter:'صُنع بكل حب ❤️ بواسطة أحمد موسى · مصر 🇪🇬',
+    supportTitle:'☕ Support My Toolkit',
+    supportDesc:'If My Toolkit helps you stay organized, focused, and productive in Obsidian, consider buying me a coffee! Your support fuels ongoing development, new privacy features, and open-source maintenance.',
+    supportBtn:'☕ Buy Me a Coffee (PayPal)',
+    starBtn:'⭐ Star on GitHub', feedbackBtn:'✉️ Suggestions & Feedback',
+    supportFooter:'Crafted with ❤️ by Ahmed Mousa · Egypt 🇪🇬',
+    fmtName:'🎨 Formatting Palette',
+    slashName:'⚡ Slash Commands (/)',
+    slashDesc:'Type / at line start or after space to insert callouts, formatting & templates (Notion-style).',
+    rtlCommandName:'Toggle Line / Selection RTL (Arabic Direction)', fmtDesc:'Insert callouts, formatting & dividers — Ctrl+Shift+F',
     imgName:'🖼 Image Control',      imgDesc:'Click-activated toolbar: resize, align, rotate, lightbox & caption. Reading View only.',
     fsName:'⛶ Fullscreen Note',      fsDesc:'Floating fullscreen button + Ctrl+Shift+Z',
     autoFsName:'⏱ Auto-Fullscreen',  autoFsDesc:'Enter fullscreen automatically after inactivity',
@@ -84,6 +101,7 @@ const TR = {
     qbRemove:'Remove', qbEmpty:'No pinned items yet — add some below.',
     qbNotFound:'⚠️ Not found in vault: ', qbNoActiveFile:'No active file to add.',
     qbInvalidPath:'Enter a path first.', qbDuplicate:'Already pinned.',
+    ffFocusCurrent:'Focus on current folder', ffNoFile:'No active file inside a folder', ffNewNote:'+ New note', ffErrorNotFound:'Folder not found in vault',
     ffFocusMenuItem:'📁 Focus on this folder', ffUnfocusMenuItem:'✕ Exit folder focus',
     ffBack:'All files', ffFocusOn:'📁 Focused on: ', ffFocusOff:'Folder focus cleared',
     ffName:'📁 Folder Focus Mode', ffDesc:'Right-click any folder → "Focus on this folder" to make it look like the vault root in the sidebar. (Search, graph, and Quick Switcher still cover the whole vault.)',
@@ -92,6 +110,28 @@ const TR = {
     mfAdd:'Add', mfRemove:'Remove', mfEmpty:'No main folders yet — add some below.',
     mfDuplicate:'Already a main folder.', mfNoActiveFile:'No active file to detect its folder.',
     mfInvalidPath:'Enter a path first.',
+    /* ── Folder Vault & Privacy Lock ── */
+    fvName:'🔒 Folder Vault & Privacy Lock',
+    fvDesc:'Protect sensitive folders with a custom PIN or password. Prevents leaks in Quick Switcher and Search.',
+    fvOn:'✅ Folder Vault enabled', fvOff:'⛔ Folder Vault disabled',
+    fvLockMenu:'🔒 Lock Folder / Set PIN', fvUnlockMenu:'🔓 Unlock Folder', fvLockNowMenu:'🔒 Lock Folder Now', fvRemoveMenu:'🔓❌ Remove folder lock (delete PIN)',
+    fvAutoLockName:'Auto-Lock Inactivity Timeout', fvAutoLockDesc:'Lock all open folders automatically after inactivity (minutes). 0 to disable.',
+    fvBlurName:'Lock on Window Blur', fvBlurDesc:'Auto-lock when switching to another app or when Obsidian window loses focus.',
+    fvStartupName:'Lock on Startup', fvStartupDesc:'Always start with all protected folders in a locked state.',
+    fvHideName:'Hide Locked Folders in Tree', fvHideDesc:'Completely hide locked folders from the file tree instead of showing them with a lock badge.',
+    fvFoldersList:'Protected Folders', fvEmpty:'No folders are protected yet. Right-click any folder in the File Explorer to set a PIN.',
+    fvLockedStatus:'🔒 Locked', fvUnlockedStatus:'🟢 Unlocked',
+    fvLockNow:'Lock', fvUnlock:'Unlock', fvRemove:'Remove Protection',
+    fvLockAllCmd:'Lock All Protected Folders Immediately',
+    btnCancel:'Cancel', fvUnlockBtn:'Unlock', fvInputPlaceholder:'PIN or password…', fvModalTitle:'Protected Folder', fvModalDesc:'Enter PIN or password to access:',
+    fvWrongPin:'❌ Incorrect PIN or password',
+    fvUnlockedNotice:'🔓 Folder unlocked: ', fvLockedNotice:'🔒 Folder locked: ',
+    fvAutoLockNotice:'⏱️ Protected folders locked due to inactivity.',
+    fvBlurNotice:'🔒 Protected folders locked on window blur.',
+    fvSetupTitle:'Set PIN / Password', fvSetupDesc:'Enter a 4-6 digit numeric PIN or alphanumeric password.',
+    fvConfirmPin:'Confirm PIN / Password', fvSaveBtn:'Save & Lock Folder',
+    fvPinMinLength:'⚠️ PIN/Password must be at least 4 characters.', fvPinMismatch:'❌ PINs do not match.',
+    fvSavedNotice:'🔒 Folder protected: ', fvRemovedNotice:'Removed protection from: ',
   },
   ar: {
     paletteTitle:'لوحة التنسيق', searchPlaceholder:'ابحث عن تنسيق…', noResults:'لا توجد نتائج',
@@ -102,7 +142,10 @@ const TR = {
     iDateLocale:'التاريخ (طويل)', iDateIso:'التاريخ (ISO)', iTimeLocale:'الوقت',
     iTime24:'الوقت (24h)', iDatetime:'التاريخ والوقت', iProgress:'شريط تقدم',
     settingsTitle:'Obsidian Toolkit',
-    fmtName:'🎨 لوحة التنسيق',       fmtDesc:'إدراج التنبيهات والتنسيقات والفواصل — Ctrl+Shift+F',
+    fmtName:'🎨 لوحة التنسيق',
+    slashName:'⚡ أوامر السلاش (/)',
+    slashDesc:'اكتب / في بداية السطر أو بعد مسافة لإدراج الـ Callouts والقوالب والتنسيقات بسرعة مثل Notion.',
+    rtlCommandName:'تبديل اتجاه السطر أو التحديد (RTL / LTR)',       fmtDesc:'إدراج التنبيهات والتنسيقات والفواصل — Ctrl+Shift+F',
     imgName:'🖼 التحكم في الصور',    imgDesc:'شريط أدوات بالنقر: تكبير، محاذاة، تدوير، Lightbox، Caption. وضع القراءة فقط.',
     fsName:'⛶ ملء الشاشة',           fsDesc:'زرار ملء الشاشة العائم + Ctrl+Shift+Z',
     autoFsName:'⏱ ملء الشاشة التلقائي', autoFsDesc:'الدخول في ملء الشاشة تلقائياً عند عدم التفاعل',
@@ -163,6 +206,7 @@ const TR = {
     qbRemove:'حذف', qbEmpty:'لا توجد عناصر مثبّتة — أضف عناصر من الأسفل.',
     qbNotFound:'⚠️ غير موجود في الـ vault: ', qbNoActiveFile:'لا يوجد ملف مفتوح لإضافته.',
     qbInvalidPath:'اكتب المسار أولاً.', qbDuplicate:'العنصر مثبّت مسبقاً.',
+    ffFocusCurrent:'تركيز على مجلد الملف الحالي', ffNoFile:'لا يوجد ملف نشط داخل مجلد', ffNewNote:'+ ملاحظة جديدة', ffErrorNotFound:'المجلد غير موجود في الـ vault',
     ffFocusMenuItem:'📁 ركّز على هذا الفولدر', ffUnfocusMenuItem:'✕ إلغاء التركيز',
     ffBack:'كل الملفات', ffFocusOn:'📁 مُركَّز على: ', ffFocusOff:'تم إلغاء التركيز',
     ffName:'📁 وضع التركيز على فولدر', ffDesc:'كليك يمين على أي فولدر → "ركّز على هذا الفولدر" يخليه يبان كأنه جذر الـ vault في الشريط الجانبي. (البحث، الـ graph، و Quick Switcher بيفضلوا يشملوا الـ vault كامل.)',
@@ -171,6 +215,28 @@ const TR = {
     mfAdd:'إضافة', mfRemove:'حذف', mfEmpty:'لا توجد فولدرات رئيسية — أضف عناصر من الأسفل.',
     mfDuplicate:'موجود مسبقاً في القائمة.', mfNoActiveFile:'لا يوجد ملف مفتوح لمعرفة فولدره.',
     mfInvalidPath:'اكتب المسار أولاً.',
+    /* ── Folder Vault & Privacy Lock ── */
+    fvName:'🔒 خزنة المجلدات والقفل',
+    fvDesc:'حماية المجلدات الحساسة برمز PIN أو كلمة مرور مشفرة، مع منع التسريب في البحث والـ Quick Switcher.',
+    fvOn:'✅ خزنة المجلدات مفعّلة', fvOff:'⛔ خزنة المجلدات معطّلة',
+    fvLockMenu:'🔒 قفل الفولدر / تعيين رمز', fvUnlockMenu:'🔓 فتح قفل الفولدر', fvLockNowMenu:'🔒 قفل الفولدر الآن', fvRemoveMenu:'🔓❌ إزالة قفل الفولدر نهائياً (حذف الـ PIN)',
+    fvAutoLockName:'قفل تلقائي عند الخمول', fvAutoLockDesc:'قفل الفولدرات المفتوحة تلقائياً عند عدم التفاعل (بالدقائق). 0 للتعطيل.',
+    fvBlurName:'قفل عند مغادرة النافذة', fvBlurDesc:'قفل تلقائي عند التبديل لبرنامج آخر أو فقدان نافذة Obsidian للتركيز.',
+    fvStartupName:'قفل عند بدء التشغيل', fvStartupDesc:'بدء تشغيل Obsidian دائماً وجميع الفولدرات المحمية في حالة قفل.',
+    fvHideName:'إخفاء الفولدرات المقفلة من الشجرة', fvHideDesc:'إخفاء الفولدرات المقفلة تماماً من شجرة الملفات بدلاً من إظهارها مطوية مع شارة قفل.',
+    fvFoldersList:'الفولدرات المحمية', fvEmpty:'لا توجد فولدرات محمية بعد. اضغط كليك يمين على أي فولدر في شجرة الملفات لتعيين رمز.',
+    fvLockedStatus:'🔒 مقفول', fvUnlockedStatus:'🟢 مفتوح',
+    fvLockNow:'قفل', fvUnlock:'فتح', fvRemove:'إلغاء الحماية',
+    fvLockAllCmd:'قفل جميع الفولدرات المحمية فوراً',
+    btnCancel:'إلغاء', fvUnlockBtn:'فتح القفل', fvInputPlaceholder:'رمز PIN أو كلمة المرور…', fvModalTitle:'مجلد محمي', fvModalDesc:'أدخل رمز الـ PIN أو كلمة المرور للوصول إلى:',
+    fvWrongPin:'❌ رمز PIN أو كلمة مرور غير صحيحة',
+    fvUnlockedNotice:'🔓 تم فتح قفل الفولدر: ', fvLockedNotice:'🔒 تم قفل الفولدر: ',
+    fvAutoLockNotice:'⏱️ تم قفل الفولدرات تلقائياً بسبب الخمول.',
+    fvBlurNotice:'🔒 تم قفل الفولدرات عند مغادرة النافذة.',
+    fvSetupTitle:'تعيين رمز PIN / كلمة مرور', fvSetupDesc:'أدخل رمز PIN من 4-6 أرقام أو كلمة مرور آمنة.',
+    fvConfirmPin:'تأكيد الرمز / كلمة المرور', fvSaveBtn:'حفظ وقفل الفولدر',
+    fvPinMinLength:'⚠️ يجب ألا يقل الرمز عن 4 خانات.', fvPinMismatch:'❌ الرمز غير متطابق.',
+    fvSavedNotice:'🔒 تم قفل وحماية الفولدر: ', fvRemovedNotice:'تمت إزالة الحماية عن: ',
   }
 };
 const t = (k) => { const l = getAppLang(); return TR[l]?.[k] ?? TR.en[k] ?? k; };
@@ -185,7 +251,10 @@ const CAT_TR    = { 'Insert':()=>t('catInsert'), 'Callouts':()=>t('catCallouts')
    DEFAULT SETTINGS
 ══════════════════════════════════════════════ */
 const DEFAULT_SETTINGS = {
+  /* ── Language: English default, Arabic optional ── */
+  enableArabicUi:       false,
   enableFormatting:     true,
+  enableSlashCommands:  true,
   enableImageControl:   true,
   enableFullscreen:     true,
   enableAutoFullscreen: false,
@@ -209,6 +278,13 @@ const DEFAULT_SETTINGS = {
   enableFolderFocus: true,
   focusedFolder: null,                // path of folder currently treated as vault root
   mainFolders: [],                    // paths that auto-enter Focus Mode on click
+  /* ── Folder Vault & Privacy Lock ── */
+  enableFolderVault:     true,
+  lockedFolders:         {},                 // { [folderPath]: { path, salt, hash, iterations } }
+  vaultAutoLockTimeout:  10,                 // minutes; 0 = disabled
+  vaultLockOnBlur:       false,              // lock on window blur
+  vaultLockOnStartup:    true,               // lock on app launch
+  vaultHideInTree:       false,              // hide completely or keep with badge
 };
 
 /* ══════════════════════════════════════════════
@@ -776,6 +852,71 @@ class FormattingPaletteModal extends Modal {
 }
 
 /* ══════════════════════════════════════════════
+   SLASH COMMANDS (/) EDITOR SUGGEST
+══════════════════════════════════════════════ */
+class SlashCommandSuggest extends EditorSuggest {
+  constructor(app, plugin) {
+    super(app);
+    this.plugin = plugin;
+  }
+
+  onTrigger(cursor, editor, file) {
+    if (!this.plugin.settings.enableSlashCommands) return null;
+
+    const line = editor.getRange({ line: cursor.line, ch: 0 }, cursor);
+    const match = line.match(/(?:^|\s)\/([a-zA-Z0-9\u0600-\u06FF_-]*)$/);
+    if (!match) return null;
+
+    const query = match[1];
+    const slashCh = line.lastIndexOf('/' + query);
+    if (slashCh === -1) return null;
+
+    return {
+      start: { line: cursor.line, ch: slashCh },
+      end: cursor,
+      query: query
+    };
+  }
+
+  getSuggestions(context) {
+    const q = (context.query || '').toLowerCase().trim();
+    const items = buildItems(context.editor, this.app, this.plugin);
+    if (!q) return items;
+
+    return items.filter(item => {
+      const label = (item.label || '').toLowerCase();
+      const cat = (item.cat || '').toLowerCase();
+      const id = (item.id || '').toLowerCase();
+      return label.includes(q) || cat.includes(q) || id.includes(q);
+    });
+  }
+
+  renderSuggestion(item, el) {
+    el.addClass('tk-slash-item');
+    const iconSpan = el.createSpan({ cls: 'tk-slash-icon', text: item.icon || '📌' });
+    if (item.color) iconSpan.style.color = item.color;
+
+    const textWrap = el.createDiv({ cls: 'tk-slash-text' });
+    textWrap.createDiv({ cls: 'tk-slash-title', text: item.label });
+    if (item.cat) {
+      textWrap.createDiv({ cls: 'tk-slash-cat', text: item.cat });
+    }
+
+    if (item.mdpreview) {
+      el.createSpan({ cls: 'tk-slash-preview', text: item.mdpreview });
+    }
+  }
+
+  selectSuggestion(item, evt) {
+    const editor = this.context.editor;
+    editor.replaceRange('', this.context.start, this.context.end);
+    if (typeof item.action === 'function') {
+      item.action();
+    }
+  }
+}
+
+/* ══════════════════════════════════════════════
    IMAGE CONTROL (Reading View only — bug fixed)
 ══════════════════════════════════════════════ */
 const ALIGN_ICONS = { left:'⬤←', center:'⬤', right:'→⬤' };
@@ -1320,23 +1461,89 @@ class QuickBarManager {
 }
 
 /* ══════════════════════════════════════════════
-   FOLDER FOCUS MODE
+   FOLDER FOCUS MODE  (v2.0 — rewritten)
 ══════════════════════════════════════════════ */
 class FolderFocusManager {
-  constructor(plugin) { this.plugin = plugin; this._obs = null; this._rafId = null; this.breadcrumbEl = null; this._navEl = null; this._clickHandler = null; }
+  constructor(plugin) {
+    this.plugin = plugin;
+    this._obs = null;
+    this._rafId = null;
+    this.breadcrumbEl = null;
+    this._navEl = null;
+    this._clickHandler = null;
+    this._suppressObserver = false;
+    this._ribbonEl = null;
+  }
 
+  /* ── DOM helpers (safe for Arabic / Unicode paths — NO CSS.escape) ── */
+  _findTitleByPath(nav, path) {
+    for (const el of nav.querySelectorAll('.nav-folder-title')) {
+      if (el.dataset.path === path) return el;
+    }
+    return null;
+  }
+
+  _getExplorerView() {
+    const leaves = this.plugin.app.workspace.getLeavesOfType('file-explorer');
+    return leaves.length > 0 ? leaves[0].view : null;
+  }
+
+  /* Force-expand a folder AND all its ancestors via Obsidian's internal
+     file-explorer API.  This is the key fix: it bypasses the old
+     "dispatch a synthetic click" hack, which was unreliable and caused
+     race conditions.  `fileItems[path].setCollapsed(false)` is
+     synchronous and immediately mounts children into the DOM. */
+  _expandToPath(path) {
+    const view = this._getExplorerView();
+    if (!view || !view.fileItems) return;
+    const parts = path.split('/');
+    let cur = '';
+    for (const part of parts) {
+      cur = cur ? cur + '/' + part : part;
+      const item = view.fileItems[cur];
+      if (item && typeof item.setCollapsed === 'function') {
+        try { item.setCollapsed(false); } catch (e) { /* ignore */ }
+      }
+    }
+  }
+
+  /* Collapse direct sub-folders of a path via the explorer API */
+  _collapseChildFolders(path) {
+    const view = this._getExplorerView();
+    if (!view || !view.fileItems) return;
+    const prefix = path + '/';
+    for (const [itemPath, item] of Object.entries(view.fileItems)) {
+      if (itemPath === path) continue;
+      if (!itemPath.startsWith(prefix)) continue;
+      const rel = itemPath.slice(prefix.length);
+      if (!rel.includes('/') && item.file instanceof TFolder &&
+          typeof item.setCollapsed === 'function') {
+        try { item.setCollapsed(true); } catch (e) { /* ignore */ }
+      }
+    }
+  }
+
+  /* ══════════════════ REGISTER ══════════════════ */
   register() {
+    /* ── Context menu ── */
     this.plugin.registerEvent(this.plugin.app.workspace.on('file-menu', (menu, file) => {
       if (!(file instanceof TFolder)) return;
       if (this.plugin.settings.focusedFolder === file.path) {
-        menu.addItem(item => item.setTitle(t('ffUnfocusMenuItem')).setIcon('x-circle').onClick(() => this.clearFocus()));
+        menu.addItem(item => item.setTitle(t('ffUnfocusMenuItem')).setIcon('x-circle')
+          .onClick(() => this.clearFocus()));
       } else {
-        menu.addItem(item => item.setTitle(t('ffFocusMenuItem')).setIcon('focus').onClick(() => this.setFocus(file.path)));
+        menu.addItem(item => item.setTitle(t('ffFocusMenuItem')).setIcon('focus')
+          .onClick(() => this.setFocus(file.path)));
       }
     }));
 
-    this._obs = new MutationObserver(() => this.schedule());
+    /* ── MutationObserver — suppression flag prevents self-trigger loops ── */
+    this._obs = new MutationObserver(() => {
+      if (this._suppressObserver) return;
+      this.schedule();
+    });
 
+    /* ── Click handler for auto-focus "main folders" ── */
     this._clickHandler = (e) => {
       const titleEl = e.target.closest('.nav-folder-title');
       if (!titleEl) return;
@@ -1344,19 +1551,16 @@ class FolderFocusManager {
       if (!path) return;
       if (!(this.plugin.settings.mainFolders || []).includes(path)) return;
       if (this.plugin.settings.focusedFolder === path) return;
-      /* Let Obsidian's own click handler run first (expands the folder,
-         renders its children) — only THEN apply our focus/hide logic.
-         Blocking the native click here was the bug: it prevented
-         Obsidian from ever expanding/rendering the folder, so focus
-         mode appeared to do nothing. */
+      /* Let Obsidian's own handler expand the folder first */
       setTimeout(() => this.setFocus(path, { collapseChildren: true }), 0);
     };
 
+    /* ── Attach to nav container ── */
     const attach = () => {
       const nav = document.querySelector('.nav-files-container');
       if (nav && !nav.dataset.ffObserved) {
         nav.dataset.ffObserved = '1';
-        this._obs.observe(nav, { childList:true, subtree:true });
+        this._obs.observe(nav, { childList: true, subtree: true });
         nav.addEventListener('click', this._clickHandler, true);
         this._navEl = nav;
         this.applyFocus();
@@ -1365,8 +1569,14 @@ class FolderFocusManager {
 
     this.plugin.registerEvent(this.plugin.app.workspace.on('layout-change', attach));
     attach();
+
+    /* ── Ribbon icon: one-click focus on current file's folder ── */
+    this._ribbonEl = this.plugin.addRibbonIcon(
+      'target', t('ffFocusCurrent'), () => this.focusCurrentFile()
+    );
   }
 
+  /* ══════════════════ SCHEDULING ══════════════════ */
   schedule() {
     if (this._rafId != null) return;
     this._rafId = requestAnimationFrame(() => {
@@ -1375,16 +1585,47 @@ class FolderFocusManager {
     });
   }
 
+  /* ══════════════════ SET / CLEAR FOCUS ══════════════════ */
   setFocus(path, opts = {}) {
+    /* Validate the folder actually exists in the vault */
+    const folder = this.plugin.app.vault.getAbstractFileByPath(path);
+    if (!folder || !(folder instanceof TFolder)) {
+      new Notice(t('ffErrorNotFound'));
+      return;
+    }
     this.plugin.settings.focusedFolder = path;
     this.plugin.saveSettings();
-    this.applyFocus({ collapseChildren: opts.collapseChildren });
+
+    /* Pre-expand the path so children exist in the DOM BEFORE we
+       start hiding/showing elements */
+    this._expandToPath(path);
+
+    /* Short delay to let Obsidian finish mounting any lazily-rendered
+       children, then apply the visual focus */
+    setTimeout(() => this.applyFocus({ collapseChildren: opts.collapseChildren }), 60);
   }
 
-  /* Adds a small hover-revealed "focus" icon next to EVERY folder in
-     the tree (not just pinned Main Folders), so the user can jump
-     into Focus Mode with one click instead of needing the right-click
-     menu every time. */
+  focusCurrentFile() {
+    const file = this.plugin.app.workspace.getActiveFile();
+    if (!file) { new Notice(t('ffNoFile')); return; }
+    const parentPath = file.parent?.path;
+    if (!parentPath || parentPath === '/' || parentPath === '') {
+      new Notice(t('ffNoFile'));
+      return;
+    }
+    this.setFocus(parentPath, { collapseChildren: true });
+  }
+
+  clearFocus() {
+    this.plugin.settings.focusedFolder = null;
+    this.plugin.saveSettings();
+    new Notice(t('ffFocusOff'));
+    this.applyFocus();
+  }
+
+  /* ══════════════════ DECORATORS ══════════════════ */
+
+  /* Hover-revealed focus icon on every folder title */
   decorateAllFolders(nav) {
     nav.querySelectorAll('.nav-folder-title:not([data-ff-icon])').forEach(titleEl => {
       titleEl.setAttribute('data-ff-icon', '1');
@@ -1394,7 +1635,10 @@ class FolderFocusManager {
       const icon = document.createElement('span');
       icon.className = 'ff-quick-icon';
       icon.title = t('ffFocusMenuItem');
-      icon.innerHTML = `<svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7.5" cy="7.5" r="5.5"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/></svg>`;
+      icon.innerHTML = '<svg width="13" height="13" viewBox="0 0 15 15" fill="none" ' +
+        'stroke="currentColor" stroke-width="1.4" stroke-linecap="round">' +
+        '<circle cx="7.5" cy="7.5" r="5.5"/>' +
+        '<circle cx="7.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/></svg>';
       icon.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1406,32 +1650,17 @@ class FolderFocusManager {
     });
   }
 
-  clearFocus() {
-    this.plugin.settings.focusedFolder = null;
-    this.plugin.saveSettings();
-    new Notice(t('ffFocusOff'));
-    this.applyFocus();
-  }
-
+  /* ══════════════════ APPLY FOCUS (CORE LOGIC) ══════════════════ */
   applyFocus(opts = {}) {
     const nav = document.querySelector('.nav-files-container');
     if (!nav) return;
     const focus = this.plugin.settings.focusedFolder;
     const mainFolders = this.plugin.settings.mainFolders || [];
 
-    /* Pause our own observer while WE mutate the tree (badges,
-       hide/show classes, is-collapsed toggles). Without this, our
-       own DOM changes (e.g. appending a badge <span>) re-trigger the
-       observer, which calls applyFocus() again, which resets all the
-       hiding state we just set — a self-cancelling loop where tabs
-       highlight as active but the tree never actually filters. */
-    this._obs?.disconnect();
-    const reconnect = () => {
-      const n = document.querySelector('.nav-files-container');
-      if (n && this._obs) this._obs.observe(n, { childList:true, subtree:true });
-    };
+    /* ── Suppress observer while we mutate the DOM ── */
+    this._suppressObserver = true;
 
-    /* reset previous state */
+    /* ── Reset ALL previous focus state ── */
     nav.querySelectorAll('.ff-hidden').forEach(el => el.classList.remove('ff-hidden'));
     nav.querySelectorAll('.ff-self').forEach(el => el.classList.remove('ff-self'));
     nav.querySelectorAll('.ff-ancestor').forEach(el => el.classList.remove('ff-ancestor'));
@@ -1439,75 +1668,105 @@ class FolderFocusManager {
     document.body.classList.toggle('ff-active', !!focus);
     this.renderBreadcrumb();
 
-    /* decorate main-folder titles with a small indicator */
+    /* ── Decorate main-folder titles with a small dot badge ── */
     mainFolders.forEach(mfPath => {
-      const mfTitle = nav.querySelector(`.nav-folder-title[data-path="${CSS.escape(mfPath)}"]`);
+      const mfTitle = this._findTitleByPath(nav, mfPath);
       if (!mfTitle || mfTitle.querySelector('.ff-main-badge')) return;
       const badge = document.createElement('span');
       badge.className = 'ff-main-badge';
-      badge.title = 'Main folder — click to focus';
+      badge.title = 'Main folder \u2014 click to focus';
       mfTitle.appendChild(badge);
     });
 
-    /* hover-revealed quick-focus icon on every folder */
+    /* ── Hover-revealed quick-focus icon on every folder ── */
     this.decorateAllFolders(nav);
 
-    if (!focus) { reconnect(); return; }
+    /* ── No focus active → done ── */
+    if (!focus) { this._suppressObserver = false; return; }
 
-    /* data-path lives on .nav-folder-title, not .nav-folder */
-    const titleEl = nav.querySelector(`.nav-folder-title[data-path="${CSS.escape(focus)}"]`);
+    /* ── Find the focused folder in the DOM (safe path comparison) ── */
+    const titleEl = this._findTitleByPath(nav, focus);
     const focusEl = titleEl?.closest('.nav-folder');
-    if (!focusEl) { reconnect(); return; }
 
-    focusEl.classList.add('ff-self');
-
-    /* If the folder is collapsed and was reached via a tab/menu click
-       (not a direct click on the folder in the tree), Obsidian never
-       ran its own native expand handler — meaning lazily-rendered
-       children may not exist in the DOM yet. Just removing the
-       'is-collapsed' CSS class doesn't fix that, since it's purely
-       cosmetic. Dispatching a real click on the title makes Obsidian
-       expand it the normal way, mounting its children for real. */
-    const wasCollapsed = focusEl.classList.contains('is-collapsed');
-    if (wasCollapsed) {
-      const indicator = titleEl.querySelector('.nav-folder-collapse-indicator') || titleEl;
-      indicator.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    if (!focusEl) {
+      /* Folder element not in DOM yet — try expanding, then retry once */
+      this._expandToPath(focus);
+      setTimeout(() => {
+        const retryNav = document.querySelector('.nav-files-container');
+        if (!retryNav) { this._suppressObserver = false; return; }
+        const retryTitle = this._findTitleByPath(retryNav, focus);
+        const retryEl = retryTitle?.closest('.nav-folder');
+        if (!retryEl) {
+          /* Still not found — clear focus to prevent blank screen */
+          this.plugin.settings.focusedFolder = null;
+          this.plugin.saveSettings();
+          document.body.classList.remove('ff-active');
+          this.renderBreadcrumb();
+          this._suppressObserver = false;
+          new Notice(t('ffErrorNotFound'));
+          return;
+        }
+        this._applyFocusToElement(retryNav, retryEl, retryTitle, focus, opts);
+      }, 150);
+      return;
     }
-    focusEl.classList.remove('is-collapsed');
 
-    /* Defer the collapse/hide pass to the next frame so any DOM
-       Obsidian just inserted (from the native expand above) is in
-       place before we decide what to hide. The observer stays
-       disconnected through this entire deferred step too. */
-    requestAnimationFrame(() => {
-      if (opts.collapseChildren) {
-        focusEl.querySelectorAll('.nav-folder').forEach(sub => {
-          sub.classList.add('is-collapsed');
-        });
-      }
-
-      /* Walk up from focusEl to nav, marking every ancestor folder.
-         This matters when one "main folder" is nested inside another
-         (e.g. Habits inside Journaling) — without this, hiding the
-         outer folder would also hide the focused folder living inside
-         it, since a hidden parent hides its descendants too. */
-      const ancestors = new Set();
-      let walker = focusEl.parentElement;
-      while (walker && walker !== nav) {
-        if (walker.classList?.contains('nav-folder')) ancestors.add(walker);
-        walker = walker.parentElement;
-      }
-      ancestors.forEach(a => a.classList.add('ff-ancestor'));
-
-      nav.querySelectorAll('.nav-folder, .nav-file').forEach(el => {
-        if (el === focusEl || focusEl.contains(el) || ancestors.has(el)) return;
-        el.classList.add('ff-hidden');
-      });
-
-      reconnect();
-    });
+    this._applyFocusToElement(nav, focusEl, titleEl, focus, opts);
   }
 
+  /* Internal: applies hide/show logic once we have the DOM element */
+  _applyFocusToElement(nav, focusEl, titleEl, focus, opts) {
+    focusEl.classList.add('ff-self');
+
+    /* Ensure the folder is expanded via the API */
+    this._expandToPath(focus);
+
+    /* Optionally collapse direct sub-folders (one-click "zoom in") */
+    if (opts.collapseChildren) {
+      this._collapseChildFolders(focus);
+    }
+
+    /* ── Walk up from focusEl to nav, marking every ancestor folder.
+       This keeps the focused folder visible even when it lives
+       inside another main folder. ── */
+    const ancestors = new Set();
+    let walker = focusEl.parentElement;
+    while (walker && walker !== nav) {
+      if (walker.classList && walker.classList.contains('nav-folder')) {
+        ancestors.add(walker);
+      }
+      walker = walker.parentElement;
+    }
+    ancestors.forEach(a => a.classList.add('ff-ancestor'));
+
+    /* ── Hide everything outside the focus path ── */
+    nav.querySelectorAll('.nav-folder, .nav-file').forEach(el => {
+      if (el === focusEl || focusEl.contains(el) || ancestors.has(el)) return;
+      el.classList.add('ff-hidden');
+    });
+
+    /* ── Safety net: if children container is empty (lazy-render edge
+       case), keep the folder title visible so the screen is never
+       blank.  Re-check after 200ms in case Obsidian was still
+       mounting children asynchronously. ── */
+    const childrenEl = focusEl.querySelector('.nav-folder-children');
+    if (!childrenEl || childrenEl.children.length === 0) {
+      /* Keep title visible for now (remove ff-self) */
+      focusEl.classList.remove('ff-self');
+      setTimeout(() => {
+        const recheck = focusEl.querySelector('.nav-folder-children');
+        if (recheck && recheck.children.length > 0) {
+          /* Children appeared — safe to hide the title now */
+          focusEl.classList.add('ff-self');
+        }
+        this._suppressObserver = false;
+      }, 250);
+    } else {
+      this._suppressObserver = false;
+    }
+  }
+
+  /* ══════════════════ BREADCRUMB / TAB BAR ══════════════════ */
   renderBreadcrumb() {
     const nav = document.querySelector('.nav-files-container');
     if (!nav || !nav.parentElement) return;
@@ -1515,11 +1774,11 @@ class FolderFocusManager {
     const focus = this.plugin.settings.focusedFolder;
     const mainFolders = this.plugin.settings.mainFolders || [];
 
-    /* show the bar whenever main folders are pinned, or a one-off
-       focus is active (via right-click) even without pinned tabs */
     const shouldShow = mainFolders.length > 0 || !!focus;
-
-    if (!shouldShow) { this.breadcrumbEl?.remove(); this.breadcrumbEl = null; return; }
+    if (!shouldShow) {
+      if (this.breadcrumbEl) { this.breadcrumbEl.remove(); this.breadcrumbEl = null; }
+      return;
+    }
 
     if (!this.breadcrumbEl || !this.breadcrumbEl.isConnected) {
       this.breadcrumbEl = document.createElement('div');
@@ -1528,21 +1787,20 @@ class FolderFocusManager {
     }
     this.breadcrumbEl.innerHTML = '';
 
-    /* 🏠 Home — always present and always clickable, regardless of
-       focus state. Acts as a guaranteed "return to normal view"
-       affordance, and doubles as a safety reset for Zen Mode in
-       case it ever gets stuck active. */
+    /* ── Home button (always present, always clickable) ── */
     const home = document.createElement('button');
     home.className = 'ff-home-btn' + (focus ? '' : ' ff-home-active');
-    home.textContent = focus ? ('← ' + t('ffBack')) : ('🏠 ' + t('ffBack'));
+    home.textContent = focus ? ('\u2190 ' + t('ffBack')) : ('\uD83C\uDFE0 ' + t('ffBack'));
     home.title = t('ffBack');
     home.addEventListener('click', () => {
       this.clearFocus();
-      this.plugin.fullscreenMgr?.exitZen();
+      if (this.plugin.fullscreenMgr && this.plugin.fullscreenMgr.exitZen) {
+        this.plugin.fullscreenMgr.exitZen();
+      }
     });
     this.breadcrumbEl.appendChild(home);
 
-    /* main-folder tabs */
+    /* ── Main-folder tabs ── */
     mainFolders.forEach(mfPath => {
       const name = mfPath.split('/').pop();
       const btn = document.createElement('button');
@@ -1556,31 +1814,677 @@ class FolderFocusManager {
       this.breadcrumbEl.appendChild(btn);
     });
 
-    /* current-folder label (if focused on a non-main folder) */
-    if (focus && !mainFolders.includes(focus)) {
-      const label = document.createElement('span');
-      label.className = 'ff-label';
-      label.textContent = focus.split('/').pop();
-      this.breadcrumbEl.appendChild(label);
+    /* ── Hierarchical breadcrumb path (clickable segments) ── */
+    if (focus) {
+      const parts = focus.split('/');
+      if (!mainFolders.includes(focus) || parts.length > 1) {
+        const pathCrumbs = document.createElement('div');
+        pathCrumbs.className = 'ff-path-crumbs';
+
+        let cumulative = '';
+        parts.forEach((part, i) => {
+          if (i > 0) {
+            const sep = document.createElement('span');
+            sep.className = 'ff-path-sep';
+            sep.textContent = ' \u203A ';
+            pathCrumbs.appendChild(sep);
+          }
+          cumulative = cumulative ? cumulative + '/' + part : part;
+          const segPath = cumulative;
+          const seg = document.createElement('button');
+          seg.className = 'ff-path-seg';
+          if (i === parts.length - 1) seg.classList.add('ff-path-seg-current');
+          seg.textContent = part;
+          seg.title = segPath;
+          if (i < parts.length - 1) {
+            seg.addEventListener('click', () => this.setFocus(segPath, { collapseChildren: true }));
+          }
+          pathCrumbs.appendChild(seg);
+        });
+        this.breadcrumbEl.appendChild(pathCrumbs);
+      }
+
+      /* ── "+ New note" button ── */
+      const newBtn = document.createElement('button');
+      newBtn.className = 'ff-new-note-btn';
+      newBtn.textContent = t('ffNewNote');
+      newBtn.title = t('ffNewNote');
+      newBtn.addEventListener('click', async () => {
+        try {
+          const folder = this.plugin.app.vault.getAbstractFileByPath(focus);
+          if (!folder) return;
+          let name = 'Untitled';
+          let num = 1;
+          while (this.plugin.app.vault.getAbstractFileByPath(focus + '/' + name + '.md')) {
+            name = 'Untitled ' + num++;
+          }
+          const f = await this.plugin.app.vault.create(focus + '/' + name + '.md', '');
+          await this.plugin.app.workspace.getLeaf(false).openFile(f);
+        } catch (e) { console.warn('Focus Mode: new note failed', e); }
+      });
+      this.breadcrumbEl.appendChild(newBtn);
+    }
+  }
+
+  /* ══════════════════ DESTROY ══════════════════ */
+  destroy() {
+    if (this._obs) this._obs.disconnect();
+    if (this._rafId != null) { cancelAnimationFrame(this._rafId); this._rafId = null; }
+    if (this._navEl && this._clickHandler) {
+      this._navEl.removeEventListener('click', this._clickHandler, true);
+    }
+    document.body.classList.remove('ff-active');
+    document.querySelectorAll('.ff-hidden,.ff-self,.ff-ancestor').forEach(el =>
+      el.classList.remove('ff-hidden', 'ff-self', 'ff-ancestor'));
+    document.querySelectorAll('.ff-main-badge').forEach(el => el.remove());
+    document.querySelectorAll('.ff-quick-icon').forEach(el => el.remove());
+    document.querySelectorAll('[data-ff-icon]').forEach(el => el.removeAttribute('data-ff-icon'));
+    if (this.breadcrumbEl) { this.breadcrumbEl.remove(); this.breadcrumbEl = null; }
+    if (this._ribbonEl) { this._ribbonEl.remove(); this._ribbonEl = null; }
+    const navEl = document.querySelector('.nav-files-container');
+    if (navEl) delete navEl.dataset.ffObserved;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   FOLDER VAULT & PRIVACY LOCK
+══════════════════════════════════════════════ */
+class VaultCrypto {
+  static generateSalt() {
+    const array = new Uint8Array(16);
+    window.crypto.getRandomValues(array);
+    return this.bufferToBase64(array.buffer);
+  }
+  static async hashPassword(password, saltBase64, iterations = 100000) {
+    const enc = new TextEncoder();
+    const passwordBuffer = enc.encode(password);
+    const saltBuffer = this.base64ToBuffer(saltBase64);
+    const baseKey = await window.crypto.subtle.importKey(
+      'raw', passwordBuffer, { name: 'PBKDF2' }, false, ['deriveBits']
+    );
+    const derivedBits = await window.crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: saltBuffer, iterations, hash: 'SHA-256' },
+      baseKey, 256
+    );
+    return this.bufferToBase64(derivedBits);
+  }
+  static async verifyPassword(password, salt, expectedHash, iterations = 100000) {
+    try {
+      const actualHash = await this.hashPassword(password, salt, iterations);
+      return actualHash === expectedHash;
+    } catch (e) {
+      console.error('VaultCrypto verification error:', e);
+      return false;
+    }
+  }
+  static bufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return window.btoa(binary);
+  }
+  static base64ToBuffer(base64) {
+    const binary = window.atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+  }
+}
+
+class UnlockFolderModal extends Modal {
+  constructor(app, folderPath, config, onSuccess) {
+    super(app);
+    this.folderPath = folderPath;
+    this.config = config;
+    this.onSuccess = onSuccess;
+    this.isSubmitting = false;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('fv-modal-clean');
+
+    const header = contentEl.createEl('div', { cls: 'fv-clean-header' });
+    header.createEl('span', { cls: 'fv-clean-icon', text: '🔒' });
+    header.createEl('h3', { cls: 'fv-clean-title', text: t('fvModalTitle') });
+
+    const badge = contentEl.createEl('div', { cls: 'fv-clean-folder' });
+    badge.createEl('span', { text: this.folderPath });
+
+    const form = contentEl.createEl('form', { cls: 'fv-clean-form' });
+    this.inputEl = form.createEl('input', {
+      type: 'password',
+      cls: 'fv-clean-input',
+      placeholder: t('fvInputPlaceholder') || 'PIN or password…'
+    });
+
+    // Enter key handler
+    this.inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.attemptUnlock();
+      }
+    });
+
+    const btnRow = form.createEl('div', { cls: 'fv-clean-btn-row' });
+    const cancelBtn = btnRow.createEl('button', {
+      type: 'button',
+      cls: 'fv-clean-btn fv-clean-btn-cancel',
+      text: t('btnCancel') || 'Cancel'
+    });
+    cancelBtn.addEventListener('click', () => this.close());
+
+    const submitBtn = btnRow.createEl('button', {
+      type: 'submit',
+      cls: 'mod-cta fv-clean-btn',
+      text: t('fvUnlockBtn') || 'Unlock'
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.attemptUnlock();
+    });
+
+    setTimeout(() => {
+      this.inputEl.focus();
+      this.inputEl.select();
+    }, 50);
+  }
+
+  async attemptUnlock() {
+    if (this.isSubmitting) return;
+    const entered = this.inputEl.value;
+    if (!entered) return;
+
+    this.isSubmitting = true;
+    try {
+      const isValid = await VaultCrypto.verifyPassword(
+        entered,
+        this.config.salt,
+        this.config.hash,
+        this.config.iterations || 100000
+      );
+
+      if (isValid) {
+        new Notice(t('fvUnlockedNotice') + this.folderPath);
+        this.close();
+        if (this.onSuccess) this.onSuccess();
+      } else {
+        this.inputEl.value = '';
+        this.contentEl.addClass('vault-shake');
+        setTimeout(() => this.contentEl.removeClass('vault-shake'), 500);
+        new Notice(t('fvWrongPin'));
+        this.inputEl.focus();
+      }
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+class SetFolderPinModal extends Modal {
+  constructor(app, folderPath, onSave) {
+    super(app);
+    this.folderPath = folderPath;
+    this.onSave = onSave;
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('fv-modal-clean');
+
+    const header = contentEl.createEl('div', { cls: 'fv-clean-header' });
+    header.createEl('span', { cls: 'fv-clean-icon', text: '🔐' });
+    header.createEl('h3', { cls: 'fv-clean-title', text: t('fvSetupTitle') });
+
+    const badge = contentEl.createEl('div', { cls: 'fv-clean-folder' });
+    badge.createEl('span', { text: this.folderPath });
+
+    const form = contentEl.createEl('form', { cls: 'fv-clean-form' });
+    const pinInput = form.createEl('input', {
+      type: 'password',
+      cls: 'fv-clean-input',
+      placeholder: t('fvSetupDesc') || 'New PIN or password…'
+    });
+
+    const confirmInput = form.createEl('input', {
+      type: 'password',
+      cls: 'fv-clean-input',
+      placeholder: t('fvConfirmPin') || 'Confirm PIN or password…'
+    });
+
+    const btnRow = form.createEl('div', { cls: 'fv-clean-btn-row' });
+    const cancelBtn = btnRow.createEl('button', {
+      type: 'button',
+      cls: 'fv-clean-btn fv-clean-btn-cancel',
+      text: t('btnCancel') || 'Cancel'
+    });
+    cancelBtn.addEventListener('click', () => this.close());
+
+    btnRow.createEl('button', {
+      type: 'submit',
+      cls: 'mod-cta fv-clean-btn',
+      text: t('fvSaveBtn') || 'Lock Folder'
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pin = pinInput.value;
+      const confirm = confirmInput.value;
+
+      if (!pin || pin.length < 4) {
+        new Notice(t('fvPinMinLength'));
+        return;
+      }
+      if (pin !== confirm) {
+        new Notice(t('fvPinMismatch'));
+        confirmInput.value = '';
+        confirmInput.focus();
+        return;
+      }
+
+      const salt = VaultCrypto.generateSalt();
+      const hash = await VaultCrypto.hashPassword(pin, salt);
+
+      this.onSave({
+        path: this.folderPath,
+        salt,
+        hash,
+        iterations: 100000
+      });
+
+      new Notice(t('fvSavedNotice') + this.folderPath);
+      this.close();
+    });
+
+    setTimeout(() => pinInput.focus(), 50);
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+class FolderVaultManager {
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.app = plugin.app;
+    this.unlockedFolders = new Set();
+    this._inactivityTimer = null;
+    this._vaultPatched = false;
+    this._boundActivity = null;
+    this._boundBlur = null;
+    this._boundFileOpen = null;
+    this._boundFileMenu = null;
+    this._obs = null;
+    this._suppressTreeObserver = false;
+    this._rafDecorate = null;
+    this._isHandlingOpen = false;
+  }
+
+  register() {
+    if (this.plugin.settings.vaultLockOnStartup) {
+      this.unlockedFolders.clear();
+    }
+
+    this.patchVault();
+
+    this._boundFileOpen = (file) => {
+      if (file) this.interceptFileOpen(file);
+    };
+    this.plugin.registerEvent(this.app.workspace.on('file-open', this._boundFileOpen));
+
+    this._boundFileMenu = (menu, file) => {
+      if (file instanceof TFolder) this.onFolderMenu(menu, file);
+    };
+    this.plugin.registerEvent(this.app.workspace.on('file-menu', this._boundFileMenu));
+
+    this.setupActivityWatch();
+
+    this.app.workspace.onLayoutReady(() => {
+      this.setupTreeObserver();
+      this.decorateTree();
+    });
+  }
+
+  patchVault() {
+    const vault = this.app.vault;
+    if (!vault || this._vaultPatched) return;
+    this._origGetFiles = vault.getFiles.bind(vault);
+    this._origGetMarkdownFiles = vault.getMarkdownFiles.bind(vault);
+    this._vaultPatched = true;
+
+    vault.getFiles = () => {
+      const files = this._origGetFiles();
+      if (!this.plugin.settings.enableFolderVault) return files;
+      return files.filter(f => !this.isPathLocked(f.path));
+    };
+
+    vault.getMarkdownFiles = () => {
+      const mdFiles = this._origGetMarkdownFiles();
+      if (!this.plugin.settings.enableFolderVault) return mdFiles;
+      return mdFiles.filter(f => !this.isPathLocked(f.path));
+    };
+  }
+
+  unpatchVault() {
+    if (!this._vaultPatched) return;
+    const vault = this.app.vault;
+    if (this._origGetFiles) vault.getFiles = this._origGetFiles;
+    if (this._origGetMarkdownFiles) vault.getMarkdownFiles = this._origGetMarkdownFiles;
+    this._vaultPatched = false;
+  }
+
+  isPathLocked(itemPath) {
+    const lockedFolders = this.plugin.settings.lockedFolders || {};
+    for (const folderPath in lockedFolders) {
+      if (itemPath === folderPath || itemPath.startsWith(folderPath + '/')) {
+        if (!this.unlockedFolders.has(folderPath)) {
+          return folderPath;
+        }
+      }
+    }
+    return null;
+  }
+
+  interceptFileOpen(file) {
+    if (!this.plugin.settings.enableFolderVault) return;
+    if (this._isHandlingOpen) return;
+    const lockedFolder = this.isPathLocked(file.path);
+    if (lockedFolder) {
+      this._isHandlingOpen = true;
+      this.closeLockedLeaves();
+      this.requestUnlock(lockedFolder, () => {
+        this.app.workspace.openLinkText(file.path, '', false);
+      });
+      setTimeout(() => { this._isHandlingOpen = false; }, 300);
+    }
+  }
+
+  closeLockedLeaves() {
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      const viewState = leaf.getViewState();
+      const filePath = viewState?.state?.file;
+      if (filePath && this.isPathLocked(filePath)) {
+        leaf.detach();
+      }
+    });
+  }
+
+  expandFolder(folderPath) {
+    // Expand via Obsidian Explorer API
+    const leaves = this.app.workspace.getLeavesOfType('file-explorer');
+    if (leaves.length > 0 && leaves[0].view && leaves[0].view.fileItems) {
+      const parts = folderPath.split('/');
+      let cur = '';
+      for (const part of parts) {
+        cur = cur ? cur + '/' + part : part;
+        const item = leaves[0].view.fileItems[cur];
+        if (item && typeof item.setCollapsed === 'function') {
+          try { item.setCollapsed(false); } catch (e) {}
+        }
+      }
+    }
+
+    // Also remove is-collapsed in DOM
+    const nav = document.querySelector('.nav-files-container');
+    if (nav) {
+      nav.querySelectorAll('.nav-folder-title').forEach(t => {
+        if (t.dataset.path === folderPath) {
+          const f = t.closest('.nav-folder');
+          if (f) {
+            f.classList.remove('is-collapsed');
+            const indicator = t.querySelector('.nav-folder-collapse-indicator') || t;
+            indicator.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+          }
+        }
+      });
+    }
+  }
+
+  onFolderMenu(menu, folder) {
+    if (!this.plugin.settings.enableFolderVault) return;
+    const path = folder.path;
+    const isConfigured = Boolean(this.plugin.settings.lockedFolders?.[path]);
+
+    if (!isConfigured) {
+      menu.addItem((item) => {
+        item.setTitle(t('fvLockMenu'))
+          .setIcon('lock')
+          .onClick(() => this.openSetPinModal(path));
+      });
+    } else {
+      const isUnlocked = this.unlockedFolders.has(path);
+      // Toggle Lock / Unlock
+      menu.addItem((item) => {
+        item.setTitle(isUnlocked ? t('fvLockNowMenu') : t('fvUnlockMenu'))
+          .setIcon(isUnlocked ? 'lock' : 'unlock')
+          .onClick(() => {
+            if (isUnlocked) {
+              this.lockFolder(path);
+            } else {
+              this.requestUnlock(path, () => this.expandFolder(path));
+            }
+          });
+      });
+
+      // Remove Protection Permanently
+      menu.addItem((item) => {
+        item.setTitle(t('fvRemoveMenu'))
+          .setIcon('trash')
+          .onClick(async () => {
+            delete this.plugin.settings.lockedFolders[path];
+            this.unlockedFolders.delete(path);
+            await this.plugin.saveSettings();
+            this.decorateTree();
+            new Notice(t('fvRemovedNotice') + path);
+          });
+      });
+    }
+  }
+
+  openSetPinModal(folderPath) {
+    new SetFolderPinModal(this.app, folderPath, async (config) => {
+      const map = this.plugin.settings.lockedFolders || (this.plugin.settings.lockedFolders = {});
+      map[folderPath] = config;
+      this.unlockedFolders.delete(folderPath);
+      await this.plugin.saveSettings();
+      this.closeLockedLeaves();
+      this.decorateTree();
+    }).open();
+  }
+
+  requestUnlock(folderPath, onSuccess) {
+    const config = this.plugin.settings.lockedFolders?.[folderPath];
+    if (!config) return;
+
+    new UnlockFolderModal(this.app, folderPath, config, () => {
+      this.unlockedFolders.add(folderPath);
+      this.decorateTree();
+      this.resetInactivityTimer();
+      // Auto-expand folder on successful unlock!
+      this.expandFolder(folderPath);
+      if (onSuccess) onSuccess();
+    }).open();
+  }
+
+  lockFolder(folderPath) {
+    this.unlockedFolders.delete(folderPath);
+    this.closeLockedLeaves();
+    this.decorateTree();
+    new Notice(t('fvLockedNotice') + folderPath);
+  }
+
+  lockAll(silent = false) {
+    this.unlockedFolders.clear();
+    this.closeLockedLeaves();
+    this.decorateTree();
+    if (!silent) new Notice(t('fvLockAllCmd'));
+  }
+
+  setupActivityWatch() {
+    let lastTime = Date.now();
+    this._boundActivity = () => {
+      const now = Date.now();
+      if (now - lastTime > 10000) {
+        lastTime = now;
+        this.resetInactivityTimer();
+      }
+    };
+    window.addEventListener('mousemove', this._boundActivity);
+    window.addEventListener('keydown', this._boundActivity);
+
+    this._boundBlur = () => {
+      if (this.plugin.settings.vaultLockOnBlur && this.unlockedFolders.size > 0) {
+        this.lockAll(true);
+        new Notice(t('fvBlurNotice'));
+      }
+    };
+    window.addEventListener('blur', this._boundBlur);
+
+    this.resetInactivityTimer();
+  }
+
+  resetInactivityTimer() {
+    if (this._inactivityTimer != null) {
+      clearTimeout(this._inactivityTimer);
+      this._inactivityTimer = null;
+    }
+    const timeout = this.plugin.settings.vaultAutoLockTimeout || 0;
+    if (timeout <= 0 || this.unlockedFolders.size === 0) return;
+
+    this._inactivityTimer = setTimeout(() => {
+      if (this.unlockedFolders.size > 0) {
+        this.lockAll(true);
+        new Notice(t('fvAutoLockNotice'));
+      }
+    }, timeout * 60 * 1000);
+  }
+
+  setupTreeObserver() {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav || nav.dataset.fvObserved) return;
+    nav.dataset.fvObserved = '1';
+
+    this._obs = new MutationObserver(() => {
+      if (this._suppressTreeObserver) return;
+      this.scheduleDecorate();
+    });
+    this._obs.observe(nav, { childList: true, subtree: true });
+  }
+
+  scheduleDecorate() {
+    if (this._rafDecorate != null) return;
+    this._rafDecorate = requestAnimationFrame(() => {
+      this._rafDecorate = null;
+      this.decorateTree();
+    });
+  }
+
+  decorateTree() {
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav) return;
+    this._suppressTreeObserver = true;
+
+    try {
+      const lockedFolders = this.plugin.settings.lockedFolders || {};
+
+      nav.querySelectorAll('.nav-folder-title').forEach(titleEl => {
+        const path = titleEl.dataset.path;
+        if (!path) return;
+        const isConfigured = Boolean(lockedFolders[path]);
+        const folderEl = titleEl.closest('.nav-folder');
+
+        if (isConfigured && this.plugin.settings.enableFolderVault) {
+          const isUnlocked = this.unlockedFolders.has(path);
+          if (this.plugin.settings.vaultHideInTree && !isUnlocked) {
+            if (folderEl) folderEl.classList.add('fv-folder-hidden');
+            const existingBadge = titleEl.querySelector('.fv-lock-badge');
+            if (existingBadge) existingBadge.remove();
+            return;
+          } else {
+            if (folderEl) folderEl.classList.remove('fv-folder-hidden');
+          }
+
+          let badge = titleEl.querySelector('.fv-lock-badge');
+          const expectedClass = isUnlocked ? 'fv-unlocked' : 'fv-locked';
+          const expectedTitle = isUnlocked ? (t('fvUnlockedStatus') + ' (اضغط للقفل)') : (t('fvLockedStatus') + ' (اضغط للفتح)');
+          const expectedSvg = isUnlocked
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
+
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'fv-lock-badge ' + expectedClass;
+            badge.title = expectedTitle;
+            badge.innerHTML = expectedSvg;
+            badge.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const p = titleEl.dataset.path;
+              if (!p) return;
+              if (this.unlockedFolders.has(p)) {
+                this.lockFolder(p);
+              } else {
+                this.requestUnlock(p, () => this.expandFolder(p));
+              }
+            });
+            titleEl.appendChild(badge);
+          } else if (!badge.classList.contains(expectedClass)) {
+            badge.className = 'fv-lock-badge ' + expectedClass;
+            badge.title = expectedTitle;
+            badge.innerHTML = expectedSvg;
+          }
+
+          if (!titleEl.dataset.fvHooked) {
+            titleEl.dataset.fvHooked = '1';
+            titleEl.addEventListener('click', (e) => {
+              const p = titleEl.dataset.path;
+              if (this.plugin.settings.lockedFolders?.[p] && !this.unlockedFolders.has(p)) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.requestUnlock(p, () => {
+                  this.expandFolder(p);
+                });
+              }
+            }, true);
+          }
+        } else {
+          if (folderEl) folderEl.classList.remove('fv-folder-hidden');
+          const existingBadge = titleEl.querySelector('.fv-lock-badge');
+          if (existingBadge) existingBadge.remove();
+        }
+      });
+    } finally {
+      setTimeout(() => { this._suppressTreeObserver = false; }, 60);
     }
   }
 
   destroy() {
+    this.unpatchVault();
     this._obs?.disconnect();
-    if (this._rafId != null) { cancelAnimationFrame(this._rafId); this._rafId = null; }
-    if (this._navEl && this._clickHandler) this._navEl.removeEventListener('click', this._clickHandler, true);
-    document.body.classList.remove('ff-active');
-    document.querySelectorAll('.ff-hidden,.ff-self,.ff-ancestor').forEach(el=>el.classList.remove('ff-hidden','ff-self','ff-ancestor'));
-    document.querySelectorAll('.ff-main-badge').forEach(el=>el.remove());
-    document.querySelectorAll('.ff-quick-icon').forEach(el=>el.remove());
-    document.querySelectorAll('[data-ff-icon]').forEach(el=>el.removeAttribute('data-ff-icon'));
-    this.breadcrumbEl?.remove();
-    this.breadcrumbEl = null;
-    delete document.querySelector('.nav-files-container')?.dataset.ffObserved;
+    if (this._inactivityTimer != null) {
+      clearTimeout(this._inactivityTimer);
+      this._inactivityTimer = null;
+    }
+    if (this._boundActivity) {
+      window.removeEventListener('mousemove', this._boundActivity);
+      window.removeEventListener('keydown', this._boundActivity);
+    }
+    if (this._boundBlur) {
+      window.removeEventListener('blur', this._boundBlur);
+    }
+    document.querySelectorAll('.fv-lock-badge').forEach(b => b.remove());
+    document.querySelectorAll('.fv-folder-hidden').forEach(f => f.classList.remove('fv-folder-hidden'));
+    delete document.querySelector('.nav-files-container')?.dataset.fvObserved;
   }
 }
-
-
 class ToolkitSettingsTab extends PluginSettingTab {
   constructor(app, plugin) { super(app, plugin); this.plugin=plugin; }
 
@@ -1588,6 +2492,26 @@ class ToolkitSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl('h2', { text:t('settingsTitle') });
+
+    /* ── Language Switcher (Primary English, Arabic Option) ── */
+    new Setting(containerEl)
+      .setName(this.plugin.settings.enableArabicUi ? '🌐 الواجهة العربية' : '🌐 Arabic Interface')
+      .setDesc(this.plugin.settings.enableArabicUi
+        ? 'تحويل لغة واجهة الإضافة ورسائلها إلى اللغة العربية (الافتراضي: الإنجليزية).'
+        : 'Enable Arabic translations for the plugin interface and notices (Default: English).')
+      .addToggle(tog => tog
+        .setValue(this.plugin.settings.enableArabicUi || false)
+        .onChange(async (val) => {
+          this.plugin.settings.enableArabicUi = val;
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    new Setting(containerEl).setName(t('slashName')).setDesc(t('slashDesc'))
+      .addToggle(tog=>tog.setValue(this.plugin.settings.enableSlashCommands).onChange(async val=>{
+        this.plugin.settings.enableSlashCommands = val;
+        await this.plugin.saveSettings();
+      }));
 
     new Setting(containerEl).setName(t('fmtName')).setDesc(t('fmtDesc'))
       .addToggle(tog=>tog.setValue(this.plugin.settings.enableFormatting).onChange(async val=>{
@@ -1904,7 +2828,131 @@ class ToolkitSettingsTab extends PluginSettingTab {
         }));
     }
 
-    containerEl.createEl('p', { text:'Obsidian Toolkit v2.6 — by Ahmed', cls:'setting-item-description' });
+    containerEl.createEl('hr');
+
+    /* ── Folder Vault & Privacy Lock Settings ── */
+    new Setting(containerEl).setName(t('fvName')).setDesc(t('fvDesc'))
+      .addToggle(tog=>tog.setValue(this.plugin.settings.enableFolderVault).onChange(async val=>{
+        this.plugin.settings.enableFolderVault = val;
+        await this.plugin.saveSettings();
+        if (val) {
+          this.plugin.folderVaultMgr.register();
+        } else {
+          this.plugin.folderVaultMgr.destroy();
+        }
+        new Notice(val ? t('fvOn') : t('fvOff'));
+        this.display();
+      }));
+
+    if (this.plugin.settings.enableFolderVault) {
+      new Setting(containerEl).setName(t('fvAutoLockName')).setDesc(t('fvAutoLockDesc'))
+        .addSlider(sl=>sl.setLimits(0, 60, 5).setValue(this.plugin.settings.vaultAutoLockTimeout).setDynamicTooltip().onChange(async val=>{
+          this.plugin.settings.vaultAutoLockTimeout = val;
+          await this.plugin.saveSettings();
+          this.plugin.folderVaultMgr.resetInactivityTimer();
+        }));
+
+      new Setting(containerEl).setName(t('fvBlurName')).setDesc(t('fvBlurDesc'))
+        .addToggle(tog=>tog.setValue(this.plugin.settings.vaultLockOnBlur).onChange(async val=>{
+          this.plugin.settings.vaultLockOnBlur = val;
+          await this.plugin.saveSettings();
+        }));
+
+      new Setting(containerEl).setName(t('fvStartupName')).setDesc(t('fvStartupDesc'))
+        .addToggle(tog=>tog.setValue(this.plugin.settings.vaultLockOnStartup).onChange(async val=>{
+          this.plugin.settings.vaultLockOnStartup = val;
+          await this.plugin.saveSettings();
+        }));
+
+      new Setting(containerEl).setName(t('fvHideName')).setDesc(t('fvHideDesc'))
+        .addToggle(tog=>tog.setValue(this.plugin.settings.vaultHideInTree).onChange(async val=>{
+          this.plugin.settings.vaultHideInTree = val;
+          await this.plugin.saveSettings();
+          this.plugin.folderVaultMgr.decorateTree();
+        }));
+
+      containerEl.createEl('div', { text: t('fvFoldersList'), cls: 'setting-item-name', attr:{ style:'margin:14px 0 4px;' } });
+      const lockedFolders = this.plugin.settings.lockedFolders || {};
+      const paths = Object.keys(lockedFolders);
+
+      if (!paths.length) {
+        containerEl.createEl('p', { text: t('fvEmpty'), cls: 'setting-item-description' });
+      } else {
+        paths.forEach(p => {
+          const isUnlocked = this.plugin.folderVaultMgr.unlockedFolders.has(p);
+          new Setting(containerEl)
+            .setName(p.split('/').pop())
+            .setDesc(`${p} — ${isUnlocked ? t('fvUnlockedStatus') : t('fvLockedStatus')}`)
+            .addButton(btn=>btn
+              .setButtonText(isUnlocked ? t('fvLockNow') : t('fvUnlock'))
+              .onClick(async () => {
+                if (isUnlocked) {
+                  this.plugin.folderVaultMgr.lockFolder(p);
+                  this.display();
+                } else {
+                  this.plugin.folderVaultMgr.requestUnlock(p, () => this.display());
+                }
+              }))
+            .addButton(btn=>btn
+              .setWarning()
+              .setButtonText(t('fvRemove'))
+              .onClick(async () => {
+                delete this.plugin.settings.lockedFolders[p];
+                this.plugin.folderVaultMgr.unlockedFolders.delete(p);
+                await this.plugin.saveSettings();
+                this.plugin.folderVaultMgr.decorateTree();
+                new Notice(t('fvRemovedNotice') + p);
+                this.display();
+              }));
+        });
+      }
+    }
+
+    /* ══════════════════════════════════════════════
+       SUPPORT / BUY ME A COFFEE CARD
+    ══════════════════════════════════════════════ */
+    const supportCard = containerEl.createEl('div', { cls: 'tk-support-card' });
+
+    const supHeader = supportCard.createEl('div', { cls: 'tk-support-header' });
+    supHeader.createEl('span', { cls: 'tk-support-icon', text: '☕' });
+    const supTitleWrap = supHeader.createEl('div', { cls: 'tk-support-title-wrap' });
+    supTitleWrap.createEl('div', { cls: 'tk-support-title', text: t('supportTitle') });
+
+    supportCard.createEl('p', { cls: 'tk-support-desc', text: t('supportDesc') });
+
+    const supActions = supportCard.createEl('div', { cls: 'tk-support-actions' });
+
+    // Coffee Button (PayPal)
+    const coffeeBtn = supActions.createEl('a', {
+      cls: 'tk-btn-coffee',
+      href: 'https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78',
+      text: t('supportBtn')
+    });
+    coffeeBtn.setAttribute('target', '_blank');
+    coffeeBtn.setAttribute('rel', 'noopener noreferrer');
+
+    // GitHub Star Button
+    const ghBtn = supActions.createEl('a', {
+      cls: 'tk-btn-github',
+      href: 'https://github.com/ahmdmusa/obsidian-toolkit',
+      text: t('starBtn')
+    });
+    ghBtn.setAttribute('target', '_blank');
+    ghBtn.setAttribute('rel', 'noopener noreferrer');
+
+    // Suggestions & Feedback Email Button
+    const emailBtn = supActions.createEl('a', {
+      cls: 'tk-btn-email',
+      href: 'mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=My%20Toolkit%20Feedback%20%26%20Suggestions',
+      text: t('feedbackBtn')
+    });
+    emailBtn.setAttribute('title', 'ahmedmousa.eng+ObsToolkit@gmail.com');
+
+    // Footer note
+    const supFooter = supportCard.createEl('div', { cls: 'tk-support-footer' });
+    supFooter.createEl('span', { text: t('supportFooter') });
+
+    containerEl.createEl('p', { text:'Obsidian Toolkit v2.9.0 — by Ahmed Mousa', cls:'setting-item-description' });
   }
 
   async addQuickItem(path, label) {
@@ -1922,11 +2970,42 @@ class ToolkitSettingsTab extends PluginSettingTab {
 ══════════════════════════════════════════════ */
 class ObsidianToolkitPlugin extends Plugin {
   async onload() {
+    CURRENT_PLUGIN_INSTANCE = this;
     await this.loadSettings();
 
     /* CSS auto-loaded by Obsidian from styles.css */
 
     if (this.settings.enableFormatting) {
+      this.slashSuggest = new SlashCommandSuggest(this.app, this);
+      this.registerEditorSuggest(this.slashSuggest);
+
+      this.addCommand({
+        id: 'toggle-paragraph-rtl',
+        name: t('rtlCommandName'),
+        hotkeys: [{ modifiers: ['Alt'], key: 'r' }],
+        editorCallback: (editor) => {
+          const sel = editor.getSelection();
+          if (sel) {
+            if (sel.startsWith('<div dir="rtl">\n') && sel.endsWith('\n</div>')) {
+              editor.replaceSelection(sel.slice(16, -7));
+            } else if (sel.startsWith('<div dir="rtl">') && sel.endsWith('</div>')) {
+              editor.replaceSelection(sel.slice(15, -6));
+            } else {
+              editor.replaceSelection(`<div dir="rtl">\n${sel}\n</div>`);
+            }
+          } else {
+            const cur = editor.getCursor();
+            const line = editor.getLine(cur.line);
+            if (line.startsWith('<div dir="rtl">') && line.endsWith('</div>')) {
+              editor.setLine(cur.line, line.slice(15, -6));
+            } else if (line.startsWith('<div dir="rtl">')) {
+              editor.setLine(cur.line, line.replace(/^<div dir="rtl">/, ''));
+            } else {
+              editor.setLine(cur.line, `<div dir="rtl">${line}</div>`);
+            }
+          }
+        }
+      });
       this.addRibbonIcon('wand-2', 'Formatting Palette (Ctrl+Shift+F)', ()=>{
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (view) new FormattingPaletteModal(this.app, view.editor, this).open();
@@ -1957,6 +3036,29 @@ class ObsidianToolkitPlugin extends Plugin {
 
     this.folderFocusMgr = new FolderFocusManager(this);
     if (this.settings.enableFolderFocus) this.folderFocusMgr.register();
+    this.addCommand({
+      id: 'focus-current-folder',
+      name: 'Focus on Current File Folder (Alt+F)',
+      hotkeys: [{ modifiers: ['Alt'], key: 'f' }],
+      callback: () => {
+        if (!this.settings.enableFolderFocus) return;
+        this.folderFocusMgr.focusCurrentFile();
+      }
+    });
+    this.addCommand({
+      id: 'clear-folder-focus',
+      name: 'Clear Folder Focus Mode',
+      callback: () => {
+        if (!this.settings.enableFolderFocus) return;
+        this.folderFocusMgr.clearFocus();
+      }
+    });
+
+    this.folderVaultMgr = new FolderVaultManager(this);
+    if (this.settings.enableFolderVault) this.folderVaultMgr.register();
+
+    this.addCommand({ id:'vault-lock-all-folders', name:t('fvLockAllCmd'),
+      callback:()=>this.folderVaultMgr?.lockAll() });
 
     this.addCommand({ id:'ai-smart-suggestion', name:'AI Smart Template Suggestion',
       hotkeys:[{modifiers:['Ctrl','Shift'],key:'g'}],
@@ -1989,6 +3091,7 @@ class ObsidianToolkitPlugin extends Plugin {
     this.fileTreeMgr?.destroy();
     this.quickBarMgr?.destroy();
     this.folderFocusMgr?.destroy();
+    this.folderVaultMgr?.destroy();
     document.querySelectorAll('.ic-lightbox-overlay').forEach(e=>e.remove());
   }
 
@@ -1997,3 +3100,4 @@ class ObsidianToolkitPlugin extends Plugin {
 }
 
 module.exports = ObsidianToolkitPlugin;
+/* nosourcemap */

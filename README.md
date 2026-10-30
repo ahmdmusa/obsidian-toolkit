@@ -1,15 +1,16 @@
 <div align="center">
-<img width="30" height="30" alt="Toolkit Logo" src="https://github.com/user-attachments/assets/2470633d-b5d0-4590-b45a-d7a5b95e19e5" />
+<img width="34" height="34" alt="Toolkit Logo" src="https://github.com/user-attachments/assets/2470633d-b5d0-4590-b45a-d7a5b95e19e5" />
 
 # My Toolkit
 
-**An all-in-one productivity suite for Obsidian**
+**An all-in-one productivity & privacy suite for Obsidian**
 
-Seven integrated modules — formatting, AI, image control, navigation, and focus — all in a single plugin.
+Eight integrated modules — formatting, local AI, image control, navigation, focus mode, and folder encryption — unified in a single, high-performance plugin.
 
-[![Version](https://img.shields.io/badge/version-2.6.0-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.0-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-7c3aed?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-7c3aed?style=flat-square)](LICENSE)
+[![Buy Me A Coffee](https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=flat-square&logo=paypal&logoColor=black)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
 
 </div>
 
@@ -17,16 +18,43 @@ Seven integrated modules — formatting, AI, image control, navigation, and focu
 
 ## Modules at a glance
 
-| | Module | Description | Shortcut |
-|-|--------|-------------|----------|
-| 🎨 | Formatting Palette | 60+ elements in a searchable palette | `Ctrl+Shift+F` |
-| 🤖 | AI Smart Suggestion | One-line continuation from context | `Ctrl+Shift+G` |
-| 📐 | AI Template Generator | Full structured templates from a description | `Ctrl+Shift+T` |
-| 🖼 | Image Control | Resize, align, rotate, caption, lightbox | Reading View |
-| ⛶ | Fullscreen Note | Distraction-free writing + auto-fullscreen | `Ctrl+Shift+Z` |
-| 🌳 | Premium File Tree | SF Symbols-style icons + image thumbnails | Sidebar |
-| ⚡ | Quick Access Bar | Pinned one-click buttons above the file tree | Sidebar |
-| 📁 | Folder Focus Mode | Zoom into a folder — hide everything else | Right-click |
+| | Module | Description | Shortcut / Trigger |
+|-|--------|-------------|--------------------|
+| 🔒 | **Folder Vault & Privacy Lock** | Protect folders with PBKDF2-encrypted PIN/password & leak prevention | Right-click folder |
+| 📁 | **Folder Focus Mode 2.0** | 1-Click zoom into folder, clickable breadcrumbs & quick note | `Alt+F` / 🎯 Ribbon |
+| ⚡ | **Slash Commands (/)** | Notion-style inline menu: type `/` to quickly insert any callout or template | `/` in editor |
+| 🎨 | **Formatting Palette** | 60+ styled callouts, Islamic RTL elements, dividers & headings | `Ctrl+Shift+F` |
+| 🤖 | **AI Smart Suggestion** | Real-time AI continuation powered by local Ollama or OpenAI | `Ctrl+Shift+G` |
+| 📐 | **AI Template Generator** | Generate full structured note templates from a description | `Ctrl+Shift+T` |
+| 🖼 | **Image Control** | Click-activated toolbar: resize, align, rotate, caption, lightbox | Reading View |
+| ⛶ | **Fullscreen Note** | Distraction-free writing mode with optional inactivity auto-trigger | `Ctrl+Shift+Z` |
+| 🌳 | **Premium File Tree** | SF Symbols-style icons, visual folder depth & image thumbnails | Sidebar |
+| ⚡ | **Quick Access Bar** | Pinned one-click shortcut buttons above the file tree | Sidebar |
+
+---
+
+## 🔒 Folder Vault & Privacy Lock
+
+Protect private or sensitive folders with a custom PIN or password.
+
+- **Military-grade Hashing:** Uses Web Crypto API PBKDF2 with SHA-256 (100,000 iterations + 16-byte cryptographically secure salt). Passwords are never stored in plain text.
+- **Obsidian Leak Prevention:** Intercepts `file-open` events for locked files, excluding them from Quick Switcher (`Ctrl+O`) and Global Search (`Ctrl+Shift+F`).
+- **Auto-Lock Triggers:** Automatically locks folders after configurable inactivity timeout, when Obsidian loses window focus (`blur`), or on app startup.
+- **Clean & Minimal UI:** Sleek unlock dialog without clunky keypads — just enter your password and press **Enter** to instantly unlock and reveal your files.
+- **Visual Status Badges:** Displays locked (🔒) and unlocked (🔓) status badges directly in the sidebar tree.
+
+---
+
+## 📁 Folder Focus Mode 2.0
+
+Make any folder feel like the vault root in your sidebar to eliminate visual clutter.
+
+- **1-Click Ribbon Button (🎯):** Focus on the active file's folder with a single click.
+- **Keyboard Shortcut (`Alt+F`):** Instantly toggle focus on the current file's folder.
+- **Interactive Breadcrumbs:** Navigate folder hierarchies with clickable breadcrumb segments (`Vault › MSc › Courses`).
+- **Quick Note Creation:** Direct `+ New note` button in the focus header bar to create notes inside the focused folder immediately.
+- **Native Explorer Expansion:** Synchronously expands folders and mounts children without lazy-load blank screen glitches.
+- **Full Unicode & Arabic Support:** Works seamlessly with Arabic and non-ASCII folder names.
 
 ---
 
@@ -41,290 +69,173 @@ Press `Ctrl+Shift+F` to open. Use `↑↓` to navigate, `Enter` to insert, `Esc`
 <details>
 <summary>Full category breakdown</summary>
 
-- **Insert** — Dates, times, progress bar generator, AI smart suggestion, AI template generator
-- **Callouts** — All 12 built-in callouts (note, tip, warning, danger, bug…)
-- **Custom Callouts** — Goal, Idea, Task, Formula, Remember, Blocker, Command, Config…
-- **Islamic** — Ayah, Hadith, Dua with RTL layout and Arabic typography
-- **Headings** — H1–H5
-- **Text** — Bold, italic, highlight, strikethrough, inline code, subscript, superscript
-- **Lists** — Bullet, numbered, task
-- **Code** — Code block, math block
-- **Dividers** — Line, double, dots, arrow, wave, dashed
+- **Insert:** Current date/time (long, ISO, 24h), dynamic progress bars.
+- **Callouts:** Note, Tip, Important, Warning, Caution, FAQ, Summary, Quote, Bug, Example.
+- **Custom Callouts:** Academic (Thesis, Theorem, Proof, Definition), Medical (Clinical, Rx, Diagnosis), Engineering (Spec, Constraint).
+- **Islamic (RTL):** Bismillah, Duaa, Ayah, Hadith, Hikmah — pre-configured with right-to-left layout and proper typography.
+- **Headings & Text:** H1–H6 with styled accent bars, highlighted text, spoilers, badges.
+- **Lists & Code:** Multi-column task lists, numbered steps, code blocks with copy indicators.
+- **Dividers:** Minimal, dots, gradient, star, diamond separators.
 
 </details>
 
 ---
 
-## 🤖 AI Provider
+## 🤖 AI Provider (Ollama / OpenAI / Custom)
 
-Connect any OpenAI-compatible API — or run models locally for free with Ollama.
+Integrate AI directly into your writing without third-party dependencies.
 
-**Supported providers:**
+### AI Smart Suggestion (`Ctrl+Shift+G`)
+Trigger from the editor to generate contextual next sentences based on your surrounding notes.
 
-| Provider | Notes |
-|----------|-------|
-| **Ollama** | Local, free — auto-fetches your installed models |
-| **OpenAI** | gpt-4o-mini, gpt-4o… |
-| **Custom** | OpenRouter, Groq, Anthropic proxy, or any `/v1/chat/completions` endpoint |
-
-<img width="1137" alt="AI Settings" src="https://github.com/user-attachments/assets/0650bde7-8977-4205-a98e-dc8848ab91f7" />
-
-### AI Smart Suggestion `Ctrl+Shift+G`
-
-Reads the last 12 lines of context (or your selection) and suggests a single continuation — a callout, heading, checklist, or paragraph.
-
-### AI Template Generator `Ctrl+Shift+T`
-
-Describe what you want to create, and the AI generates a complete structured markdown template.
-
-> **Example:** *"Weekly meeting notes with action items"*
-> → Full template with headings, callouts, checklists, and placeholders
-
-<img width="683" alt="AI Template Generator" src="https://github.com/user-attachments/assets/589ca5fe-d551-4c82-a64f-ccbd9af199b7" />
-
-<img width="683" alt="AI Smart Suggestion" src="https://github.com/user-attachments/assets/eafad452-5ee5-4ecc-a195-5c638ef2a3af" />
-
-<details>
-<summary>Ollama setup</summary>
+### AI Template Generator (`Ctrl+Shift+T`)
+Describe what you need (e.g., *"Literature review note with methodology and findings"*), and the AI produces a complete Markdown template.
 
 ```bash
-# Install: https://ollama.com
-ollama pull qwen2.5:3b
-ollama serve
-
-# If you get a CORS error:
-OLLAMA_ORIGINS="app://obsidian.md*" ollama serve
+# Recommended: Local & Private with Ollama
+ollama run qwen2.5:3b
 ```
-
-Then: **Settings → AI Provider → Ollama → Fetch models → select model → Test Connection**
-
-</details>
 
 ---
 
 ## 🖼 Image Control
 
-Click any image in Reading View to reveal a floating toolbar.
+Hover or click any image in **Reading View** to access floating controls:
 
-<img width="617" alt="Image Control toolbar" src="https://github.com/user-attachments/assets/9a561c12-9d6f-42a2-b1fb-85a883908d81" />
-
-| Button | Action |
-|--------|--------|
-| `−` / `+` | Resize by 30 px steps |
-| `⬤← ⬤ →⬤` | Float left / center / float right |
-| `↻` | Rotate 90° |
-| `✎` | Add a caption |
-| `⟲` | Reset to original size and position |
-| `⎘` | Copy markdown link with current width |
-| `⤢` | Open fullscreen lightbox (pan · zoom · rotate) |
-
-<details>
-<summary>Special layout classes</summary>
-
-```html
-<div class="img-grid-2">...</div>    <!-- 2-column grid -->
-<div class="img-grid-3">...</div>    <!-- 3-column grid -->
-<div class="img-grid-4">...</div>    <!-- 4-column grid -->
-<div class="img-col">...</div>       <!-- image + text column -->
-<div class="img-col-right">...</div> <!-- reversed: text + image -->
-<div class="img-caption">...</div>   <!-- image with caption below -->
-```
-
-</details>
+- **Resize:** 25%, 50%, 75%, 100%, or custom pixel width.
+- **Alignment:** Left, center, right with clean text wrapping.
+- **Rotation:** 90° clockwise/counter-clockwise.
+- **Lightbox:** Click to zoom into full resolution with escape-to-close.
+- **Captions:** Add styled figure captions stored cleanly in Markdown.
 
 ---
 
 ## ⛶ Fullscreen Note
 
-Floating `⛶` button on every note. Toggle with `Ctrl+Shift+Z`.
+Write without distractions.
 
-<img width="166" alt="Fullscreen button" src="https://github.com/user-attachments/assets/88f8366a-736a-4074-8e36-c19bf06c0e8e" />
-
-**Auto-fullscreen:** Enters fullscreen automatically after a configurable inactivity period (5–120 s). A soft hint bar with a Cancel button appears 3 seconds before.
-
-<img width="1137" alt="Auto-fullscreen hint bar" src="https://github.com/user-attachments/assets/1db45739-6fac-4af4-bad6-38c97d142c96" />
-
-<img width="1137" alt="Fullscreen settings" src="https://github.com/user-attachments/assets/0650bde7-8977-4205-a98e-dc8848ab91f7" />
+- **Toggle Shortcut:** `Ctrl+Shift+Z`
+- **Floating Button:** Discreet expand button in the upper-right corner.
+- **Auto-Fullscreen:** Automatically enters distraction-free mode after 5–120 seconds of typing inactivity.
 
 ---
 
-## 🌳 Premium File Tree
+## 🌳 Premium File Tree & ⚡ Quick Access Bar
 
-Apple-style SF Symbols-inspired icons for every file type — Markdown, PDF, Image, Video, Audio, Code, Archive, Canvas, Link, and plain text. Image files show a real 18×18 px thumbnail.
-
-<img width="334" alt="Premium File Tree icons" src="https://github.com/user-attachments/assets/8b7c7677-06d6-4c22-ad0b-835210e419f8" />
-
-**Row height:** Compact / Default / Spacious
-
-<img width="1086" alt="File Tree row height settings" src="https://github.com/user-attachments/assets/45e1025c-7639-4701-bf19-dbfc0c15e16a" />
+- **File Tree:** Adds SF Symbols / Lucide folder icons, file-type badges, and automatic image thumbnail previews in the file explorer.
+- **Quick Access Bar:** Pin your most frequently accessed notes or folders as persistent quick-launch buttons directly above the file tree.
 
 ---
 
-## ⚡ Quick Access Bar
+## Keyboard Shortcuts
 
-A persistent bar of pinned buttons above the file tree. One click opens any note or folder.
-
-<img width="344" alt="Quick Access Bar in sidebar" src="https://github.com/user-attachments/assets/8438522f-085b-4818-85f9-932860a4aaaf" />
-
-<img width="1085" alt="Quick Access Bar settings" src="https://github.com/user-attachments/assets/37f2f1d9-3632-4e2a-ac94-304df369a7c5" />
-
-**Add items:** `+ Add current file` · `+ Add current folder` · manual path input
+| Shortcut | Action | Module |
+|----------|--------|--------|
+| `/` | Open Notion-style Slash Command Suggestion Menu | Slash Commands |
+| `Alt + R` | Toggle Line / Selection RTL (Arabic Direction) | Editor Formatting |
+| `Alt + F` | Focus / Unfocus current file's folder | Folder Focus Mode |
+| `Ctrl + Shift + F` | Open Formatting Palette | Formatting Palette |
+| `Ctrl + Shift + Z` | Toggle Fullscreen Note | Fullscreen Note |
+| `Ctrl + Shift + G` | AI Smart Suggestion | AI Assistant |
+| `Ctrl + Shift + T` | AI Template Generator | AI Assistant |
 
 ---
 
-## 📁 Folder Focus Mode
+## Settings & Language Support
 
-Right-click any folder → **"📁 Focus on this folder"** — the sidebar shows only that folder's contents. Everything else is hidden. Sub-folders start collapsed. A back button ("← All files") appears at the top to exit.
-
-<img width="1067" alt="Folder Focus Mode" src="https://github.com/user-attachments/assets/320ae64e-4b29-4bf9-ae1a-1e8386fb57c0" />
-
-**Main Folders tabs:** Define top-level folders in Settings — they appear as tabs in a persistent bar above the tree. One click to focus, one click to exit.
-
-> Search, Graph View, and Quick Switcher (`Ctrl+O`) always cover the full vault regardless of focus state.
+- **Primary Language:** English by default across all menus, tooltips, dialogs, and notices.
+- **Arabic Interface Toggle:** In plugin settings, easily toggle **"🌐 Arabic Interface / الواجهة العربية"** on or off at any time.
 
 ---
 
 ## Installation
 
-### From Community Plugins *(coming soon)*
-Settings → Community Plugins → Browse → search **My Toolkit** → Install → Enable
+### Via BRAT (Recommended for instant updates)
+1. Install the [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat) from Community Plugins.
+2. In BRAT settings, click **Add Beta plugin**.
+3. Enter: `ahmdmusa/obsidian-toolkit`
+4. Enable **My Toolkit** in Community Plugins.
 
-### Via BRAT *(available now)*
-1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat)
-2. BRAT → Add Beta Plugin → `ahmdmusa/obsidian-toolkit`
-3. Enable the plugin
-
-### Manual
-1. Download `main.js`, `styles.css`, `manifest.json` from [Releases](https://github.com/ahmdmusa/obsidian-toolkit/releases/latest)
-2. Copy to `<vault>/.obsidian/plugins/ahmed-toolkit/`
-3. Restart Obsidian → Settings → Community Plugins → enable **My Toolkit**
+### Manual Installation
+1. Download `main.js`, `styles.css`, and `manifest.json` from the [Latest Release](https://github.com/ahmdmusa/obsidian-toolkit/releases).
+2. Move them to your vault: `<vault>/.obsidian/plugins/ahmed-toolkit/`
+3. Reload Obsidian and enable **My Toolkit**.
 
 ---
 
-## Keyboard shortcuts
+## ☕ Support the Project
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Shift+F` | Formatting Palette |
-| `Ctrl+Shift+Z` | Toggle Fullscreen |
-| `Ctrl+Shift+G` | AI Smart Suggestion |
-| `Ctrl+Shift+T` | AI Template Generator |
-
-All shortcuts are remappable in Settings → Hotkeys.
-
----
-
-## Settings overview
-
-| Section | Key options |
-|---------|-------------|
-| 🎨 Formatting Palette | Enable / disable |
-| 🖼 Image Control | Enable / disable |
-| ⛶ Fullscreen Note | Enable, auto-fullscreen, inactivity timer (5–120 s) |
-| 🤖 AI Provider | Provider, model (auto-fetch for Ollama), API key, response language, system prompt |
-| 🌳 Premium File Tree | Enable, image thumbnails, row height |
-| ⚡ Quick Access Bar | Enable, manage pinned items |
-| 📁 Folder Focus Mode | Enable, manage main folder tabs (↑↓ to reorder) |
-
----
-
-## Compatibility
-
-- Obsidian 0.15.0 or later
-- Desktop and mobile
-- Works with any community theme
-
----
-
-## Screenshots
+If **My Toolkit** makes your Obsidian experience smoother, more organized, and distraction-free, please consider supporting its continuous open-source development with a coffee! Every contribution directly supports new features, security updates, and active maintenance.
 
 <div align="center">
 
-<table>
-<tr>
-<td align="center" width="50%">
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank">
+  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=black" height="42" alt="Buy Me A Coffee with PayPal" />
+</a>
 
-**🎨 Formatting Palette**
-<img width="480" alt="لوحة التنسيق" src="https://github.com/user-attachments/assets/c00977c7-87c4-47c3-ab6e-472775d28d50" />
+<br/><br/>
 
-</td>
-<td align="center" width="50%">
-
-**🤖 AI Template Generator**
-<img width="480" alt="مولّد القوالب" src="https://github.com/user-attachments/assets/f51727b3-37db-4c9d-b808-db47216412ac" />
-
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-
-**⛶ Fullscreen Note**
-<img width="480" alt="ملء الشاشة التلقائي" src="https://github.com/user-attachments/assets/559fa6c9-f0ae-4578-9d74-9d4dcd3866fe" />
-
-</td>
-<td align="center" width="50%">
-
-**🤖 AI Provider Settings**
-<img width="480" alt="إعدادات الذكاء الاصطناعي" src="https://github.com/user-attachments/assets/d5aedd1d-aa8e-4563-9a3d-29f333a55aa2" />
-
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-
-**🌳 Premium File Tree**
-<img width="480" alt="شجرة الملفات" src="https://github.com/user-attachments/assets/095888d5-77e7-421e-81c4-90c2c1ceecdf" />
-
-</td>
-<td align="center" width="50%">
-
-**⚡ Quick Access Bar**
-<img width="480" alt="شريط الوصول السريع" src="https://github.com/user-attachments/assets/74021700-f2f8-4504-9909-c0bb36a7269b" />
-
-</td>
-</tr>
-<tr>
-<td align="center" width="50%">
-
-**📁 Folder Focus Mode**
-<img width="480" alt="وضع التركيز على فولدر" src="https://github.com/user-attachments/assets/1b5ba115-8339-49cf-9ce0-ffb8c5be2a66" />
-
-</td>
-<td align="center" width="50%">
-
-**⚡ Quick Access Bar Sidebar**
-<img width="480" alt="شريط الوصول السريع - الشريط الجانبي" src="https://github.com/user-attachments/assets/8d7b35ee-d706-45ce-81be-1b69b9da606e" />
-
-</td>
-</tr>
-</table>
+[![PayPal Direct](https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
 
 </div>
+
+
+### 💡 Suggestions, Ideas & Feedback
+Have a feature request, found a bug, or want to share ideas? Feel free to reach out anytime:  
+📫 **[ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=My%20Toolkit%20Feedback%20%26%20Suggestions)**
+
 
 ---
 
 <div dir="rtl">
 
+## 🇸🇦 ملخص الإضافة وميزاتها الأساسية (باللغة العربية)
 
-**مجموعة أدوات متكاملة — سبع وحدات في إضافة واحدة**
+**إضافة My Toolkit** هي حزمة إنتاجية وخصوصية شاملة لتطبيق Obsidian تجمع 8 أدوات أساسية في إضافة واحدة خفيفة وسريعة:
 
-| الوحدة | الوصف |
-|--------|-------|
-| 🎨 لوحة التنسيق | أكثر من 60 عنصر — Callouts، إسلاميات، عناوين، فواصل |
-| 🤖 الذكاء الاصطناعي | اقتراح ذكي ومولّد قوالب كاملة |
-| 🖼 التحكم في الصور | تكبير، محاذاة، تدوير، lightbox بالنقر |
-| ⛶ ملء الشاشة | زر عائم + دخول تلقائي بعد فترة خمول |
-| 🌳 شجرة الملفات | أيقونات SF Symbols + صور مصغّرة |
-| ⚡ شريط الوصول السريع | أزرار ثابتة فوق الشجرة لأي ملف أو فولدر |
-| 📁 وضع التركيز | كليك يمين على فولدر → يصبح جذر الـ sidebar |
+### 📋 جدول الوحدات الأساسية:
 
-### التثبيت عبر BRAT
-```
-ahmdmusa/obsidian-toolkit
-```
+| الأداة | الوصف | طريقة الاستخدام / الاختصار |
+|:---|:---|:---|
+| 🔒 **خزنة وقفل المجلدات** | حماية المجلدات برقم سري وتشفير آمن PBKDF2-SHA-256 مع منع التسريب في البحث والـ Quick Switcher | كليك يمين على أي مجلد |
+| 📁 **وضع التركيز 2.0** | التركيز على مجلد واحد وإخفاء الباقي بزر واحد وشريط مسار تفاعلي مع دعم كامل للعربية | `Alt + F` أو أيقونة 🎯 في الشريط |
+| 🎨 **لوحة التنسيقات** | أكثر من 60 قالب — Callouts، نصوص إسلامية RTL، عناوين وفواصل جاهزة | `Ctrl + Shift + F` |
+| 🤖 **الذكاء الاصطناعي** | اقتراح ذكي لتكملة النص وتوليد قوالب متكاملة عبر نماذج محلية آمنة (Ollama) | `Ctrl + Shift + G` / `Ctrl + Shift + T` |
+| 🖼 **التحكم بالصور** | شريط عائم لتكبير وتصغير وتدوير وعرض الصور بملء الشاشة وإضافة تعليقات | وضع القراءة (Reading View) |
+| ⛶ **وضع ملء الشاشة** | كتابة بدون تشتيت بزر عائم أو تفعيل تلقائي عند الخمول | `Ctrl + Shift + Z` |
+| 🌳 **شجرة ملفات مميزة** | أيقونات حديثة للمجلدات والملفات وعرض صور مصغرة (Thumbnails) تلقائياً | الشريط الجانبي |
+| ⚡ **شريط الوصول السريع** | أزرار وصول مباشر مثبتة في أعلى شجرة الملفات للملفات الهامة | الشريط الجانبي |
 
-### التثبيت اليدوي
-انسخ الملفات إلى: `<vault>/.obsidian/plugins/ahmed-toolkit/`
+---
+
+### 🌐 دعم اللغات:
+* **اللغة الأساسية للإضافة هي الإنجليزية** افتراضياً في جميع القوائم والرسائل.
+* **الواجهة العربية:** يمكنك تفعيل الواجهة العربية بكل سهولة في أي وقت عبر خيار **"🌐 الواجهة العربية / Arabic Interface"** الموجود في أعلى شاشة إعدادات الإضافة، وسيقوم فوراً بتحويل كامل الواجهة إلى العربية.
+
+---
+
+### 🚀 خطوات التثبيت السريع:
+- **عبر إضافة BRAT:** أضف الرابط `ahmdmusa/obsidian-toolkit`
+- **يدوياً:** انقل الملفات الثلاثة (`main.js`, `styles.css`, `manifest.json`) إلى المجلد:
+  `<vault>/.obsidian/plugins/ahmed-toolkit/`
+
+---
+
+### ☕ ادعم استمرار المشروع:
+إذا كانت الإضافة مفيدة لك وتساعدك في تنظيم دراستك ومذكراتك، يسعدنا دعمك بكوب قهوة للاستمرار في تطويرها وتحديثها بكل جديد:
+
+<div align="center" dir="ltr">
+
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank">
+  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-ادعم%20المشروع%20عبر%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=black" height="40" alt="Buy Me A Coffee with PayPal" />
+</a>
+
+</div>
+
+
+#### 💡 للاقتراحات والملاحظات:
+عندك فكرة ميزة جديدة، مشكلة، أو ملاحظة حابب تضيفها؟ يسعدني تواصلك مباشرة عبر الإيميل:  
+📫 **[ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=My%20Toolkit%20Feedback%20%26%20Suggestions)**
 
 </div>
 

@@ -540,12 +540,15 @@ body.ft-active .nav-file-title.is-active {
 }
 
 /* ═══════════════════════════════════════════════
-   9. FOLDER FOCUS MODE
+   9. FOLDER FOCUS MODE  (v2.0)
    ═══════════════════════════════════════════════ */
 body.ff-active .nav-folder.ff-hidden,
 body.ff-active .nav-file.ff-hidden {
   display: none;
 }
+/* Hide focused folder's own title row so its children appear at
+   top-level.  Safety: JS removes .ff-self when no children are
+   rendered yet, so the title stays visible as a fallback. */
 body.ff-active .nav-folder.ff-self > .nav-folder-title {
   display: none;
 }
@@ -554,9 +557,7 @@ body.ff-active .nav-folder.ff-self > .nav-folder-children {
   padding-left: 0;
   border-left: none;
 }
-/* Ancestor folders of a nested focused folder: keep the container
-   (so the focused folder inside it can still render) but hide the
-   ancestor's own title row and reset its indent. */
+/* Ancestors: keep container visible, hide title, flatten indent */
 body.ff-active .nav-folder.ff-ancestor > .nav-folder-title {
   display: none;
 }
@@ -566,13 +567,15 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   border-left: none;
 }
 
+/* ── Breadcrumb / tab bar ── */
 .ff-breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 6px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--background-modifier-border);
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 .ff-home-btn {
   display: flex;
@@ -590,7 +593,6 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   flex-shrink: 0;
 }
 .ff-home-btn:hover { opacity: 0.85; }
-/* "at home" (nothing focused) — quieter style since it's a no-op-ish state */
 .ff-home-btn.ff-home-active {
   background: var(--background-secondary);
   color: var(--text-muted);
@@ -600,26 +602,8 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
 }
-.ff-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-normal);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
-/* Defensive guarantee: the file explorer's own toolbar (new note,
-   new folder, sort, collapse-all icons) must never be hidden or
-   squeezed out by our inserted bars. */
-.workspace-leaf-content[data-type="file-explorer"] .nav-header {
-  flex-shrink: 0;
-}
-
-/* ── Main folder tabs in breadcrumb ── */
-.ff-breadcrumb {
-  flex-wrap: wrap;
-}
+/* ── Main-folder tabs ── */
 .ff-tab {
   display: flex;
   align-items: center;
@@ -643,7 +627,67 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   border-color: var(--interactive-accent);
 }
 
-/* ── Main folder badge (dot indicator) ── */
+/* ── Hierarchical path breadcrumbs ── */
+.ff-path-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 11px;
+  margin-left: 4px;
+  flex-shrink: 1;
+  overflow: hidden;
+}
+.ff-path-sep {
+  color: var(--text-faint);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.ff-path-seg {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.ff-path-seg:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.ff-path-seg.ff-path-seg-current {
+  color: var(--text-normal);
+  font-weight: 600;
+  cursor: default;
+}
+.ff-path-seg.ff-path-seg-current:hover {
+  background: none;
+}
+
+/* ── "+ New note" button ── */
+.ff-new-note-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: 1px dashed var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text-faint);
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.ff-new-note-btn:hover {
+  border-color: var(--interactive-accent);
+  color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+/* ── Main-folder badge (dot indicator) ── */
 .ff-main-badge {
   display: inline-block;
   width: 5px;
@@ -681,4 +725,329 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   opacity: 1;
   background: var(--background-modifier-hover);
   color: var(--interactive-accent);
+}
+
+/* ── Focused-folder label (for non-main folders) ── */
+.ff-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Defensive: file explorer toolbar never hidden by our bars */
+.workspace-leaf-content[data-type="file-explorer"] .nav-header {
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   FOLDER VAULT & PRIVACY LOCK
+══════════════════════════════════════════════ */
+.fv-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  vertical-align: middle;
+  transition: background 0.12s, transform 0.08s;
+}
+.fv-lock-badge:hover {
+  background: var(--background-modifier-hover);
+  transform: scale(1.1);
+}
+.fv-lock-badge.fv-locked {
+  color: var(--text-warning, #eab308);
+}
+.fv-lock-badge.fv-unlocked {
+  color: var(--text-success, #22c55e);
+}
+.fv-folder-hidden {
+  display: none !important;
+}
+
+/* ── Clean & Minimal Folder Vault Modal ── */
+.fv-modal-clean {
+  padding: 18px 22px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.fv-clean-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+.fv-clean-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.fv-clean-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.fv-clean-folder {
+  display: inline-block;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-s, 6px);
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  margin-bottom: 16px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fv-clean-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fv-clean-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: var(--radius-s, 6px);
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-secondary);
+  color: var(--text-normal);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.fv-clean-input:focus {
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+.fv-clean-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.fv-clean-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-s, 6px);
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+}
+.fv-clean-btn-cancel {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-muted);
+}
+.fv-clean-btn-cancel:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* ── Shake Animation ── */
+.vault-shake {
+  animation: fv-shake-anim 0.45s ease-in-out;
+}
+@keyframes fv-shake-anim {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+/* ══════════════════════════════════════════════
+   11. SUPPORT / BUY ME A COFFEE CARD
+══════════════════════════════════════════════ */
+.tk-support-card {
+  margin-top: 32px;
+  margin-bottom: 20px;
+  padding: 22px 22px 18px 22px;
+  background: linear-gradient(135deg, rgba(var(--interactive-accent-rgb, 124, 58, 237), 0.08) 0%, var(--background-secondary) 100%);
+  border: 1px solid var(--interactive-accent);
+  border-radius: var(--radius-l, 12px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.tk-support-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+.tk-support-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.tk-support-icon {
+  font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.tk-support-title-wrap {
+  flex-grow: 1;
+}
+.tk-support-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-normal);
+  letter-spacing: -0.2px;
+}
+.tk-support-desc {
+  margin: 0 0 16px 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.tk-support-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.tk-btn-coffee {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: var(--radius-m, 8px);
+  background: linear-gradient(135deg, #FFDD00 0%, #FBBF24 100%);
+  color: #1a1a1a !important;
+  text-decoration: none !important;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+  transition: transform 0.12s, box-shadow 0.15s, filter 0.15s;
+}
+.tk-btn-coffee:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  filter: brightness(1.05);
+}
+.tk-btn-coffee:active {
+  transform: translateY(0);
+}
+.tk-btn-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-m, 8px);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal) !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.tk-btn-email:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--text-muted);
+}
+.tk-btn-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius-m, 8px);
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal) !important;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.tk-btn-github:hover {
+  background: var(--background-modifier-hover);
+  border-color: var(--text-muted);
+}
+.tk-support-footer {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+/* ══════════════════════════════════════════════
+   12. SLASH COMMANDS SUGGESTION POPUP
+══════════════════════════════════════════════ */
+.tk-slash-item {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px !important;
+  border-radius: var(--radius-s, 6px);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.tk-slash-icon {
+  font-size: 16px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tk-slash-text {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+.tk-slash-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tk-slash-cat {
+  font-size: 11px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.tk-slash-preview {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-monospace);
+  background: var(--background-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
 }
