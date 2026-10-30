@@ -365,7 +365,7 @@ function getFileType(name) {
    AI PROVIDER PRESETS
 ══════════════════════════════════════════════ */
 const AI_PROVIDER_PRESETS = {
-  gemini:   { url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-1.5-flash' },
+  gemini:   { url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-3.8-flash' },
   openai:   { url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
   ollama:   { url: 'http://localhost:11434/v1', model: 'qwen2.5:3b' },
   lmstudio: { url: 'http://localhost:1234/v1', model: 'local-model' },
@@ -390,7 +390,12 @@ async function fetchOllamaModels(aiApiUrl) {
    AI CLIENT (OpenAI-compatible Custom API / Ollama)
 ══════════════════════════════════════════════ */
 function getAiConfig(plugin) {
-  const { aiProvider, aiApiUrl, aiApiKey, aiModel } = plugin.settings;
+  let rawModel = (plugin.settings.aiModel || '').trim();
+  // Auto-correct common typos
+  if (rawModel === 'gemini-2.8-flash') rawModel = 'gemini-3.8-flash';
+  if (!rawModel && plugin.settings.aiProvider === 'gemini') rawModel = 'gemini-3.8-flash';
+  const { aiProvider, aiApiUrl, aiApiKey } = plugin.settings;
+  const aiModel = rawModel;
   let url = (aiApiUrl || '').trim().replace(/\/+$/, '');
   let model = aiModel || 'gemini-1.5-flash';
   const headers = { 'Content-Type': 'application/json' };
@@ -400,7 +405,12 @@ function getAiConfig(plugin) {
       url = 'https://generativelanguage.googleapis.com/v1beta/openai';
     }
     if (aiApiKey) headers['Authorization'] = `Bearer ${aiApiKey}`;
-    model = aiModel || 'gemini-1.5-flash';
+    // Smart auto-upgrade for retired/mistyped Gemini models
+    if (!aiModel || aiModel.startsWith('gemini-1.5') || aiModel.startsWith('gemini-2.') || aiModel === 'gemini-2.8-flash') {
+      model = 'gemini-3.8-flash';
+    } else {
+      model = aiModel;
+    }
   } else if (aiProvider === 'openai') {
     if (!url || url.includes('localhost') || url.includes('generativelanguage')) {
       url = 'https://api.openai.com/v1';
@@ -493,7 +503,7 @@ async function fetchAvailableModels(plugin) {
     const data = await res.json();
     models = (data.models || []).map(m => m.name);
   } else if (aiProvider === 'gemini') {
-    models = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash-8b'];
+    models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest'];
     if (aiApiKey) {
       try {
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${aiApiKey}`);
