@@ -3132,7 +3132,7 @@ class ToolkitSettingsTab extends PluginSettingTab {
     const supFooter = supportCard.createEl('div', { cls: 'tk-support-footer' });
     supFooter.createEl('span', { text: t('supportFooter') });
 
-    containerEl.createEl('p', { text:'FlowKit (formerly My Toolkit) v2.9.0 — by Ahmed Mousa', cls:'setting-item-description' });
+    containerEl.createEl('p', { text:'FlowKit (formerly My Toolkit) v2.9.1 — by Ahmed Mousa', cls:'setting-item-description' });
   }
 
   async addQuickItem(path, label) {

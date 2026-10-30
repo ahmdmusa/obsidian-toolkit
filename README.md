@@ -9,7 +9,7 @@ Stay in the flow. Write with power. Protect what matters.
 
 Eight integrated modules — formatting, local AI, image control, navigation, focus mode, and folder encryption — unified in a single, high-performance plugin.
 
-[![Version](https://img.shields.io/badge/version-2.9.0-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.1-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-7c3aed?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-7c3aed?style=flat-square)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=flat-square&logo=paypal&logoColor=black)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
