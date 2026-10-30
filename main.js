@@ -321,25 +321,25 @@ const DEFAULT_SETTINGS = {
 ══════════════════════════════════════════════ */
 const S = 'stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"';
 const FT_ICONS = {
-  folder:     `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M1.5 4.75c0-.55.45-1 1-1h3.1l1.15 1.5H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H2.5a1 1 0 0 1-1-1v-6.5z"/></svg>`,
-  folderOpen: `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M1.5 4.75c0-.55.45-1 1-1h3.1l1.15 1.5H13a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H2.5a1 1 0 0 1-1-1v-6.5z"/><path d="M1.5 7.5h12.5"/></svg>`,
-  markdown:   `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M3 2h6.5l3 3v8a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V2.5A.5.5 0 0 1 3 2z"/><path d="M9.5 2v3h3"/><path d="M5.25 9.5V7.75L6.75 9.5 8.25 7.75V9.5"/><path d="M10 9.5V7.5"/><path d="M10 7.5 8.75 9M10 7.5l1.25 1.5"/></svg>`,
-  pdf:        `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M3 2h6.5l3 3v8a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V2.5A.5.5 0 0 1 3 2z"/><path d="M9.5 2v3h3"/><path d="M4.5 8.5h1a1 1 0 0 1 0 2h-1V7.5"/><path d="M7.5 7.5H9a1.5 1.5 0 0 1 0 3H7.5V7.5z"/><path d="M11 7.5v3"/></svg>`,
-  image:      `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><rect x="1.5" y="3" width="12" height="9" rx="1.5"/><circle cx="5" cy="6.25" r="1"/><path d="M1.5 10.5 5 7l2.5 2.5 2-2 4 4.5"/></svg>`,
-  video:      `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><rect x="1.5" y="3.5" width="9" height="8" rx="1.5"/><path d="M10.5 6.25 13.5 5v5l-3-1.25V6.25z"/></svg>`,
-  audio:      `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M1.5 7.5h2l2-3.5 2.5 7 1.75-4.5 1 1H13.5"/></svg>`,
-  code:       `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M4.5 4 1 7.5 4.5 11"/><path d="M10.5 4 14 7.5 10.5 11"/><path d="M8.75 2.5l-2.5 10"/></svg>`,
-  archive:    `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><rect x="1.5" y="2.5" width="12" height="3" rx=".75"/><path d="M2.5 5.5v6.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5"/><path d="M6 8.5h3"/></svg>`,
-  link:       `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M8.5 6.5 6 9a2.5 2.5 0 0 1-3.54-3.54L4 3.92A2.5 2.5 0 0 1 7.54 3.9"/><path d="M6.5 8.5 9 6a2.5 2.5 0 0 1 3.54 3.54l-1.54 1.54A2.5 2.5 0 0 1 7.46 11.1"/></svg>`,
-  canvas:     `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="8.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="8.5" width="5" height="5" rx="1"/><rect x="8.5" y="8.5" width="5" height="5" rx="1"/></svg>`,
-  text:       `<svg width="15" height="15" viewBox="0 0 15 15" fill="none" ${S}><path d="M3 2h6.5l3 3v8a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V2.5A.5.5 0 0 1 3 2z"/><path d="M9.5 2v3h3"/><path d="M4.5 7h6M4.5 9h6M4.5 11h4"/></svg>`,
+  folder:     `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" fill="currentColor" fill-opacity="0.18"/></svg>`,
+  folderOpen: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" fill="currentColor" fill-opacity="0.1"/><path d="M2 10h20l-2 10H4L2 10Z" fill="currentColor" fill-opacity="0.25"/></svg>`,
+  markdown:   `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" fill="currentColor" fill-opacity="0.08"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>`,
+  pdf:        `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" fill="currentColor" fill-opacity="0.1"/><polyline points="14 2 14 8 20 8"/><path d="M10 12a1 1 0 0 0-1-1H7v6h2a1 1 0 0 0 1-1v-4z"/><path d="M14 17h3"/></svg>`,
+  image:      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><rect x="3" y="3" width="18" height="18" rx="2" fill="currentColor" fill-opacity="0.1"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,
+  video:      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><rect x="2" y="4" width="15" height="16" rx="2" fill="currentColor" fill-opacity="0.1"/><polygon points="22 7 17 11 17 13 22 17 22 7"/></svg>`,
+  audio:      `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3" fill="currentColor" fill-opacity="0.2"/><circle cx="18" cy="16" r="3" fill="currentColor" fill-opacity="0.2"/></svg>`,
+  code:       `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+  archive:    `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><rect x="3" y="4" width="18" height="4" rx="1" fill="currentColor" fill-opacity="0.15"/><path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>`,
+  link:       `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  canvas:     `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>`,
+  text:       `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" ${S}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" fill="currentColor" fill-opacity="0.08"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>`,
 };
 
 /* ══════════════════════════════════════════════
    FILE TYPE DETECTION
 ══════════════════════════════════════════════ */
 function getFileType(name) {
-  const ext = (name.split('.').pop() || '').toLowerCase();
+  const ext = name.includes('.') ? (name.split('.').pop() || '').toLowerCase() : 'md';
   const map = {
     md:'markdown', markdown:'markdown', canvas:'canvas',
     pdf:'pdf',
