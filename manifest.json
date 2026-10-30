@@ -1,7 +1,7 @@
 {
   "id": "ahmed-toolkit",
   "name": "FlowKit (formerly My Toolkit)",
-  "version": "2.9.2",
+  "version": "2.9.3",
   "minAppVersion": "0.15.0",
   "description": "The all-in-one productivity & privacy engine: Notion-style slash commands, encrypted folder vault, 1-click focus mode, and rich formatting to keep you in the flow.",
   "author": "Ahmed Moussa",
