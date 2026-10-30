@@ -27,6 +27,28 @@ const TR = {
     iDateLocale:'Date (Long)', iDateIso:'Date (ISO)', iTimeLocale:'Time',
     iTime24:'Time (24h)', iDatetime:'Date & Time', iProgress:'Progress Bar',
     settingsTitle:'Obsidian Toolkit',
+    fcMenu:'🎨 تلوين وأيقونة الفولدر',
+    fcModalTitle:'تلوين وأيقونة الفولدر',
+    fcPreview:'معاينة:',
+    fcColorTitle:'لون المجلد',
+    fcIconTitle:'أيقونة مخصصة',
+    fcSaveBtn:'حفظ المظهر',
+    fcResetBtn:'استعادة الافتراضي',
+    fcSavedNotice:'🎨 تم حفظ مظهر: ',
+    fcResetNotice:'تمت استعادة المظهر الافتراضي لـ: ',
+    fvPanicCmd:'قفل الطوارئ: قفل كافة الفولدرات فوراً',
+    fvPanicNotice:'🚨 قفل الطوارئ: تم قفل كافة الفولدرات المحمية فوراً!',
+    fcMenu:'🎨 Folder Color & Icon',
+    fcModalTitle:'Folder Color & Custom Icon',
+    fcPreview:'Preview:',
+    fcColorTitle:'Color Theme',
+    fcIconTitle:'Preset Icon',
+    fcSaveBtn:'Save Style',
+    fcResetBtn:'Reset Default',
+    fcSavedNotice:'🎨 Style saved for: ',
+    fcResetNotice:'Reset style for: ',
+    fvPanicCmd:'Panic Lock: Immediately Lock All Folders',
+    fvPanicNotice:'🚨 Panic Lock: All protected folders locked!',
     supportTitle:'☕ ادعم تطوير الإضافة',
     supportDesc:'إذا كانت إضافة My Toolkit بتفيدك وتسهّل تنظيم ملاحظاتك ودراستك في Obsidian، يسعدني جداً دعمك بكوب قهوة للاستمرار في تطوير ميزات جديدة وصيانتها باستمرار! ❤️',
     supportBtn:'☕ اشتري لي قهوة (PayPal)',
@@ -279,6 +301,7 @@ const DEFAULT_SETTINGS = {
   focusedFolder: null,                // path of folder currently treated as vault root
   mainFolders: [],                    // paths that auto-enter Focus Mode on click
   /* ── Folder Vault & Privacy Lock ── */
+  folderStyles:          {},                 // { [folderPath]: { color, icon } }
   enableFolderVault:     true,
   lockedFolders:         {},                 // { [folderPath]: { path, salt, hash, iterations } }
   vaultAutoLockTimeout:  10,                 // minutes; 0 = disabled
@@ -1887,6 +1910,148 @@ class FolderFocusManager {
 }
 
 /* ══════════════════════════════════════════════
+   FOLDER COLOR & ICON MODAL
+══════════════════════════════════════════════ */
+const FOLDER_COLOR_PALETTE = [
+  { name: 'Purple',  hex: '#8b5cf6' },
+  { name: 'Blue',    hex: '#3b82f6' },
+  { name: 'Emerald', hex: '#10b981' },
+  { name: 'Amber',   hex: '#f59e0b' },
+  { name: 'Rose',    hex: '#f43f5e' },
+  { name: 'Cyan',    hex: '#06b6d4' },
+  { name: 'Orange',  hex: '#f97316' },
+  { name: 'Default', hex: '' }
+];
+
+const FOLDER_ICON_PRESETS = [
+  '📚', '🔬', '💡', '📂', '📝', '⚡', '🎯', '⭐', '🔒', '⚙️', ''
+];
+
+class FolderColorModal extends Modal {
+  constructor(app, plugin, folderPath) {
+    super(app);
+    this.plugin = plugin;
+    this.folderPath = folderPath;
+    const current = (plugin.settings.folderStyles || {})[folderPath] || {};
+    this.selectedColor = current.color || '';
+    this.selectedIcon = current.icon || '';
+  }
+
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass('fc-modal-container');
+
+    const header = contentEl.createEl('div', { cls: 'fc-modal-header' });
+    header.createEl('span', { text: '🎨', cls: 'fc-modal-icon' });
+    header.createEl('h3', { text: t('fcModalTitle') || 'Folder Color & Icon' });
+
+    contentEl.createEl('div', { cls: 'fc-folder-badge', text: this.folderPath });
+
+    // Live Preview
+    const previewWrap = contentEl.createEl('div', { cls: 'fc-preview-wrap' });
+    previewWrap.createEl('span', { text: t('fcPreview') || 'Preview:' });
+    this.previewEl = previewWrap.createEl('div', { cls: 'fc-preview-item' });
+    this.updatePreview();
+
+    // Color Swatches
+    contentEl.createEl('div', { cls: 'fc-section-title', text: t('fcColorTitle') || 'Color' });
+    const colorRow = contentEl.createEl('div', { cls: 'fc-color-row' });
+    FOLDER_COLOR_PALETTE.forEach(c => {
+      const swatch = colorRow.createEl('button', {
+        type: 'button',
+        cls: 'fc-swatch' + (this.selectedColor === c.hex ? ' is-selected' : '')
+      });
+      if (c.hex) {
+        swatch.style.backgroundColor = c.hex;
+      } else {
+        swatch.addClass('fc-swatch-default');
+        swatch.textContent = '✕';
+      }
+      swatch.title = c.name;
+      swatch.addEventListener('click', () => {
+        this.selectedColor = c.hex;
+        colorRow.querySelectorAll('.fc-swatch').forEach(s => s.classList.remove('is-selected'));
+        swatch.classList.add('is-selected');
+        this.updatePreview();
+      });
+    });
+
+    // Icon Picker
+    contentEl.createEl('div', { cls: 'fc-section-title', text: t('fcIconTitle') || 'Icon' });
+    const iconGrid = contentEl.createEl('div', { cls: 'fc-icon-grid' });
+    FOLDER_ICON_PRESETS.forEach(ic => {
+      const btn = iconGrid.createEl('button', {
+        type: 'button',
+        cls: 'fc-icon-btn' + (this.selectedIcon === ic ? ' is-selected' : ''),
+        text: ic || '✕'
+      });
+      btn.title = ic || 'No icon';
+      btn.addEventListener('click', () => {
+        this.selectedIcon = ic;
+        iconGrid.querySelectorAll('.fc-icon-btn').forEach(b => b.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        this.updatePreview();
+      });
+    });
+
+    // Action Buttons
+    const btnRow = contentEl.createEl('div', { cls: 'fc-btn-row' });
+
+    const resetBtn = btnRow.createEl('button', {
+      type: 'button',
+      cls: 'fc-btn fc-btn-reset',
+      text: t('fcResetBtn') || 'Reset Default'
+    });
+    resetBtn.addEventListener('click', async () => {
+      if (this.plugin.settings.folderStyles) {
+        delete this.plugin.settings.folderStyles[this.folderPath];
+        await this.plugin.saveSettings();
+      }
+      this.plugin.applyFolderStyles();
+      new Notice((t('fcResetNotice') || 'Reset style for: ') + this.folderPath);
+      this.close();
+    });
+
+    const saveBtn = btnRow.createEl('button', {
+      type: 'button',
+      cls: 'mod-cta fc-btn',
+      text: t('fcSaveBtn') || 'Save'
+    });
+    saveBtn.addEventListener('click', async () => {
+      const map = this.plugin.settings.folderStyles || (this.plugin.settings.folderStyles = {});
+      if (!this.selectedColor && !this.selectedIcon) {
+        delete map[this.folderPath];
+      } else {
+        map[this.folderPath] = { color: this.selectedColor, icon: this.selectedIcon };
+      }
+      await this.plugin.saveSettings();
+      this.plugin.applyFolderStyles();
+      new Notice((t('fcSavedNotice') || 'Style saved for: ') + this.folderPath);
+      this.close();
+    });
+  }
+
+  updatePreview() {
+    this.previewEl.empty();
+    const iconSpan = this.previewEl.createSpan({ cls: 'fc-preview-icon' });
+    iconSpan.textContent = this.selectedIcon || '📁';
+    if (this.selectedColor) {
+      iconSpan.style.color = this.selectedColor;
+    }
+    const nameSpan = this.previewEl.createSpan({ cls: 'fc-preview-text' });
+    nameSpan.textContent = this.folderPath.split('/').pop() || this.folderPath;
+    if (this.selectedColor) {
+      nameSpan.style.color = this.selectedColor;
+    }
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+/* ══════════════════════════════════════════════
    FOLDER VAULT & PRIVACY LOCK
 ══════════════════════════════════════════════ */
 class VaultCrypto {
@@ -2289,6 +2454,12 @@ class FolderVaultManager {
     }
   }
 
+  panicLock() {
+    this.lockAll(true);
+    this.closeLockedLeaves();
+    new Notice(t('fvPanicNotice'));
+  }
+
   openSetPinModal(folderPath) {
     new SetFolderPinModal(this.app, folderPath, async (config) => {
       const map = this.plugin.settings.lockedFolders || (this.plugin.settings.lockedFolders = {});
@@ -2491,7 +2662,16 @@ class ToolkitSettingsTab extends PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl('h2', { text:t('settingsTitle') });
+    const headerWrap = containerEl.createEl('div', { cls: 'tk-settings-header' });
+    headerWrap.innerHTML = `<svg class="tk-brand-logo" width="30" height="30" viewBox="0 0 64 64" fill="none">
+      <defs><linearGradient id="tkGrad2" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse"><stop stop-color="#8B5CF6"/><stop offset="1" stop-color="#4F46E5"/></linearGradient></defs>
+      <rect width="64" height="64" rx="16" fill="url(#tkGrad2)"/>
+      <path d="M18 27L28 17C29.6 15.4 32.4 15.4 34 17L47 30C48.6 31.6 48.6 34.4 47 36L37 46C35.4 47.6 32.6 47.6 31 46L18 33C16.4 31.4 16.4 28.6 18 27Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M24 22L42 40" stroke="white" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="43" cy="21" r="3.5" fill="#FBBF24"/>
+      <circle cx="21" cy="43" r="2.5" fill="#38BDF8"/>
+    </svg>`;
+    headerWrap.createEl('h2', { text:t('settingsTitle'), cls: 'tk-brand-title' });
 
     /* ── Language Switcher (Primary English, Arabic Option) ── */
     new Setting(containerEl)
@@ -2969,6 +3149,55 @@ class ToolkitSettingsTab extends PluginSettingTab {
    MAIN PLUGIN
 ══════════════════════════════════════════════ */
 class ObsidianToolkitPlugin extends Plugin {
+  applyFolderStyles() {
+    const styles = this.settings.folderStyles || {};
+    const nav = document.querySelector('.nav-files-container');
+    if (!nav) return;
+
+    nav.querySelectorAll('.nav-folder-title').forEach(titleEl => {
+      const path = titleEl.dataset.path;
+      if (!path) return;
+      const custom = styles[path];
+
+      let customIcon = titleEl.querySelector('.fc-custom-icon');
+      const textContent = titleEl.querySelector('.nav-folder-title-content');
+      const defaultIcon = titleEl.querySelector('.ft-icon.ft-folder');
+
+      if (custom && (custom.color || custom.icon)) {
+        if (custom.color) {
+          if (textContent) textContent.style.color = custom.color;
+          if (defaultIcon) defaultIcon.style.color = custom.color;
+        } else {
+          if (textContent) textContent.style.color = '';
+          if (defaultIcon) defaultIcon.style.color = '';
+        }
+
+        if (custom.icon) {
+          if (defaultIcon) defaultIcon.style.display = 'none';
+          if (!customIcon) {
+            customIcon = document.createElement('span');
+            customIcon.className = 'fc-custom-icon';
+            const indicator = titleEl.querySelector('.nav-folder-collapse-indicator');
+            if (indicator) indicator.after(customIcon);
+            else titleEl.prepend(customIcon);
+          }
+          customIcon.textContent = custom.icon;
+          customIcon.style.display = 'inline-flex';
+        } else {
+          if (defaultIcon) defaultIcon.style.display = '';
+          if (customIcon) customIcon.style.display = 'none';
+        }
+      } else {
+        if (textContent) textContent.style.color = '';
+        if (defaultIcon) {
+          defaultIcon.style.color = '';
+          defaultIcon.style.display = '';
+        }
+        if (customIcon) customIcon.remove();
+      }
+    });
+  }
+
   async onload() {
     CURRENT_PLUGIN_INSTANCE = this;
     await this.loadSettings();
@@ -3056,6 +3285,26 @@ class ObsidianToolkitPlugin extends Plugin {
 
     this.folderVaultMgr = new FolderVaultManager(this);
     if (this.settings.enableFolderVault) this.folderVaultMgr.register();
+
+    // Folder color context menu
+    this.registerEvent(this.app.workspace.on('file-menu', (menu, file) => {
+      if (file instanceof TFolder) {
+        menu.addItem(item => item.setTitle(t('fcMenu')).setIcon('palette')
+          .onClick(() => new FolderColorModal(this.app, this, file.path).open()));
+      }
+    }));
+    this.registerEvent(this.app.workspace.on('layout-change', () => this.applyFolderStyles()));
+    this.app.workspace.onLayoutReady(() => this.applyFolderStyles());
+
+    // Panic Lock Command (Ctrl + Alt + L)
+    this.addCommand({
+      id: 'vault-panic-lock',
+      name: t('fvPanicCmd'),
+      hotkeys: [{ modifiers: ['Ctrl', 'Alt'], key: 'l' }],
+      callback: () => {
+        if (this.folderVaultMgr) this.folderVaultMgr.panicLock();
+      }
+    });
 
     this.addCommand({ id:'vault-lock-all-folders', name:t('fvLockAllCmd'),
       callback:()=>this.folderVaultMgr?.lockAll() });

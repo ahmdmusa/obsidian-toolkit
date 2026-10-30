@@ -30,6 +30,7 @@ Eight integrated modules — formatting, local AI, image control, navigation, fo
 | ⛶ | **Fullscreen Note** | Distraction-free writing mode with optional inactivity auto-trigger | `Ctrl+Shift+Z` |
 | 🌳 | **Premium File Tree** | SF Symbols-style icons, visual folder depth & image thumbnails | Sidebar |
 | ⚡ | **Quick Access Bar** | Pinned one-click shortcut buttons above the file tree | Sidebar |
+| 🎨 | **Folder Colors & Icons** | Customize folder colors & preset icons from the right-click menu | Right-click folder |
 
 ---
 
@@ -133,6 +134,7 @@ Write without distractions.
 |----------|--------|--------|
 | `/` | Open Notion-style Slash Command Suggestion Menu | Slash Commands |
 | `Alt + R` | Toggle Line / Selection RTL (Arabic Direction) | Editor Formatting |
+| `Ctrl + Alt + L` | Panic Lock: Immediately lock all folders & close tabs | Folder Vault |
 | `Alt + F` | Focus / Unfocus current file's folder | Folder Focus Mode |
 | `Ctrl + Shift + F` | Open Formatting Palette | Formatting Palette |
 | `Ctrl + Shift + Z` | Toggle Fullscreen Note | Fullscreen Note |
