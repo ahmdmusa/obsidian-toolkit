@@ -390,21 +390,18 @@ body.ft-active .nav-folder-title {
 
 /* ── File type colors ── */
 .ft-icon.ft-folder {
-  color: #f59e0b;
-  opacity: 0.95;
-}
-.theme-dark .ft-icon.ft-folder {
-  color: #fbbf24;
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 .ft-icon.ft-markdown,
 .ft-icon.ft-text {
-  color: var(--text-muted, #94a3b8);
-  opacity: 0.85;
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 .nav-file-title.is-active .ft-icon.ft-markdown,
 .nav-file-title.is-active .ft-icon.ft-text {
-  color: var(--interactive-accent, #8b5cf6);
-  opacity: 1;
+  color: var(--text-normal);
+  opacity: 0.9;
 }
 .ft-icon.ft-canvas   { color: #8b5cf6; opacity: 0.9; }
 .ft-icon.ft-pdf      { color: #e74c3c; opacity: 0.88; }
