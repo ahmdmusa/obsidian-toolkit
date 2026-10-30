@@ -100,31 +100,23 @@ FlowKit is an open-source Obsidian plugin built to solve daily writing, security
 
 ---
 
-## Support & Community Feedback
+## Support & Feedback
 
-FlowKit is an open-source productivity suite built for serious note-taking in Obsidian. If you encounter any bugs, have feature suggestions, or want to contribute:
+If FlowKit helps you stay focused and saves you time in Obsidian, you can support its ongoing development:
 
-- 💡 **Feature Requests & Bug Reports:** [Open an Issue on GitHub](https://github.com/ahmdmusa/obsidian-toolkit/issues)
-- ✉️ **Direct Email & Inquiries:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions)
-- ⭐ **Star the Repository:** Support the project by starring it on [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
+<p align="center">
+  <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+    <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="180" />
+  </a>
+</p>
 
-<div align="center" style="margin: 28px 0 16px 0;">
-
-<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=003087" height="42" alt="Buy Me A Coffee with PayPal" />
-</a>
-
-&nbsp;&nbsp;
-
-<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" height="42" alt="Donate with PayPal" />
-</a>
-
-</div>
+- **Issues & Suggestions:** [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues)
+- **Email:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback)
+- **Repository:** Star the project on [GitHub](https://github.com/ahmdmusa/obsidian-toolkit)
 
 ---
 
-## دليل الاستخدام باللغة العربية (ملخص هندسي)
+## دليل الاستخدام بالعربية
 
 إضافة **FlowKit** (المعروفة سابقاً باسم My Toolkit) هي أداة مفتوحة المصدر طورتها لتوفير الميزات الأساسية التي يحتاجها كل مستخدم يكتب ويدير ملاحظاته بشكل مكثف داخل أوبسيديان، مع تركيز خاص على الأمان المحلي وسلاسة الكتابة باللغة العربية.
 
@@ -158,27 +150,19 @@ FlowKit is an open-source productivity suite built for serious note-taking in Ob
 
 ---
 
-### الدعم والتواصل واقتراح الميزات
+### الدعم والتواصل
 
-مشروع **FlowKit** مفتوح المصدر ومطور بهدف تقديم تجربة استخدام متكاملة بدون تعقيد. إذا كان لديك أي اقتراح لميزات إضافية، أو رغبت في الإبلاغ عن مشكلة:
+إذا كانت الإضافة مفيدة لك وبتوفر وقتك وشغلك، تقدر تدعم استمرار تطويرها:
 
-- 💡 **اقتراح الميزات والإبلاغ عن المشاكل:** عبر فتح تذكرة على [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues).
-- ✉️ **التواصل المباشر عبر البريد الإلكتروني:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions).
-- ⭐ **دعم المشروع:** بوضع نجمة على مستودع [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
+<p align="center">
+  <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+    <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="180" />
+  </a>
+</p>
 
-<div align="center" style="margin: 28px 0 16px 0;">
-
-<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-ادعم%20المشروع%20عبر%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=003087" height="42" alt="Buy Me A Coffee with PayPal" />
-</a>
-
-&nbsp;&nbsp;
-
-<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" height="42" alt="Donate with PayPal" />
-</a>
-
-</div>
+- **الاقتراحات والمشاكل:** [فتح تذكرة على GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues)
+- **البريد الإلكتروني:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback)
+- **دعم المشروع:** وضع نجمة (Star) للمستودع على [GitHub](https://github.com/ahmdmusa/obsidian-toolkit)
 
 ---
 
