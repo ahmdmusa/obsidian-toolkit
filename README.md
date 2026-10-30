@@ -100,6 +100,17 @@ FlowKit is an open-source Obsidian plugin built to solve daily writing, security
 
 ---
 
+## Support & Community Feedback
+
+FlowKit is an open-source productivity suite built for serious note-taking in Obsidian. If you encounter any bugs, have feature suggestions, or want to contribute:
+
+- 💡 **Feature Requests & Bug Reports:** [Open an Issue on GitHub](https://github.com/ahmdmusa/obsidian-toolkit/issues)
+- ✉️ **Direct Email & Inquiries:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions)
+- ☕ **Support Project Development:** If FlowKit saves you time and improves your workflow, you can support future development via [PayPal](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78).
+- ⭐ **Star the Repository:** Support the project by starring it on [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
+
+---
+
 ## دليل الاستخدام باللغة العربية (ملخص هندسي)
 
 إضافة **FlowKit** (المعروفة سابقاً باسم My Toolkit) هي أداة مفتوحة المصدر طورتها لتوفير الميزات الأساسية التي يحتاجها كل مستخدم يكتب ويدير ملاحظاته بشكل مكثف داخل أوبسيديان، مع تركيز خاص على الأمان المحلي وسلاسة الكتابة باللغة العربية.
@@ -131,6 +142,17 @@ FlowKit is an open-source Obsidian plugin built to solve daily writing, security
    - عزل المجلد الذي تعمل عليه في شجرة الملفات لإلغاء التشتت البصري.
    - إظهار عدد الملاحظات الموجودة داخل المجلد في شريط المسار العلوي.
    - خيار لجعل شجرة الملفات تركز تلقائياً على مجلد الملاحظة المفتوحة حالياً.
+
+---
+
+### الدعم والتواصل واقتراح الميزات
+
+مشروع **FlowKit** مفتوح المصدر ومطور بهدف تقديم تجربة استخدام متكاملة بدون تعقيد. إذا كان لديك أي اقتراح لميزات إضافية، أو رغبت في الإبلاغ عن مشكلة:
+
+- 💡 **اقتراح الميزات والإبلاغ عن المشاكل:** عبر فتح تذكرة على [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues).
+- ✉️ **التواصل المباشر عبر البريد الإلكتروني:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions).
+- ☕ **دعم استمرار التطوير:** عبر حساب [PayPal](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78).
+- ⭐ **دعم المشروع:** بوضع نجمة على مستودع [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
 
 ---
 

@@ -991,7 +991,8 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   background: var(--background-modifier-hover);
   border-color: var(--text-muted);
 }
-.tk-btn-github {
+.tk-btn-github,
+.tk-btn-issues {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1006,7 +1007,8 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s;
 }
-.tk-btn-github:hover {
+.tk-btn-github:hover,
+.tk-btn-issues:hover {
   background: var(--background-modifier-hover);
   border-color: var(--text-muted);
 }

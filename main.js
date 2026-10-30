@@ -56,11 +56,12 @@ const TR = {
     supportBtn:'☕ اشتري لي قهوة (PayPal)',
     starBtn:'⭐ نجمة على GitHub', feedbackBtn:'✉️ أرسل اقتراحاً أو ملاحظة',
     supportFooter:'FlowKit · صُنع بكل حب ❤️ بواسطة أحمد موسى · مصر 🇪🇬',
-    supportTitle:'☕ Support FlowKit',
-    supportDesc:'If My Toolkit helps you stay organized, focused, and productive in Obsidian, consider buying me a coffee! Your support fuels ongoing development, new privacy features, and open-source maintenance.',
-    supportBtn:'☕ Buy Me a Coffee (PayPal)',
-    starBtn:'⭐ Star on GitHub', feedbackBtn:'✉️ Suggestions & Feedback',
-    supportFooter:'FlowKit · Crafted with ❤️ by Ahmed Mousa · Egypt 🇪🇬',
+    supportTitle:'Support FlowKit Development',
+    supportDesc:'If FlowKit helps you stay organized, focused, and productive in Obsidian, consider supporting ongoing development. Your feedback and support fuel new features and maintenance.',
+    supportBtn:'☕ Support via PayPal',
+    starBtn:'⭐ Star on GitHub', feedbackBtn:'✉️ Email Feedback',
+    issuesBtn:'💡 GitHub Issues & Requests',
+    supportFooter:'FlowKit · Developed with passion by Ahmed Mousa · Egypt',
     fmtName:'🎨 Formatting Palette',
     slashName:'⚡ Slash Commands (/)',
     slashDesc:'Type / at line start or after space to insert callouts, formatting & templates (Notion-style).',
@@ -208,6 +209,13 @@ const TR = {
     aiRegenerate:'إعادة المحاولة', aiInsertSuggestion:'إدراج', aiCloseModal:'إغلاق',
     aiError:'⚠️ فشل الطلب: ',
     aiProviderName:'مزوّد الذكاء الاصطناعي', aiProviderDesc:'اختر مزوّد الذكاء الاصطناعي المستخدم',
+    supportTitle:'ادعم تطوير FlowKit',
+    supportDesc:'إذا كانت FlowKit بتساعدك في تنظيم دراستك وملاحظاتك وزيادة إنتاجيتك داخل أوبسيديان، يسعدني جداً دعمك للاستمرار في تطوير ميزات جديدة وصيانتها باستمرار! باب الاقتراحات والتطوير مفتوح دائماً.',
+    supportBtn:'☕ ادعم المشروع (PayPal)',
+    starBtn:'⭐ نجمة على GitHub',
+    feedbackBtn:'✉️ إرسال اقتراح بالإيميل',
+    issuesBtn:'💡 اقتراحات ومشاكل GitHub',
+    supportFooter:'FlowKit · صُنع بكل حب بواسطة أحمد موسى · مصر',
     aiProviderOllama:'Ollama (محلي)', aiProviderOpenAI:'OpenAI', aiProviderCustom:'مخصص (متوافق مع OpenAI)',
     aiModelDropdownName:'موديل Ollama', aiModelDropdownDesc:'اختر موديل مثبّت على Ollama. تأكد إن Ollama شغّال (ollama serve).',
     aiFetchModels:'جلب الموديلات', aiFetchingModels:'جاري الجلب…',
@@ -4074,6 +4082,23 @@ class ToolkitSettingsTab extends PluginSettingTab {
     coffeeBtn.setAttribute('target', '_blank');
     coffeeBtn.setAttribute('rel', 'noopener noreferrer');
 
+    // GitHub Issues & Suggestions Button
+    const issuesBtn = supActions.createEl('a', {
+      cls: 'tk-btn-issues',
+      href: 'https://github.com/ahmdmusa/obsidian-toolkit/issues',
+      text: t('issuesBtn') || '💡 Issues & Suggestions'
+    });
+    issuesBtn.setAttribute('target', '_blank');
+    issuesBtn.setAttribute('rel', 'noopener noreferrer');
+
+    // Suggestions & Feedback Email Button
+    const emailBtn = supActions.createEl('a', {
+      cls: 'tk-btn-email',
+      href: 'mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions',
+      text: t('feedbackBtn')
+    });
+    emailBtn.setAttribute('title', 'ahmedmousa.eng+ObsToolkit@gmail.com');
+
     // GitHub Star Button
     const ghBtn = supActions.createEl('a', {
       cls: 'tk-btn-github',
@@ -4083,19 +4108,11 @@ class ToolkitSettingsTab extends PluginSettingTab {
     ghBtn.setAttribute('target', '_blank');
     ghBtn.setAttribute('rel', 'noopener noreferrer');
 
-    // Suggestions & Feedback Email Button
-    const emailBtn = supActions.createEl('a', {
-      cls: 'tk-btn-email',
-      href: 'mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=My%20Toolkit%20Feedback%20%26%20Suggestions',
-      text: t('feedbackBtn')
-    });
-    emailBtn.setAttribute('title', 'ahmedmousa.eng+ObsToolkit@gmail.com');
-
     // Footer note
     const supFooter = supportCard.createEl('div', { cls: 'tk-support-footer' });
     supFooter.createEl('span', { text: t('supportFooter') });
 
-    containerEl.createEl('p', { text:'FlowKit (formerly My Toolkit) v2.9.1 — by Ahmed Mousa', cls:'setting-item-description' });
+    containerEl.createEl('p', { text:`FlowKit v${this.plugin.manifest.version} — by Ahmed Mousa`, cls:'setting-item-description' });
   }
 
   async addQuickItem(path, label) {
