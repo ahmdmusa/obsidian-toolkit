@@ -4073,14 +4073,17 @@ class ToolkitSettingsTab extends PluginSettingTab {
 
     const supActions = supportCard.createEl('div', { cls: 'tk-support-actions' });
 
-    // Coffee Button (PayPal)
+    // Coffee Button (PayPal with authentic dual-P SVG logo)
     const coffeeBtn = supActions.createEl('a', {
       cls: 'tk-btn-coffee',
-      href: 'https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78',
-      text: t('supportBtn')
+      href: 'https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78'
     });
     coffeeBtn.setAttribute('target', '_blank');
     coffeeBtn.setAttribute('rel', 'noopener noreferrer');
+    coffeeBtn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" style="flex-shrink:0;" fill="none">
+      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.002.508 5.34.221 5.736.221h7.828c3.218 0 5.629.845 6.648 2.302.94 1.343.91 3.251-.087 5.253-.16.32-.34.63-.538.93-.058.09-.12.18-.182.268-1.572 2.217-4.103 3.342-7.319 3.342H9.278c-.463 0-.853.336-.92 0.793l-1.282 8.24z" fill="#003087"/>
+      <path d="M19.087 8.706c-.058.09-.12.18-.182.268-1.572 2.217-4.103 3.342-7.319 3.342H9.278c-.463 0-.853.336-.92.793l-1.547 9.945a.552.552 0 0 0 .546.637h3.984a.641.641 0 0 0 .633-.543l.893-5.659a.641.641 0 0 1 .633-.543h2.187c4.053 0 7.234-1.646 8.156-6.425.385-1.996.027-3.666-1.077-4.815z" fill="#0079C1"/>
+    </svg><span>${t('supportBtn')}</span>`;
 
     // GitHub Issues & Suggestions Button
     const issuesBtn = supActions.createEl('a', {

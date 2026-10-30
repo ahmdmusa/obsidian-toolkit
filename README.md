@@ -106,8 +106,21 @@ FlowKit is an open-source productivity suite built for serious note-taking in Ob
 
 - 💡 **Feature Requests & Bug Reports:** [Open an Issue on GitHub](https://github.com/ahmdmusa/obsidian-toolkit/issues)
 - ✉️ **Direct Email & Inquiries:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions)
-- ☕ **Support Project Development:** If FlowKit saves you time and improves your workflow, you can support future development via [PayPal](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78).
 - ⭐ **Star the Repository:** Support the project by starring it on [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
+
+<div align="center" style="margin: 28px 0 16px 0;">
+
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=003087" height="42" alt="Buy Me A Coffee with PayPal" />
+</a>
+
+&nbsp;&nbsp;
+
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" height="42" alt="Donate with PayPal" />
+</a>
+
+</div>
 
 ---
 
@@ -151,8 +164,21 @@ FlowKit is an open-source productivity suite built for serious note-taking in Ob
 
 - 💡 **اقتراح الميزات والإبلاغ عن المشاكل:** عبر فتح تذكرة على [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues).
 - ✉️ **التواصل المباشر عبر البريد الإلكتروني:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions).
-- ☕ **دعم استمرار التطوير:** عبر حساب [PayPal](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78).
 - ⭐ **دعم المشروع:** بوضع نجمة على مستودع [GitHub](https://github.com/ahmdmusa/obsidian-toolkit).
+
+<div align="center" style="margin: 28px 0 16px 0;">
+
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+  <img src="https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-ادعم%20المشروع%20عبر%20PayPal-FFDD00?style=for-the-badge&logo=paypal&logoColor=003087" height="42" alt="Buy Me A Coffee with PayPal" />
+</a>
+
+&nbsp;&nbsp;
+
+<a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+  <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" height="42" alt="Donate with PayPal" />
+</a>
+
+</div>
 
 ---
 
