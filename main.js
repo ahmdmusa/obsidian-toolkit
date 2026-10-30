@@ -951,13 +951,15 @@ const SIZE_STEP = 30, SIZE_MIN = 60, SIZE_MAX = 950;
 
 
 /* ==========================================================================
-   SelectionToolbarManager — Notion-Style Floating Selection Toolbar
+   SelectionToolbarManager — Notion-Style Floating Selection Toolbar 2.0
    ========================================================================== */
 class SelectionToolbarManager {
   constructor(plugin) {
     this.plugin = plugin;
     this.app = plugin.app;
     this.toolbarEl = null;
+    this.calloutPickerEl = null;
+    this.aiPickerEl = null;
     this.visible = false;
     this._debounceTimer = null;
 
@@ -980,6 +982,7 @@ class SelectionToolbarManager {
     document.removeEventListener('mousedown', this._onMouseDown);
     document.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('scroll', this._onScroll, true);
+    this.closeSubmenus();
     if (this.toolbarEl) {
       this.toolbarEl.remove();
       this.toolbarEl = null;
@@ -987,12 +990,23 @@ class SelectionToolbarManager {
     this.visible = false;
   }
 
+  closeSubmenus() {
+    if (this.calloutPickerEl) {
+      this.calloutPickerEl.remove();
+      this.calloutPickerEl = null;
+    }
+    if (this.aiPickerEl) {
+      this.aiPickerEl.remove();
+      this.aiPickerEl = null;
+    }
+  }
+
   createToolbar() {
     if (this.toolbarEl) return;
     const el = document.createElement('div');
     el.className = 'fk-selection-toolbar';
 
-    // Prevent editor blur on clicking toolbar buttons
+    // Prevent editor blur when interacting with toolbar or its submenus
     el.addEventListener('mousedown', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1007,7 +1021,7 @@ class SelectionToolbarManager {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        onClick();
+        onClick(btn);
       });
       el.appendChild(btn);
       return btn;
@@ -1020,26 +1034,155 @@ class SelectionToolbarManager {
     };
 
     // 1. Text styles
-    addBtn('stBold', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>', () => this.wrapSelection('**'));
-    addBtn('stItalic', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', () => this.wrapSelection('*'));
-    addBtn('stHighlight', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>', () => this.wrapSelection('=='));
-    addBtn('stStrike', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>', () => this.wrapSelection('~~'));
-    addBtn('stCode', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', () => this.wrapSelection('`'));
+    addBtn('stBold', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('**'); });
+    addBtn('stItalic', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('*'); });
+    addBtn('stHighlight', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('=='); });
+    addBtn('stStrike', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('~~'); });
+    addBtn('stCode', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('`'); });
 
     addDivider();
 
     // 2. Structural & Direction
-    addBtn('stLink', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', () => this.wrapSelection('[[', ']]'));
-    addBtn('stCallout', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', () => this.applyCallout());
-    addBtn('stRtl', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/><path d="M10 4v16"/></svg>', () => this.applyRtl());
+    addBtn('stLink', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('[[', ']]'); });
+
+    // Callout Button with Interactive Dropdown Picker!
+    const calloutBtn = addBtn('stCallout', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', (btn) => this.toggleCalloutPicker(btn));
+
+    addBtn('stRtl', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/><path d="M10 4v16"/></svg>', () => { this.closeSubmenus(); this.applyRtl(); });
 
     addDivider();
 
-    // 3. AI Smart Assist
-    addBtn('stAi', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>', () => this.applyAi(), 'fk-st-ai');
+    // 3. AI Smart Assist with Dropdown Picker!
+    addBtn('stAi', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>', (btn) => this.toggleAiPicker(btn), 'fk-st-ai');
 
     document.body.appendChild(el);
     this.toolbarEl = el;
+  }
+
+  toggleCalloutPicker(btnEl) {
+    if (this.calloutPickerEl) {
+      this.closeSubmenus();
+      return;
+    }
+    this.closeSubmenus();
+    this.openCalloutPicker(btnEl);
+  }
+
+  openCalloutPicker(btnEl) {
+    const picker = document.createElement('div');
+    picker.className = 'fk-st-callout-picker';
+
+    picker.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    const callouts = [
+      { id: 'note', icon: '📝', en: 'Note', ar: 'ملاحظة', color: '#0284c7' },
+      { id: 'tip', icon: '💡', en: 'Tip', ar: 'فكرة / نصيحة', color: '#06b6d4' },
+      { id: 'info', icon: 'ℹ️', en: 'Info', ar: 'معلومة هامة', color: '#8b5cf6' },
+      { id: 'warning', icon: '⚠️', en: 'Warning', ar: 'تحذير', color: '#f59e0b' },
+      { id: 'danger', icon: '🚨', en: 'Danger', ar: 'خطر / تنبيه', color: '#ef4444' },
+      { id: 'success', icon: '✅', en: 'Success', ar: 'تم / إنجاز', color: '#10b981' },
+      { id: 'question', icon: '❓', en: 'Question', ar: 'سؤال', color: '#f97316' },
+      { id: 'quote', icon: '💬', en: 'Quote', ar: 'اقتباس', color: '#64748b' },
+      { id: 'example', icon: '⚡', en: 'Example', ar: 'مثال عملي', color: '#a855f7' },
+      { id: 'abstract', icon: '📋', en: 'Summary', ar: 'خلاصة / ملخص', color: '#6366f1' },
+    ];
+
+    const isAr = this.plugin.settings.enableArabicUi;
+
+    callouts.forEach(c => {
+      const item = document.createElement('button');
+      item.className = 'fk-st-callout-item';
+      item.innerHTML = `
+        <span class="fk-callout-badge" style="background: ${c.color}22; color: ${c.color}; border: 1px solid ${c.color}44;">
+          ${c.icon}
+        </span>
+        <span class="fk-callout-label">${isAr ? c.ar : c.en}</span>
+      `;
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.applyCalloutType(c.id);
+        this.closeSubmenus();
+      });
+      picker.appendChild(item);
+    });
+
+    // Auto positioning above or below toolbar
+    const tbRect = this.toolbarEl.getBoundingClientRect();
+    if (tbRect.bottom + 230 > window.innerHeight) {
+      picker.style.bottom = 'calc(100% + 6px)';
+      picker.style.top = 'auto';
+    } else {
+      picker.style.top = 'calc(100% + 6px)';
+      picker.style.bottom = 'auto';
+    }
+
+    this.toolbarEl.appendChild(picker);
+    this.calloutPickerEl = picker;
+  }
+
+  toggleAiPicker(btnEl) {
+    if (this.aiPickerEl) {
+      this.closeSubmenus();
+      return;
+    }
+    this.closeSubmenus();
+    this.openAiPicker(btnEl);
+  }
+
+  openAiPicker(btnEl) {
+    const picker = document.createElement('div');
+    picker.className = 'fk-st-ai-picker';
+
+    picker.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    const isAr = this.plugin.settings.enableArabicUi;
+
+    const actions = [
+      { id: 'proofread', icon: '✍️', en: 'Proofread & Enhance', ar: 'تدقيق لغوي وصياغة', prompt: 'راجع وصحح لغوياً وإملائياً النص التالي وحسّن صياغته مع الحفاظ التام على معناه ولغته:' },
+      { id: 'summarize', icon: '📝', en: 'Summarize Selection', ar: 'تلخيص بنقاط مركزة', prompt: 'لخّص النص التالي في نقاط موجزة وسهلة القراءة:' },
+      { id: 'explain', icon: '🔍', en: 'Explain & Simplify', ar: 'شرح وتبسيط المفهوم', prompt: 'اشرح هذا المفهوم وبسّطه وقدم مثالاً توضيحياً سريعاً له:' },
+      { id: 'translate', icon: '🌐', en: 'Translate (AR ⇄ EN)', ar: 'ترجمة فورية (عربي/إنجليزي)', prompt: 'ترجم النص التالي بدقة (إذا كان عربياً ترجمه للإنجليزية، وإذا كان إنجليزياً ترجمه للعربية) مع الحفاظ على التنسيق:' },
+      { id: 'custom', icon: '✨', en: 'Custom AI Assistant...', ar: 'طلب ذكاء اصطناعي مخصص...', isModal: true },
+    ];
+
+    actions.forEach(a => {
+      const item = document.createElement('button');
+      item.className = 'fk-st-ai-item';
+      item.innerHTML = `
+        <span class="fk-ai-badge">${a.icon}</span>
+        <span class="fk-ai-label">${isAr ? a.ar : a.en}</span>
+      `;
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.closeSubmenus();
+        if (a.isModal) {
+          this.openAiModal();
+        } else {
+          this.executeQuickAi(a.prompt);
+        }
+      });
+      picker.appendChild(item);
+    });
+
+    const tbRect = this.toolbarEl.getBoundingClientRect();
+    if (tbRect.bottom + 190 > window.innerHeight) {
+      picker.style.bottom = 'calc(100% + 6px)';
+      picker.style.top = 'auto';
+    } else {
+      picker.style.top = 'calc(100% + 6px)';
+      picker.style.bottom = 'auto';
+    }
+
+    this.toolbarEl.appendChild(picker);
+    this.aiPickerEl = picker;
   }
 
   _onSelectionChange() {
@@ -1051,18 +1194,21 @@ class SelectionToolbarManager {
 
   _onMouseDown(e) {
     if (this.visible && this.toolbarEl && !this.toolbarEl.contains(e.target)) {
+      this.closeSubmenus();
       setTimeout(() => this.update(), 50);
     }
   }
 
   _onKeyDown(e) {
     if (e.key === 'Escape') {
+      this.closeSubmenus();
       this.hide();
     }
   }
 
   _onScroll() {
     if (this.visible) {
+      this.closeSubmenus();
       this.hide();
     }
   }
@@ -1135,6 +1281,7 @@ class SelectionToolbarManager {
   }
 
   hide() {
+    this.closeSubmenus();
     if (this.toolbarEl) {
       this.toolbarEl.classList.remove('is-visible');
       this.toolbarEl.style.display = 'none';
@@ -1159,16 +1306,26 @@ class SelectionToolbarManager {
     setTimeout(() => this.update(), 50);
   }
 
-  applyCallout() {
+  applyCalloutType(type) {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view || !view.editor) return;
     const editor = view.editor;
     const sel = editor.getSelection();
     if (!sel) return;
 
+    const calloutRegex = /^>\s*\[!([a-zA-Z0-9_-]+)\](.*)/;
     const lines = sel.split('\n');
-    const callout = `> [!note]\n` + lines.map(l => `> ${l}`).join('\n');
-    editor.replaceSelection(callout);
+
+    if (lines.length > 0 && calloutRegex.test(lines[0])) {
+      // Smoothly switch callout type if already inside one
+      lines[0] = lines[0].replace(calloutRegex, `> [!${type}]$2`);
+      editor.replaceSelection(lines.join('\n'));
+    } else {
+      // Wrap lines in new callout
+      const callout = `> [!${type}]\n` + lines.map(l => `> ${l}`).join('\n');
+      editor.replaceSelection(callout);
+    }
+
     editor.focus();
     this.hide();
   }
@@ -1191,7 +1348,7 @@ class SelectionToolbarManager {
     setTimeout(() => this.update(), 50);
   }
 
-  applyAi() {
+  openAiModal() {
     const view = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (!view || !view.editor) return;
     const editor = view.editor;
@@ -1203,6 +1360,36 @@ class SelectionToolbarManager {
       return;
     }
     new AISuggestModal(this.app, this.plugin, editor, sel).open();
+  }
+
+  async executeQuickAi(systemInstruction) {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) return;
+    const editor = view.editor;
+    const sel = editor.getSelection();
+    this.hide();
+
+    if (!this.plugin.settings.enableAI) {
+      new Notice(t('aiDisabled'));
+      return;
+    }
+
+    const notice = new Notice(t('aiThinking') || 'AI is thinking...', 0);
+    try {
+      const messages = [
+        { role: 'system', content: systemInstruction },
+        { role: 'user', content: sel }
+      ];
+      const result = stripCodeFences(await callAI(this.plugin, messages));
+      notice.hide();
+      if (result) {
+        editor.replaceSelection(result);
+        new Notice('✨ ' + (t('aiInsertSuggestion') || 'Done!'));
+      }
+    } catch (err) {
+      notice.hide();
+      new Notice((t('aiError') || 'AI Error: ') + (err.message || err));
+    }
   }
 }
 
