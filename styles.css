@@ -378,40 +378,54 @@ body.ft-active .nav-folder-title {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  margin-right: 5px;
+  margin-right: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.72;
-  transition: opacity 0.15s;
+  line-height: 1;
+  opacity: 0.75;
+  transition: opacity 0.12s ease, color 0.12s ease;
 }
 .ft-active .nav-file-title:hover .ft-icon,
-.ft-active .nav-folder-title:hover .ft-icon { opacity: 1; }
+.ft-active .nav-folder-title:hover .ft-icon {
+  opacity: 1;
+}
 
-/* ── File type colors ── */
+/* ── File tree icon monochrome & theme harmony ── */
 .ft-icon.ft-folder {
   color: var(--text-muted);
-  opacity: 0.7;
+  opacity: 0.8;
 }
+.nav-folder-title:hover .ft-icon.ft-folder {
+  color: var(--text-normal);
+  opacity: 1;
+}
+
 .ft-icon.ft-markdown,
 .ft-icon.ft-text {
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.72;
+}
+.nav-file-title:hover .ft-icon.ft-markdown,
+.nav-file-title:hover .ft-icon.ft-text {
+  color: var(--text-normal);
+  opacity: 0.95;
 }
 .nav-file-title.is-active .ft-icon.ft-markdown,
 .nav-file-title.is-active .ft-icon.ft-text {
   color: var(--text-normal);
-  opacity: 0.9;
+  opacity: 1;
 }
-.ft-icon.ft-canvas   { color: #8b5cf6; opacity: 0.9; }
-.ft-icon.ft-pdf      { color: #e74c3c; opacity: 0.88; }
-.ft-icon.ft-image    { color: #3b82f6; opacity: 0.88; }
-.ft-icon.ft-video    { color: #8b5cf6; opacity: 0.88; }
-.ft-icon.ft-audio    { color: #10b981; opacity: 0.88; }
-.ft-icon.ft-code     { color: #f59e0b; opacity: 0.88; }
-.ft-icon.ft-archive  { color: #6b7280; opacity: 0.82; }
-.ft-icon.ft-link     { color: #0ea5e9; opacity: 0.88; }
-.ft-icon.ft-text     { color: var(--text-muted); opacity: 0.72; }
+
+/* Subtle, tasteful accent colors for distinct file types */
+.ft-icon.ft-canvas   { color: #8b5cf6; opacity: 0.85; }
+.ft-icon.ft-pdf      { color: #ef4444; opacity: 0.85; }
+.ft-icon.ft-image    { color: #3b82f6; opacity: 0.85; }
+.ft-icon.ft-video    { color: #a855f7; opacity: 0.85; }
+.ft-icon.ft-audio    { color: #10b981; opacity: 0.85; }
+.ft-icon.ft-code     { color: #f59e0b; opacity: 0.85; }
+.ft-icon.ft-archive  { color: #71717a; opacity: 0.85; }
+.ft-icon.ft-link     { color: #06b6d4; opacity: 0.85; }
 
 /* ── Thumbnail ── */
 .ft-thumb {
