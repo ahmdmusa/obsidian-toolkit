@@ -26,7 +26,7 @@ const TR = {
     catLists:'Lists', catCode:'Code', catDividers:'Dividers',
     iDateLocale:'Date (Long)', iDateIso:'Date (ISO)', iTimeLocale:'Time',
     iTime24:'Time (24h)', iDatetime:'Date & Time', iProgress:'Progress Bar',
-    settingsTitle:'Obsidian Toolkit',
+    settingsTitle:'FlowKit (formerly My Toolkit)',
     fcMenu:'🎨 تلوين وأيقونة الفولدر',
     fcModalTitle:'تلوين وأيقونة الفولدر',
     fcPreview:'معاينة:',
@@ -49,16 +49,16 @@ const TR = {
     fcResetNotice:'Reset style for: ',
     fvPanicCmd:'Panic Lock: Immediately Lock All Folders',
     fvPanicNotice:'🚨 Panic Lock: All protected folders locked!',
-    supportTitle:'☕ ادعم تطوير الإضافة',
+    supportTitle:'☕ ادعم تطوير FlowKit',
     supportDesc:'إذا كانت إضافة My Toolkit بتفيدك وتسهّل تنظيم ملاحظاتك ودراستك في Obsidian، يسعدني جداً دعمك بكوب قهوة للاستمرار في تطوير ميزات جديدة وصيانتها باستمرار! ❤️',
     supportBtn:'☕ اشتري لي قهوة (PayPal)',
     starBtn:'⭐ نجمة على GitHub', feedbackBtn:'✉️ أرسل اقتراحاً أو ملاحظة',
-    supportFooter:'صُنع بكل حب ❤️ بواسطة أحمد موسى · مصر 🇪🇬',
-    supportTitle:'☕ Support My Toolkit',
+    supportFooter:'FlowKit · صُنع بكل حب ❤️ بواسطة أحمد موسى · مصر 🇪🇬',
+    supportTitle:'☕ Support FlowKit',
     supportDesc:'If My Toolkit helps you stay organized, focused, and productive in Obsidian, consider buying me a coffee! Your support fuels ongoing development, new privacy features, and open-source maintenance.',
     supportBtn:'☕ Buy Me a Coffee (PayPal)',
     starBtn:'⭐ Star on GitHub', feedbackBtn:'✉️ Suggestions & Feedback',
-    supportFooter:'Crafted with ❤️ by Ahmed Mousa · Egypt 🇪🇬',
+    supportFooter:'FlowKit · Crafted with ❤️ by Ahmed Mousa · Egypt 🇪🇬',
     fmtName:'🎨 Formatting Palette',
     slashName:'⚡ Slash Commands (/)',
     slashDesc:'Type / at line start or after space to insert callouts, formatting & templates (Notion-style).',
@@ -163,7 +163,7 @@ const TR = {
     catLists:'قوائم', catCode:'كود', catDividers:'فواصل',
     iDateLocale:'التاريخ (طويل)', iDateIso:'التاريخ (ISO)', iTimeLocale:'الوقت',
     iTime24:'الوقت (24h)', iDatetime:'التاريخ والوقت', iProgress:'شريط تقدم',
-    settingsTitle:'Obsidian Toolkit',
+    settingsTitle:'FlowKit (سابقاً My Toolkit)',
     fmtName:'🎨 لوحة التنسيق',
     slashName:'⚡ أوامر السلاش (/)',
     slashDesc:'اكتب / في بداية السطر أو بعد مسافة لإدراج الـ Callouts والقوالب والتنسيقات بسرعة مثل Notion.',
@@ -3132,7 +3132,7 @@ class ToolkitSettingsTab extends PluginSettingTab {
     const supFooter = supportCard.createEl('div', { cls: 'tk-support-footer' });
     supFooter.createEl('span', { text: t('supportFooter') });
 
-    containerEl.createEl('p', { text:'Obsidian Toolkit v2.9.0 — by Ahmed Mousa', cls:'setting-item-description' });
+    containerEl.createEl('p', { text:'FlowKit (formerly My Toolkit) v2.9.0 — by Ahmed Mousa', cls:'setting-item-description' });
   }
 
   async addQuickItem(path, label) {

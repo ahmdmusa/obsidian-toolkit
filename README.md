@@ -1,9 +1,11 @@
 <div align="center">
 <img width="34" height="34" alt="Toolkit Logo" src="https://github.com/user-attachments/assets/2470633d-b5d0-4590-b45a-d7a5b95e19e5" />
 
-# My Toolkit
+# ⚡ FlowKit (formerly My Toolkit)
 
-**An all-in-one productivity & privacy suite for Obsidian**
+**The all-in-one productivity & privacy engine for Obsidian**
+
+Stay in the flow. Write with power. Protect what matters.
 
 Eight integrated modules — formatting, local AI, image control, navigation, focus mode, and folder encryption — unified in a single, high-performance plugin.
 
@@ -167,7 +169,7 @@ Write without distractions.
 
 ## ☕ Support the Project
 
-If **My Toolkit** makes your Obsidian experience smoother, more organized, and distraction-free, please consider supporting its continuous open-source development with a coffee! Every contribution directly supports new features, security updates, and active maintenance.
+If **FlowKit** makes your Obsidian experience smoother, more organized, and distraction-free, please consider supporting its continuous open-source development with a coffee! Every contribution directly supports new features, security updates, and active maintenance.
 
 <div align="center">
 
@@ -191,9 +193,9 @@ Have a feature request, found a bug, or want to share ideas? Feel free to reach 
 
 <div dir="rtl">
 
-## 🇸🇦 ملخص الإضافة وميزاتها الأساسية (باللغة العربية)
+## 🇸🇦 ملخص FlowKit (سابقاً My Toolkit) وميزاتها الأساسية
 
-**إضافة My Toolkit** هي حزمة إنتاجية وخصوصية شاملة لتطبيق Obsidian تجمع 8 أدوات أساسية في إضافة واحدة خفيفة وسريعة:
+**إضافة FlowKit** هي المحرك الشامل للإنتاجية والخصوصية داخل تطبيق Obsidian لتطبيق Obsidian تجمع 8 أدوات أساسية في إضافة واحدة خفيفة وسريعة:
 
 ### 📋 جدول الوحدات الأساسية:
 

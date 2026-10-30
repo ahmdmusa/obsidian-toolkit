@@ -1,9 +1,9 @@
 {
   "id": "ahmed-toolkit",
-  "name": "My Toolkit",
+  "name": "FlowKit (formerly My Toolkit)",
   "version": "2.9.0",
   "minAppVersion": "0.15.0",
-  "description": "All-in-one productivity & privacy suite: Folder Vault & Privacy Lock, Formatting Palette, AI Smart Templates, Image Control, Fullscreen Note, Premium File Tree, Quick Access Bar, and Folder Focus Mode.",
+  "description": "The all-in-one productivity & privacy engine for Obsidian: Notion-style slash commands, encrypted folder vault, 1-click focus mode, and rich formatting to keep you in the flow.",
   "author": "Ahmed Moussa",
   "authorUrl": "https://github.com/ahmdmusa",
   "fundingUrl": "https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78",
