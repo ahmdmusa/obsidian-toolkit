@@ -1,7 +1,7 @@
 {
   "id": "ahmed-toolkit",
   "name": "FlowKit (formerly My Toolkit)",
-  "version": "2.9.6",
+  "version": "2.9.7",
   "minAppVersion": "0.15.0",
   "description": "The all-in-one productivity and privacy engine: floating selection toolbar, encrypted folder vault, live preview image controls, universal AI, and folder focus.",
   "author": "Ahmed Moussa",
