@@ -19,6 +19,7 @@ const getAppLang = () => {
 ══════════════════════════════════════════════ */
 const TR = {
   en: {
+    stSettingName:'Floating Selection Toolbar', stSettingDesc:'Show a Notion-style floating toolbar when selecting text with quick formatting, direction, and AI.', stBold:'Bold (Ctrl+B)', stItalic:'Italic (Ctrl+I)', stHighlight:'Highlight (==)', stStrike:'Strikethrough (~~)', stCode:'Inline Code', stLink:'Link ([[...]])', stCallout:'Wrap in Callout', stRtl:'Toggle RTL / LTR Direction', stAi:'Ask AI with Selection',
     paletteTitle:'Formatting Palette', searchPlaceholder:'Search formats…', noResults:'No results',
     kbNavigate:'navigate', kbInsert:'insert', kbClose:'close',
     catInsert:'Insert', catCallouts:'Callouts', catCustom:'Custom Callouts',
@@ -156,6 +157,7 @@ const TR = {
     fvSavedNotice:'🔒 Folder protected: ', fvRemovedNotice:'Removed protection from: ',
   },
   ar: {
+    stSettingName:'شريط التحديد العائم (Notion-style)', stSettingDesc:'إظهار شريط أدوات عائم للتنسيق السريع، اتجاه الفقرة والذكاء الاصطناعي عند تحديد أي نص.', stBold:'عريض (Bold)', stItalic:'مائل (Italic)', stHighlight:'تمييز (Highlight)', stStrike:'يتوسطه خط (Strikethrough)', stCode:'كود برمجي (Inline Code)', stLink:'رابط داخلي ([[...]])', stCallout:'تحويل لتنبيه (Callout)', stRtl:'تبديل اتجاه الكتابة عربي/إنجليزي', stAi:'معالجة التحديد بالذكاء الاصطناعي',
     paletteTitle:'لوحة التنسيق', searchPlaceholder:'ابحث عن تنسيق…', noResults:'لا توجد نتائج',
     kbNavigate:'تنقل', kbInsert:'إدراج', kbClose:'إغلاق',
     catInsert:'إدراج سريع', catCallouts:'تنبيهات', catCustom:'تنبيهات مخصصة',
@@ -277,6 +279,7 @@ const DEFAULT_SETTINGS = {
   enableArabicUi:       false,
   enableFormatting:     true,
   enableSlashCommands:  true,
+  enableSelectionToolbar: true,
   enableImageControl:   true,
   enableFullscreen:     true,
   enableAutoFullscreen: false,
@@ -945,6 +948,263 @@ class SlashCommandSuggest extends EditorSuggest {
 const ALIGN_ICONS = { left:'⬤←', center:'⬤', right:'→⬤' };
 const ALIGNS = ['left','center','right'];
 const SIZE_STEP = 30, SIZE_MIN = 60, SIZE_MAX = 950;
+
+
+/* ==========================================================================
+   SelectionToolbarManager — Notion-Style Floating Selection Toolbar
+   ========================================================================== */
+class SelectionToolbarManager {
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.app = plugin.app;
+    this.toolbarEl = null;
+    this.visible = false;
+    this._debounceTimer = null;
+
+    this._onSelectionChange = this._onSelectionChange.bind(this);
+    this._onMouseDown = this._onMouseDown.bind(this);
+    this._onKeyDown = this._onKeyDown.bind(this);
+    this._onScroll = this._onScroll.bind(this);
+  }
+
+  register() {
+    this.createToolbar();
+    document.addEventListener('selectionchange', this._onSelectionChange);
+    document.addEventListener('mousedown', this._onMouseDown);
+    document.addEventListener('keydown', this._onKeyDown);
+    window.addEventListener('scroll', this._onScroll, true);
+  }
+
+  destroy() {
+    document.removeEventListener('selectionchange', this._onSelectionChange);
+    document.removeEventListener('mousedown', this._onMouseDown);
+    document.removeEventListener('keydown', this._onKeyDown);
+    window.removeEventListener('scroll', this._onScroll, true);
+    if (this.toolbarEl) {
+      this.toolbarEl.remove();
+      this.toolbarEl = null;
+    }
+    this.visible = false;
+  }
+
+  createToolbar() {
+    if (this.toolbarEl) return;
+    const el = document.createElement('div');
+    el.className = 'fk-selection-toolbar';
+
+    // Prevent editor blur on clicking toolbar buttons
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    const addBtn = (titleKey, svgHtml, onClick, cls = '') => {
+      const btn = document.createElement('button');
+      btn.className = `fk-st-btn ${cls}`.trim();
+      btn.setAttribute('aria-label', t(titleKey));
+      btn.title = t(titleKey);
+      btn.innerHTML = svgHtml;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      });
+      el.appendChild(btn);
+      return btn;
+    };
+
+    const addDivider = () => {
+      const div = document.createElement('div');
+      div.className = 'fk-st-divider';
+      el.appendChild(div);
+    };
+
+    // 1. Text styles
+    addBtn('stBold', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>', () => this.wrapSelection('**'));
+    addBtn('stItalic', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', () => this.wrapSelection('*'));
+    addBtn('stHighlight', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>', () => this.wrapSelection('=='));
+    addBtn('stStrike', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>', () => this.wrapSelection('~~'));
+    addBtn('stCode', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', () => this.wrapSelection('`'));
+
+    addDivider();
+
+    // 2. Structural & Direction
+    addBtn('stLink', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', () => this.wrapSelection('[[', ']]'));
+    addBtn('stCallout', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', () => this.applyCallout());
+    addBtn('stRtl', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/><path d="M10 4v16"/></svg>', () => this.applyRtl());
+
+    addDivider();
+
+    // 3. AI Smart Assist
+    addBtn('stAi', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>', () => this.applyAi(), 'fk-st-ai');
+
+    document.body.appendChild(el);
+    this.toolbarEl = el;
+  }
+
+  _onSelectionChange() {
+    clearTimeout(this._debounceTimer);
+    this._debounceTimer = setTimeout(() => {
+      this.update();
+    }, 70);
+  }
+
+  _onMouseDown(e) {
+    if (this.visible && this.toolbarEl && !this.toolbarEl.contains(e.target)) {
+      setTimeout(() => this.update(), 50);
+    }
+  }
+
+  _onKeyDown(e) {
+    if (e.key === 'Escape') {
+      this.hide();
+    }
+  }
+
+  _onScroll() {
+    if (this.visible) {
+      this.hide();
+    }
+  }
+
+  update() {
+    if (!this.plugin.settings.enableSelectionToolbar) {
+      this.hide();
+      return;
+    }
+
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) {
+      this.hide();
+      return;
+    }
+
+    const editor = view.editor;
+    const selText = editor.getSelection();
+    if (!selText || !selText.trim()) {
+      this.hide();
+      return;
+    }
+
+    const domSel = window.getSelection();
+    if (!domSel || domSel.rangeCount === 0 || domSel.isCollapsed) {
+      this.hide();
+      return;
+    }
+
+    const range = domSel.getRangeAt(0);
+    const container = range.commonAncestorContainer;
+    const editorEl = container.nodeType === Node.ELEMENT_NODE
+      ? container.closest('.cm-editor, .markdown-source-view')
+      : container.parentElement?.closest('.cm-editor, .markdown-source-view');
+
+    if (!editorEl) {
+      this.hide();
+      return;
+    }
+
+    const rect = range.getBoundingClientRect();
+    if (!rect || rect.width === 0 || rect.height === 0) {
+      this.hide();
+      return;
+    }
+
+    this.showAt(rect);
+  }
+
+  showAt(rect) {
+    if (!this.toolbarEl) this.createToolbar();
+    this.toolbarEl.style.display = 'flex';
+
+    const width = this.toolbarEl.offsetWidth || 340;
+    const height = this.toolbarEl.offsetHeight || 38;
+
+    let top = rect.top - height - 8;
+    let left = rect.left + (rect.width / 2) - (width / 2);
+
+    if (top < 45) {
+      top = rect.bottom + 8;
+    }
+
+    left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
+
+    this.toolbarEl.style.top = `${Math.round(top)}px`;
+    this.toolbarEl.style.left = `${Math.round(left)}px`;
+    this.toolbarEl.classList.add('is-visible');
+    this.visible = true;
+  }
+
+  hide() {
+    if (this.toolbarEl) {
+      this.toolbarEl.classList.remove('is-visible');
+      this.toolbarEl.style.display = 'none';
+    }
+    this.visible = false;
+  }
+
+  wrapSelection(prefix, suffix = prefix) {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) return;
+    const editor = view.editor;
+    const sel = editor.getSelection();
+    if (!sel) return;
+
+    if (sel.startsWith(prefix) && sel.endsWith(suffix) && sel.length >= prefix.length + suffix.length) {
+      const inner = sel.slice(prefix.length, sel.length - suffix.length);
+      editor.replaceSelection(inner);
+    } else {
+      editor.replaceSelection(`${prefix}${sel}${suffix}`);
+    }
+    editor.focus();
+    setTimeout(() => this.update(), 50);
+  }
+
+  applyCallout() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) return;
+    const editor = view.editor;
+    const sel = editor.getSelection();
+    if (!sel) return;
+
+    const lines = sel.split('\n');
+    const callout = `> [!note]\n` + lines.map(l => `> ${l}`).join('\n');
+    editor.replaceSelection(callout);
+    editor.focus();
+    this.hide();
+  }
+
+  applyRtl() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) return;
+    const editor = view.editor;
+    const sel = editor.getSelection();
+    if (!sel) return;
+
+    if (sel.startsWith('<div dir="rtl">\n') && sel.endsWith('\n</div>')) {
+      editor.replaceSelection(sel.slice(16, -7));
+    } else if (sel.startsWith('<div dir="rtl">') && sel.endsWith('</div>')) {
+      editor.replaceSelection(sel.slice(15, -6));
+    } else {
+      editor.replaceSelection(`<div dir="rtl">\n${sel}\n</div>`);
+    }
+    editor.focus();
+    setTimeout(() => this.update(), 50);
+  }
+
+  applyAi() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) return;
+    const editor = view.editor;
+    const sel = editor.getSelection();
+    this.hide();
+
+    if (!this.plugin.settings.enableAI) {
+      new Notice(t('aiDisabled'));
+      return;
+    }
+    new AISuggestModal(this.app, this.plugin, editor, sel).open();
+  }
+}
 
 class ImageControlManager {
   constructor(plugin) { this.plugin = plugin; this._activeWrapper = null; }
@@ -3349,6 +3609,11 @@ class ObsidianToolkitPlugin extends Plugin {
 
     /* CSS auto-loaded by Obsidian from styles.css */
 
+    this.selectionToolbarMgr = new SelectionToolbarManager(this);
+    if (this.settings.enableSelectionToolbar) {
+      this.selectionToolbarMgr.register();
+    }
+
     if (this.settings.enableFormatting) {
       this.slashSuggest = new SlashCommandSuggest(this.app, this);
       this.registerEditorSuggest(this.slashSuggest);
@@ -3480,6 +3745,7 @@ class ObsidianToolkitPlugin extends Plugin {
   }
 
   onunload() {
+    this.selectionToolbarMgr?.destroy();
     this.imgMgr?.destroy();
     this.fullscreenMgr?.destroy();
     this.fileTreeMgr?.destroy();

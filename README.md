@@ -9,7 +9,7 @@ Stay in the flow. Write with power. Protect what matters.
 
 Eight integrated modules — formatting, local AI, image control, navigation, focus mode, and folder encryption — unified in a single, high-performance plugin.
 
-[![Version](https://img.shields.io/badge/version-2.9.1-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.2-7c3aed?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-7c3aed?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-7c3aed?style=flat-square)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/☕%20Buy%20Me%20A%20Coffee-Donate%20via%20PayPal-FFDD00?style=flat-square&logo=paypal&logoColor=black)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
@@ -24,6 +24,7 @@ Eight integrated modules — formatting, local AI, image control, navigation, fo
 |-|--------|-------------|--------------------|
 | 🔒 | **Folder Vault & Privacy Lock** | Protect folders with PBKDF2-encrypted PIN/password & leak prevention | Right-click folder |
 | 📁 | **Folder Focus Mode 2.0** | 1-Click zoom into folder, clickable breadcrumbs & quick note | `Alt+F` / 🎯 Ribbon |
+| ✨ | **Floating Selection Toolbar** | Notion-style floating menu on text selection (Format, Code, Link, Callout, RTL, AI) | Select text in editor |
 | ⚡ | **Slash Commands (/)** | Notion-style inline menu: type `/` to quickly insert any callout or template | `/` in editor |
 | 🎨 | **Formatting Palette** | 60+ styled callouts, Islamic RTL elements, dividers & headings | `Ctrl+Shift+F` |
 | 🤖 | **AI Smart Suggestion** | Real-time AI continuation powered by local Ollama or OpenAI | `Ctrl+Shift+G` |

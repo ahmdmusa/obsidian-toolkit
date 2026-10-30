@@ -1214,3 +1214,76 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   font-size: 20px !important;
   font-weight: 700;
 }
+
+
+/* ==========================================================================
+   FlowKit: Floating Selection Toolbar (Notion-style)
+   ========================================================================== */
+.fk-selection-toolbar {
+  position: fixed;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--background-secondary, #1e1e2e);
+  border: 1px solid var(--background-modifier-border, rgba(255, 255, 255, 0.12));
+  border-radius: 9px;
+  box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.4), 0 4px 10px -2px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  transition: opacity 0.14s cubic-bezier(0.16, 1, 0.3, 1), transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  user-select: none;
+}
+
+.fk-selection-toolbar.is-visible {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.fk-st-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-normal, #e2e8f0);
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.08s ease;
+}
+
+.fk-st-btn:hover {
+  background: var(--background-modifier-hover, rgba(255, 255, 255, 0.1));
+  color: var(--text-accent, #8b5cf6);
+  transform: translateY(-1px);
+}
+
+.fk-st-btn:active {
+  transform: scale(0.94);
+}
+
+.fk-st-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--background-modifier-border, rgba(255, 255, 255, 0.1));
+  margin: 0 3px;
+}
+
+.fk-st-btn.fk-st-ai {
+  color: #f59e0b;
+}
+
+.fk-st-btn.fk-st-ai:hover {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
