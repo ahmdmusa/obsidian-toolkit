@@ -21,7 +21,8 @@ const TR = {
   en: {
     ffStatNotes:'notes',
     /* ── Text-to-Speech (TTS) ── */
-    stRead:'Read Aloud (TTS)',
+    stRead:'Read Selected Text (TTS)',
+    stReadFromHere:'Read from Here to End (TTS)',
     ttsName:'🔊 Text-to-Speech (TTS)',
     ttsDesc:'Read notes and open PDFs aloud with offline system natural voices or online cloud speech.',
     ttsEnable:'Enable Text-to-Speech',
@@ -196,7 +197,8 @@ const TR = {
   ar: {
     ffStatNotes:'ملاحظة',
     /* ── Text-to-Speech (TTS) ── */
-    stRead:'قراءة صوتية (TTS)',
+    stRead:'قراءة النص المحدد (صوتياً)',
+    stReadFromHere:'قراءة من هنا لآخر الملاحظة (صوتياً)',
     ttsName:'🔊 قارئ النصوص والملاحظات (TTS)',
     ttsDesc:'قراءة الملاحظات وملفات الـ PDF بصوت طبيعي أوفلاين أو أونلاين.',
     ttsEnable:'تفعيل القارئ الصوتي',
@@ -1242,13 +1244,20 @@ class SelectionToolbarManager {
 
     addDivider();
 
-    // 4. Text-to-Speech (TTS)
+    // 4. Text-to-Speech (TTS): Read Selection & Read from Here
     addBtn('stRead', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>', () => {
       this.closeSubmenus();
       if (this.plugin.ttsMgr) {
         this.plugin.ttsMgr.playSelection();
       }
     }, 'fk-st-tts');
+
+    addBtn('stReadFromHere', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>', () => {
+      this.closeSubmenus();
+      if (this.plugin.ttsMgr) {
+        this.plugin.ttsMgr.playFromCursor();
+      }
+    }, 'fk-st-tts-from-here');
 
     document.body.appendChild(el);
     this.toolbarEl = el;
@@ -3786,9 +3795,22 @@ class TTSManager {
       return;
     }
 
-    const cur = ed.getCursor();
+    let lineIdx = 0;
+    try {
+      if (ed.somethingSelected && ed.somethingSelected()) {
+        const from = ed.getCursor('from');
+        lineIdx = from.line;
+      } else {
+        const cur = ed.getCursor();
+        lineIdx = cur.line;
+      }
+    } catch(e) {
+      const cur = ed.getCursor();
+      lineIdx = cur.line;
+    }
+
     const lineCount = ed.lineCount();
-    const startPos = { line: cur.line, ch: 0 };
+    const startPos = { line: lineIdx, ch: 0 };
     const lastLine = lineCount - 1;
     const lastCh = ed.getLine(lastLine).length;
     const rawText = ed.getRange(startPos, { line: lastLine, ch: lastCh });
@@ -3798,7 +3820,7 @@ class TTSManager {
       return;
     }
 
-    const title = (file ? file.basename : 'Note') + ` (Line ${cur.line + 1}…)`;
+    const title = (file ? file.basename : 'Note') + ` (From Line ${lineIdx + 1}…)`;
     this.playText(rawText, title);
   }
 

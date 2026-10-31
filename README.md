@@ -5,7 +5,7 @@
 
 **Modular Productivity, Organization, and Security Plugin for Obsidian**
 
-[![Version](https://img.shields.io/badge/version-2.9.10-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.11-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-6366f1?style=flat-square)](LICENSE)
 [![Support](https://img.shields.io/badge/Support-PayPal-00457C?style=flat-square&logo=paypal)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
