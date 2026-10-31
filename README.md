@@ -6,7 +6,7 @@
 
 **The All-in-One Powerhouse for Obsidian: Privacy, Artificial Intelligence, Smart Reading & Workflow Mastery.**
 
-[![Version](https://img.shields.io/badge/version-2.9.13-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.14-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-6366f1?style=flat-square)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support%20Project-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=000000)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)

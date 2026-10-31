@@ -33,6 +33,13 @@ const TR = {
     ttsVoiceName:'Voice',
     ttsVoiceDesc:'Select preferred voice for reading.',
     ttsVoiceDefault:'Default System Voice',
+    ttsVoiceArName:'Arabic Reading Voice',
+    ttsVoiceArDesc:'Select preferred natural voice for Arabic words & sentences (Default: Salma).',
+    ttsVoiceEnName:'English Reading Voice',
+    ttsVoiceEnDesc:'Select preferred natural voice for English words & sentences (Default: Sonia).',
+    ttsVoiceOverrideName:'Voice Mode / Master Override',
+    ttsVoiceOverrideDesc:'Auto Bilingual switches seamlessly between Salma and Sonia, or choose a specific voice.',
+    ttsVoiceBilingualAuto:'✨ Auto Bilingual (Salma for Arabic + Sonia for English)',
     ttsRateName:'Speech Speed (Rate)',
     ttsPitchName:'Voice Pitch',
     ttsShowPlayerName:'Show Floating Player',
@@ -209,6 +216,13 @@ const TR = {
     ttsVoiceName:'الصوت',
     ttsVoiceDesc:'اختر الصوت المفضل لقراءة الملاحظات.',
     ttsVoiceDefault:'الصوت الافتراضي للنظام',
+    ttsVoiceArName:'صوت القراءة العربية',
+    ttsVoiceArDesc:'اختر الصوت الطبيعي المفضل لنطق الكلمات والجمل العربية (الافتراضي: سلمى).',
+    ttsVoiceEnName:'صوت القراءة الإنجليزية',
+    ttsVoiceEnDesc:'اختر الصوت الطبيعي المفضل لنطق الكلمات والجمل الإنجليزية (الافتراضي: سونيا أوفلاين/أونلاين).',
+    ttsVoiceOverrideName:'وضع الصوت / التخصيص العام',
+    ttsVoiceOverrideDesc:'الوضع التلقائي يبدل بذكاء وسلاسة بين سلمى وسونيا حسب لغة كل كلمة، أو يمكنك تثبيت صوت محدد.',
+    ttsVoiceBilingualAuto:'✨ تلقائي ثنائي اللغة (سلمى للعربي + سونيا للإنجليزي)',
     ttsRateName:'سرعة القراءة',
     ttsPitchName:'طبقة الصوت (Pitch)',
     ttsShowPlayerName:'إظهار المشغل العائم',
@@ -3737,6 +3751,140 @@ class FolderVaultManager {
    Supports Offline System Voices & Online Natural Voices
    Progressive Sentence Chunking to prevent Chromium 15s freeze
 ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   WINDOWS SPEECH SYNTHESIS BRIDGE
+   Direct Native Windows SAPI & Natural Voice Execution (Salma & Sonia)
+   Instant Playback, Zero Google Translate Lag, 100% Offline Resilience
+══════════════════════════════════════════════ */
+class WindowsSpeechBridge {
+  constructor() {
+    this.isWin = (typeof process !== 'undefined' && process.platform === 'win32' && typeof require !== 'undefined');
+    this.ps = null;
+    this.installedVoices = [];
+    this.currentResolver = null;
+    this.isSpeaking = false;
+    this.spawnWorker();
+  }
+
+  get isAvailable() {
+    return this.isWin;
+  }
+
+  spawnWorker() {
+    if (!this.isWin) return;
+    try {
+      const { spawn } = require('child_process');
+      this.ps = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '-'], {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      this.ps.stdin.write('[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n');
+      this.ps.stdin.write('Add-Type -AssemblyName System.Speech;\n');
+      this.ps.stdin.write('$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;\n');
+
+      let buffer = '';
+      this.ps.stdout.on('data', (data) => {
+        buffer += data.toString('utf8');
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop();
+        for (const line of lines) {
+          if (line.trim() === 'DONE:SPAN') {
+            this.isSpeaking = false;
+            if (this.currentResolver) {
+              const r = this.currentResolver;
+              this.currentResolver = null;
+              r();
+            }
+          }
+        }
+      });
+
+      this.ps.on('error', () => { this.ps = null; });
+      this.ps.on('close', () => {
+        this.ps = null;
+        this.isSpeaking = false;
+        if (this.currentResolver) {
+          const r = this.currentResolver;
+          this.currentResolver = null;
+          r();
+        }
+      });
+    } catch (e) {
+      this.ps = null;
+    }
+  }
+
+  loadInstalledVoices() {
+    if (!this.isWin) return Promise.resolve([]);
+    return new Promise((resolve) => {
+      try {
+        const { exec } = require('child_process');
+        const cmd = 'powershell.exe -NoProfile -NonInteractive -Command "Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices() | ForEach-Object { $_.VoiceInfo.Name + '|' + $_.VoiceInfo.Culture }"';
+        exec(cmd, { timeout: 5000 }, (err, stdout) => {
+          if (err || !stdout) return resolve([]);
+          const lines = stdout.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+          const list = lines.map(line => {
+            const [name, lang] = line.split('|');
+            return { name: (name || '').trim(), lang: (lang || '').trim() };
+          }).filter(v => v.name.length > 0);
+          this.installedVoices = list;
+          resolve(list);
+        });
+      } catch (e) {
+        resolve([]);
+      }
+    });
+  }
+
+  speak(voiceName, text, rate = 1.0) {
+    if (!this.isWin) return Promise.reject(new Error('Not Windows'));
+    return new Promise((resolve) => {
+      this.cancel();
+      this.currentResolver = resolve;
+      this.isSpeaking = true;
+
+      if (!this.ps) {
+        this.spawnWorker();
+      }
+
+      const sapiRate = Math.max(-10, Math.min(10, Math.round((rate - 1.0) * 8)));
+      const b64 = Buffer.from(text, 'utf8').toString('base64');
+      const safeVoice = (voiceName || '').replace(/'/g, "''");
+
+      const script = "try { if ('" + safeVoice + "') { $s.SelectVoice('" + safeVoice + "'); } } catch {}; $s.Rate = " + sapiRate + "; $txt = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String('" + b64 + "')); $s.Speak($txt); [Console]::WriteLine(\"DONE:SPAN\");\n";
+      try {
+        this.ps.stdin.write(script);
+      } catch (e) {
+        this.cancel();
+        resolve();
+      }
+    });
+  }
+
+  cancel() {
+    this.isSpeaking = false;
+    if (this.currentResolver) {
+      const r = this.currentResolver;
+      this.currentResolver = null;
+      r();
+    }
+    if (this.ps) {
+      try { this.ps.kill(); } catch (e) {}
+      this.ps = null;
+    }
+    this.spawnWorker();
+  }
+
+  destroy() {
+    if (this.ps) {
+      try {
+        this.ps.stdin.write('$s.Dispose(); exit;\n');
+        this.ps.kill();
+      } catch (e) {}
+      this.ps = null;
+    }
+  }
+}
+
 class TTSManager {
   constructor(plugin) {
     this.plugin = plugin;
@@ -3754,6 +3902,8 @@ class TTSManager {
     this._dragState = null;
     this.currentAudio = null;
     this.preloadedAudio = null;
+    this.windowsBridge = new WindowsSpeechBridge();
+    this.installedVoices = [];
 
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
@@ -3762,14 +3912,65 @@ class TTSManager {
   }
 
   initVoices() {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    const load = () => {
-      this.systemVoices = window.speechSynthesis.getVoices() || [];
-      if (this.systemVoices.length > 0) this._voicesLoaded = true;
-    };
-    load();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = load;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      const load = () => {
+        this.systemVoices = window.speechSynthesis.getVoices() || [];
+        if (this.systemVoices.length > 0) this._voicesLoaded = true;
+      };
+      load();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = load;
+      }
+    }
+    if (this.windowsBridge && this.windowsBridge.isAvailable) {
+      this.windowsBridge.loadInstalledVoices().then(voices => {
+        if (voices && voices.length > 0) {
+          this.installedVoices = voices;
+          this._voicesLoaded = true;
+        }
+      });
+    }
+  }
+
+  resolveSystemVoice(requestedName, isAr) {
+    const installed = (this.windowsBridge && this.windowsBridge.installedVoices) || this.installedVoices || [];
+    const engine = this.plugin.settings.ttsEngine || 'offline';
+
+    if (requestedName && requestedName.trim()) {
+      const reqLower = requestedName.trim().toLowerCase();
+      if (reqLower.includes('sonia') && engine === 'offline') {
+        const offSonia = installed.find(v => v.name.toLowerCase() === 'microsoft sonia');
+        if (offSonia) return offSonia.name;
+      }
+      const direct = installed.find(v => v.name.toLowerCase() === reqLower);
+      if (direct) return direct.name;
+      const sub = installed.find(v => v.name.toLowerCase().includes(reqLower));
+      if (sub) return sub.name;
+    }
+
+    if (isAr) {
+      const arMatch = installed.find(v => /salma/i.test(v.name))
+        || installed.find(v => /shakir/i.test(v.name))
+        || installed.find(v => (v.lang || '').startsWith('ar'));
+      if (arMatch) return arMatch.name;
+      return 'Microsoft Salma Online';
+    } else {
+      if (engine === 'offline') {
+        const offMatch = installed.find(v => v.name.toLowerCase() === 'microsoft sonia')
+          || installed.find(v => /cori/i.test(v.name))
+          || installed.find(v => /hazel/i.test(v.name))
+          || installed.find(v => /sonia/i.test(v.name))
+          || installed.find(v => (v.lang || '').startsWith('en') && !/david|zira/i.test(v.name));
+        if (offMatch) return offMatch.name;
+        return 'Microsoft Sonia';
+      } else {
+        const onMatch = installed.find(v => /sonia.*online/i.test(v.name))
+          || installed.find(v => /sonia/i.test(v.name))
+          || installed.find(v => /cori/i.test(v.name))
+          || installed.find(v => (v.lang || '').startsWith('en'));
+        if (onMatch) return onMatch.name;
+        return 'Microsoft Sonia Online';
+      }
     }
   }
 
@@ -4256,6 +4457,9 @@ class TTSManager {
   }
 
   cancelSpeech() {
+    if (this.windowsBridge) {
+      this.windowsBridge.cancel();
+    }
     if (this.currentAudio) {
       try {
         this.currentAudio.pause();
@@ -4363,9 +4567,43 @@ class TTSManager {
 
     const span = this.currentSpans[this.currentSpanIndex];
     const isAr = span.lang === 'ar';
+
+    let voiceToUse = '';
+    if (this.plugin.settings.ttsVoice) {
+      voiceToUse = this.plugin.settings.ttsVoice;
+    } else {
+      voiceToUse = isAr
+        ? (this.plugin.settings.ttsVoiceArabic || 'Microsoft Salma Online')
+        : (this.plugin.settings.ttsVoiceEnglish || 'Microsoft Sonia');
+    }
+
+    // Windows Native Bridge: direct SAPI & Natural OneCore
+    if (this.windowsBridge && this.windowsBridge.isAvailable) {
+      const resolvedVoice = this.resolveSystemVoice(voiceToUse, isAr);
+      const rate = this.plugin.settings.ttsRate || 1.0;
+
+      this.cancelSpeech();
+      this.isPlaying = true;
+      this.isPaused = false;
+      this.updatePlayerUI();
+
+      this.windowsBridge.speak(resolvedVoice, span.text, rate)
+        .then(() => {
+          if (this.isPlaying && !this.isPaused) {
+            this.currentSpanIndex++;
+            this.speakCurrentSpan();
+          }
+        })
+        .catch((err) => {
+          console.warn('Windows bridge speech error, falling back to Web Speech:', err);
+          this.speakOfflineSpan(span.text, isAr);
+        });
+      return;
+    }
+
+    // Fallback for non-Windows / Mobile
     const hasNet = (typeof window !== 'undefined' && window.navigator && window.navigator.onLine !== false);
     const isOnline = hasNet && ((this.plugin.settings.ttsEngine || 'online') === 'online');
-
     if (isOnline) {
       this.speakOnlineSpan(span.text, isAr);
     } else {
@@ -4723,6 +4961,10 @@ class TTSManager {
 
   destroy() {
     this.stop(true);
+    if (this.windowsBridge) {
+      this.windowsBridge.destroy();
+      this.windowsBridge = null;
+    }
     if (this.playerEl) {
       this.playerEl.remove();
       this.playerEl = null;
@@ -4824,46 +5066,75 @@ class ToolkitSettingsTab extends PluginSettingTab {
             this.display();
           }));
 
-      // Voice dropdown
-      const voiceSetting = new Setting(containerEl)
-        .setName(t('ttsVoiceName'))
-        .setDesc(t('ttsVoiceDesc'));
+      // Arabic Voice Dropdown
+      const allVoices = (this.plugin.ttsMgr?.windowsBridge?.installedVoices?.length > 0)
+        ? this.plugin.ttsMgr.windowsBridge.installedVoices
+        : (this.plugin.ttsMgr?.installedVoices || []);
 
-      voiceSetting.addDropdown(dd => {
-        dd.addOption('', t('ttsVoiceDefault') || 'System Default');
+      const arVoices = allVoices.filter(v => (v.lang || '').startsWith('ar') || /salma|shakir|hamed|zariyah/i.test(v.name));
+      const enVoices = allVoices.filter(v => (v.lang || '').startsWith('en') || /sonia|cori|hazel|jenny|guy|ryan/i.test(v.name));
 
-        if (typeof window !== 'undefined' && window.speechSynthesis) {
-          const sysVoices = window.speechSynthesis.getVoices() || [];
-          if (sysVoices.length > 0) {
-            sysVoices.forEach(v => {
-              const label = `${v.name} (${v.lang})${v.default ? ' [Default]' : ''}`;
-              dd.addOption(v.name, label);
-            });
-          }
-        }
-
-        const naturalVoices = [
-          { id: 'ar-EG-SalmaNeural', name: 'Microsoft Salma (Arabic - Egypt)' },
-          { id: 'ar-EG-ShakirNeural', name: 'Microsoft Shakir (Arabic - Egypt)' },
-          { id: 'ar-SA-HamedNeural', name: 'Microsoft Hamed (Arabic - Saudi)' },
-          { id: 'ar-SA-ZariyahNeural', name: 'Microsoft Zariyah (Arabic - Saudi)' },
-          { id: 'en-US-JennyNeural', name: 'Microsoft Jenny (English - US)' },
-          { id: 'en-US-GuyNeural', name: 'Microsoft Guy (English - US)' },
-          { id: 'en-GB-SoniaNeural', name: 'Microsoft Sonia (English - UK)' },
-          { id: 'en-GB-RyanNeural', name: 'Microsoft Ryan (English - UK)' },
-        ];
-        if (this.plugin.settings.ttsEngine === 'online') {
-          naturalVoices.forEach(v => {
-            dd.addOption(v.id, `⭐ ${v.name}`);
+      new Setting(containerEl)
+        .setName(t('ttsVoiceArName') || 'Arabic Reading Voice')
+        .setDesc(t('ttsVoiceArDesc') || 'Select preferred voice for Arabic text (Default: Salma).')
+        .addDropdown(dd => {
+          dd.addOption('Microsoft Salma Online', '⭐ Microsoft Salma Online (ar-EG) [Natural]');
+          dd.addOption('Microsoft Shakir Online', 'Microsoft Shakir Online (ar-EG)');
+          arVoices.forEach(v => {
+            if (v.name !== 'Microsoft Salma Online' && v.name !== 'Microsoft Shakir Online') {
+              dd.addOption(v.name, `${v.name} (${v.lang})`);
+            }
           });
-        }
-
-        dd.setValue(this.plugin.settings.ttsVoice || '');
-        dd.onChange(async (val) => {
-          this.plugin.settings.ttsVoice = val;
-          await this.plugin.saveSettings();
+          dd.setValue(this.plugin.settings.ttsVoiceArabic || 'Microsoft Salma Online');
+          dd.onChange(async (val) => {
+            this.plugin.settings.ttsVoiceArabic = val;
+            await this.plugin.saveSettings();
+          });
         });
-      });
+
+      // English Voice Dropdown
+      new Setting(containerEl)
+        .setName(t('ttsVoiceEnName') || 'English Reading Voice')
+        .setDesc(t('ttsVoiceEnDesc') || 'Select preferred voice for English text (Default: Sonia).')
+        .addDropdown(dd => {
+          dd.addOption('Microsoft Sonia', '⭐ Microsoft Sonia (en-GB) [Offline Natural]');
+          dd.addOption('Microsoft Sonia Online', '⭐ Microsoft Sonia Online (en-GB) [Natural]');
+          dd.addOption('Piper Cori', 'Piper Cori (en-GB) [Neural]');
+          dd.addOption('Microsoft Hazel Desktop', 'Microsoft Hazel Desktop (en-GB)');
+          enVoices.forEach(v => {
+            if (!['Microsoft Sonia', 'Microsoft Sonia Online', 'Piper Cori', 'Microsoft Hazel Desktop'].includes(v.name)) {
+              dd.addOption(v.name, `${v.name} (${v.lang})`);
+            }
+          });
+          dd.setValue(this.plugin.settings.ttsVoiceEnglish || 'Microsoft Sonia');
+          dd.onChange(async (val) => {
+            this.plugin.settings.ttsVoiceEnglish = val;
+            await this.plugin.saveSettings();
+          });
+        });
+
+      // Master Voice Override
+      new Setting(containerEl)
+        .setName(t('ttsVoiceOverrideName') || 'Voice Mode / Master Override')
+        .setDesc(t('ttsVoiceOverrideDesc') || 'Auto Bilingual switches between Salma & Sonia, or choose an override.')
+        .addDropdown(dd => {
+          dd.addOption('', t('ttsVoiceBilingualAuto') || '✨ Auto Bilingual (Salma for Arabic + Sonia for English)');
+          if (allVoices.length > 0) {
+            allVoices.forEach(v => {
+              dd.addOption(v.name, `${v.name} (${v.lang})`);
+            });
+          } else {
+            dd.addOption('Microsoft Salma Online', 'Microsoft Salma Online');
+            dd.addOption('Microsoft Sonia', 'Microsoft Sonia (Offline)');
+            dd.addOption('Microsoft Sonia Online', 'Microsoft Sonia Online');
+            dd.addOption('Piper Cori', 'Piper Cori');
+          }
+          dd.setValue(this.plugin.settings.ttsVoice || '');
+          dd.onChange(async (val) => {
+            this.plugin.settings.ttsVoice = val;
+            await this.plugin.saveSettings();
+          });
+        });
 
       // Speed Slider
       new Setting(containerEl)
