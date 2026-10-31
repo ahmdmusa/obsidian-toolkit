@@ -1460,11 +1460,11 @@ class SelectionToolbarManager {
     const width = this.toolbarEl.offsetWidth || 340;
     const height = this.toolbarEl.offsetHeight || 38;
 
-    let top = rect.top - height - 8;
+    let top = rect.top - height - 14;
     let left = rect.left + (rect.width / 2) - (width / 2);
 
-    if (top < 45) {
-      top = rect.bottom + 8;
+    if (top < 55) {
+      top = rect.bottom + 12;
     }
 
     left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
@@ -3573,6 +3573,8 @@ class TTSManager {
     this.app = plugin.app;
     this.sentences = [];
     this.currentIndex = 0;
+    this.currentSpans = [];
+    this.currentSpanIndex = 0;
     this.isPlaying = false;
     this.isPaused = false;
     this.currentSourceTitle = '';
@@ -3581,6 +3583,7 @@ class TTSManager {
     this._voicesLoaded = false;
     this._dragState = null;
     this.currentAudio = null;
+    this.preloadedAudio = null;
 
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
@@ -3605,30 +3608,81 @@ class TTSManager {
     return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text);
   }
 
-  cleanMarkdown(md) {
-    if (!md) return '';
-    let text = md;
-    text = text.replace(/^---[\s\S]*?---\n*/m, '');
-    text = text.replace(/```[\s\S]*?```/g, '');
-    text = text.replace(/`([^`]+)`/g, '$1');
-    text = text.replace(/!\[\[[^\]]*\]\]/g, '');
-    text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
-    text = text.replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, '$1');
-    text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
-    text = text.replace(/^>\s*\[![^\]]+\][^\n]*/gm, '');
-    text = text.replace(/^>\s?/gm, '');
-    text = text.replace(/^#{1,6}\s+/gm, '');
-    text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
-    text = text.replace(/\*([^*]+)\*/g, '$1');
-    text = text.replace(/==([^=]+)==/g, '$1');
-    text = text.replace(/~~([^~]+)~~/g, '$1');
-    text = text.replace(/<[^>]+>/g, '');
-    text = text.replace(/^[-*_]{3,}\s*$/gm, '');
-    text = text.replace(/^[-*+]\s+/gm, '');
-    text = text.replace(/^\d+\.\s+/gm, '');
-    text = text.replace(/https?:\/\/[^\s]+/g, '');
-    text = text.replace(/\n{2,}/g, '\n').trim();
-    return text;
+  cleanTextForSpeech(text) {
+    if (!text) return '';
+    let s = text;
+    // Strip markdown frontmatter
+    s = s.replace(/^---[\s\S]*?---\n*/m, '');
+    // Strip code blocks & inline code
+    s = s.replace(/```[\s\S]*?```/g, '');
+    s = s.replace(/`([^`]+)`/g, '$1');
+    // Strip image embeds and markdown links
+    s = s.replace(/!\[\[[^\]]*\]\]/g, '');
+    s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+    s = s.replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, '$1');
+    s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+    // Strip callouts & blockquotes
+    s = s.replace(/^>\s*\[![^\]]+\][^\n]*/gm, '');
+    s = s.replace(/^>\s?/gm, '');
+    // Strip markdown headers #, ##, ### anywhere (beginning, middle, or end)
+    s = s.replace(/#{1,6}/g, ' ');
+    // Strip all arrows (→ ← ↑ ↓ ↔ ↕ ↖ ↗ ↘ ↙ ⇒ ⇔ ➔ ➜ ➤ ❯ ❮ ► ◄ ▶ ◀)
+    s = s.replace(/[→←↑↓↔↕↖↗↘↙⇒⇔➔➜➤❯❮►◄▶◀]/g, ' ');
+    // Strip bullet points & list symbols
+    s = s.replace(/[•◦▪▫■□●○◆◇\*\+]/g, ' ');
+    // Strip lone dashes but preserve intra-word hyphens
+    s = s.replace(/(^|\s)-+(\s|$)/g, ' ');
+    // Strip bold, italic, highlights, strikethrough syntax
+    s = s.replace(/\*\*([^*]+)\*\*/g, '$1');
+    s = s.replace(/\*([^*]+)\*/g, '$1');
+    s = s.replace(/==([^=]+)==/g, '$1');
+    s = s.replace(/~~([^~]+)~~/g, '$1');
+    // Clean standalone parentheses around single letters or subsection markers like (أ) -> أ
+    s = s.replace(/[\(\[\{]([^\(\)\[\]\{\}]+)[\)\]\}]/g, ' $1 ');
+    // Replace lone & with 'and'
+    s = s.replace(/\s*&\s*/g, ' and ');
+    // Strip standalone formatting brackets and slashes
+    s = s.replace(/[\(\[\]\{\}<>_~=\^\|\\]/g, ' ');
+    // Strip URLs
+    s = s.replace(/https?:\/\/[^\s]+/g, '');
+    // Normalize whitespace
+    s = s.replace(/\s+/g, ' ').trim();
+    return s;
+  }
+
+  segmentByLanguage(text) {
+    if (!text) return [];
+    const words = text.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return [];
+
+    const spans = [];
+    let currentLang = null;
+    let currentWords = [];
+
+    for (const word of words) {
+      const hasAr = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(word);
+      const hasEn = /[a-zA-Z]/.test(word);
+
+      let wordLang = null;
+      if (hasAr) wordLang = 'ar';
+      else if (hasEn) wordLang = 'en';
+
+      if (wordLang && wordLang !== currentLang) {
+        if (currentWords.length > 0 && currentLang) {
+          spans.push({ lang: currentLang, text: currentWords.join(' ') });
+          currentWords = [];
+        }
+        currentLang = wordLang;
+      }
+
+      currentWords.push(word);
+    }
+
+    if (currentWords.length > 0) {
+      spans.push({ lang: currentLang || 'en', text: currentWords.join(' ') });
+    }
+
+    return spans.filter(s => s.text.trim().length > 0);
   }
 
   splitSentences(text) {
@@ -3636,7 +3690,7 @@ class TTSManager {
     const parts = text.split(/(?<=[.!?؛؟\n])\s+/);
     const result = [];
     for (const part of parts) {
-      const s = part.trim();
+      const s = this.cleanTextForSpeech(part);
       if (s.length > 0) {
         if (s.length > 180) {
           const sub = s.split(/(?<=[,،;])\s+/);
@@ -3734,7 +3788,6 @@ class TTSManager {
 
     const cur = ed.getCursor();
     const lineCount = ed.lineCount();
-    // Start strictly from the start of the cursor line so the current sentence is read!
     const startPos = { line: cur.line, ch: 0 };
     const lastLine = lineCount - 1;
     const lastCh = ed.getLine(lastLine).length;
@@ -3755,8 +3808,7 @@ class TTSManager {
       return;
     }
     this.stop(false);
-    const cleaned = this.cleanMarkdown(rawText);
-    const sentences = this.splitSentences(cleaned);
+    const sentences = this.splitSentences(rawText);
     if (sentences.length === 0) {
       new Notice(t('ttsNoText'));
       return;
@@ -3803,12 +3855,12 @@ class TTSManager {
     if (!this.isPlaying) return;
     this.isPaused = false;
     if (this.currentAudio) {
-      this.currentAudio.play().catch(() => this.speakCurrentSentence());
+      this.currentAudio.play().catch(() => this.speakCurrentSpan());
     } else if (typeof window !== 'undefined' && window.speechSynthesis) {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       } else {
-        this.speakCurrentSentence();
+        this.speakCurrentSpan();
       }
     }
     this.updatePlayerUI();
@@ -3822,6 +3874,7 @@ class TTSManager {
       } catch(e) {}
       this.currentAudio = null;
     }
+    this.preloadedAudio = null;
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -3832,6 +3885,8 @@ class TTSManager {
     this.isPlaying = false;
     this.isPaused = false;
     this.currentIndex = 0;
+    this.currentSpans = [];
+    this.currentSpanIndex = 0;
     if (hidePlayer && this.playerEl) {
       this.playerEl.classList.remove('is-active');
     }
@@ -3839,6 +3894,7 @@ class TTSManager {
   }
 
   nextSentence() {
+    this.cancelSpeech();
     if (this.currentIndex < this.sentences.length - 1) {
       this.currentIndex++;
       this.speakCurrentSentence();
@@ -3849,6 +3905,7 @@ class TTSManager {
   }
 
   prevSentence() {
+    this.cancelSpeech();
     if (this.currentIndex > 0) {
       this.currentIndex--;
       this.speakCurrentSentence();
@@ -3870,7 +3927,7 @@ class TTSManager {
     }
     this.updatePlayerUI();
     if (this.isPlaying && !this.isPaused && !this.currentAudio) {
-      this.speakCurrentSentence();
+      this.speakCurrentSpan();
     }
   }
 
@@ -3882,30 +3939,72 @@ class TTSManager {
       return;
     }
 
-    const text = this.sentences[this.currentIndex];
+    const rawText = this.sentences[this.currentIndex];
     this.updatePlayerUI();
 
-    const isAr = this.isArabic(text);
-    const engine = this.plugin.settings.ttsEngine || 'online';
+    const cleaned = this.cleanTextForSpeech(rawText);
+    if (!cleaned) {
+      this.nextSentence();
+      return;
+    }
 
-    if (engine === 'online') {
-      this.speakOnlineNatural(text, isAr);
+    const spans = this.segmentByLanguage(cleaned);
+    if (spans.length === 0) {
+      this.nextSentence();
+      return;
+    }
+
+    this.currentSpans = spans;
+    this.currentSpanIndex = 0;
+    this.speakCurrentSpan();
+  }
+
+  speakCurrentSpan() {
+    if (!this.isPlaying || this.isPaused) return;
+    if (!this.currentSpans || this.currentSpanIndex >= this.currentSpans.length) {
+      if (this.currentIndex < this.sentences.length - 1) {
+        this.currentIndex++;
+        this.speakCurrentSentence();
+      } else {
+        new Notice(t('ttsFinished'));
+        this.stop();
+      }
+      return;
+    }
+
+    const span = this.currentSpans[this.currentSpanIndex];
+    const isAr = span.lang === 'ar';
+    const hasNet = (typeof window !== 'undefined' && window.navigator && window.navigator.onLine !== false);
+    const isOnline = hasNet && ((this.plugin.settings.ttsEngine || 'online') === 'online');
+
+    if (isOnline) {
+      this.speakOnlineSpan(span.text, isAr);
     } else {
-      this.speakOfflineSpeechSynthesis(text, isAr);
+      this.speakOfflineSpan(span.text, isAr);
     }
   }
 
-  speakOnlineNatural(text, isAr) {
+  speakOnlineSpan(text, isAr) {
     this.cancelSpeech();
 
-    // Default Natural Salma for Arabic, Sonia for English
+    // Default Natural Salma for Arabic, Sonia for British English
     const langCode = isAr ? 'ar' : 'en-gb';
-    const naturalUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
 
     const audio = new Audio();
-    audio.src = naturalUrl;
+    audio.src = url;
     audio.playbackRate = this.plugin.settings.ttsRate || 1.0;
     this.currentAudio = audio;
+
+    // Zero-latency pre-buffering for next span
+    if (this.currentSpans && this.currentSpanIndex + 1 < this.currentSpans.length) {
+      const nextSpan = this.currentSpans[this.currentSpanIndex + 1];
+      const nextLang = nextSpan.lang === 'ar' ? 'ar' : 'en-gb';
+      const nextAudio = new Audio();
+      nextAudio.preload = 'auto';
+      nextAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${nextLang}&client=tw-ob&q=${encodeURIComponent(nextSpan.text)}`;
+      this.preloadedAudio = nextAudio;
+    }
 
     audio.onplay = () => {
       this.isPlaying = true;
@@ -3915,28 +4014,23 @@ class TTSManager {
 
     audio.onended = () => {
       if (this.isPlaying && !this.isPaused) {
-        if (this.currentIndex < this.sentences.length - 1) {
-          this.currentIndex++;
-          this.speakCurrentSentence();
-        } else {
-          new Notice(t('ttsFinished'));
-          this.stop();
-        }
+        this.currentSpanIndex++;
+        this.speakCurrentSpan();
       }
     };
 
     audio.onerror = (e) => {
-      console.warn('FlowKit Natural Online Audio error, fallback to offline speech:', e);
-      this.speakOfflineSpeechSynthesis(text, isAr);
+      console.warn('FlowKit Natural Online audio error, auto-fallback to offline:', e);
+      this.speakOfflineSpan(text, isAr);
     };
 
-    audio.play().catch((err) => {
-      console.warn('FlowKit audio.play failed, fallback to offline speech:', err);
-      this.speakOfflineSpeechSynthesis(text, isAr);
+    audio.play().catch(err => {
+      console.warn('FlowKit audio play error, auto-fallback to offline:', err);
+      this.speakOfflineSpan(text, isAr);
     });
   }
 
-  speakOfflineSpeechSynthesis(text, isAr) {
+  speakOfflineSpan(text, isAr) {
     this.cancelSpeech();
 
     if (typeof window === 'undefined' || !window.speechSynthesis) {
@@ -3953,15 +4047,11 @@ class TTSManager {
     let matchedVoice = null;
 
     if (isAr) {
-      const preferred = this.plugin.settings.ttsVoiceArabic || 'Salma';
-      matchedVoice = voices.find(v => v.name.toLowerCase().includes(preferred.toLowerCase()))
-        || voices.find(v => v.name.toLowerCase().includes('salma'))
+      matchedVoice = voices.find(v => v.name.toLowerCase().includes('salma'))
         || voices.find(v => v.name.toLowerCase().includes('hoda') || v.name.toLowerCase().includes('naayf'))
         || voices.find(v => v.lang.startsWith('ar'));
     } else {
-      const preferred = this.plugin.settings.ttsVoiceEnglish || 'Sonia';
-      matchedVoice = voices.find(v => v.name.toLowerCase().includes(preferred.toLowerCase()))
-        || voices.find(v => v.name.toLowerCase().includes('sonia'))
+      matchedVoice = voices.find(v => v.name.toLowerCase().includes('sonia'))
         || voices.find(v => v.name.toLowerCase().includes('jenny') || v.name.toLowerCase().includes('hazel'))
         || voices.find(v => v.lang.startsWith('en'));
     }
@@ -3972,19 +4062,16 @@ class TTSManager {
 
     utterance.onend = () => {
       if (this.isPlaying && !this.isPaused) {
-        if (this.currentIndex < this.sentences.length - 1) {
-          this.currentIndex++;
-          this.speakCurrentSentence();
-        } else {
-          new Notice(t('ttsFinished'));
-          this.stop();
-        }
+        this.currentSpanIndex++;
+        this.speakCurrentSpan();
       }
     };
 
     utterance.onerror = (e) => {
       if (e.error !== 'canceled' && e.error !== 'interrupted') {
-        console.warn('FlowKit offline utterance error:', e);
+        console.warn('Offline utterance error:', e);
+        this.currentSpanIndex++;
+        this.speakCurrentSpan();
       }
     };
 
@@ -3994,11 +4081,11 @@ class TTSManager {
   testVoice(voiceName, engine, rate, pitch) {
     const isAr = this.plugin.settings.enableArabicUi;
     const sample = isAr
-      ? 'مرحباً بك! أنا سلمى، وهذا صوتي الطبيعي في FlowKit.'
-      : 'Hello! I am Sonia, and this is my natural voice in FlowKit.';
+      ? 'مرحباً بك! أنا سلمى، وأتحدث العربية بطلاقة مع سونيا للكلمات الإنجليزية مثل FlowKit و Artificial Intelligence.'
+      : 'Hello! I am Sonia, and I speak English with Salma for Arabic words such as مرحبا و شكرا.';
 
     new Notice(t('ttsTestingNotice'));
-    this.playText(sample, 'Voice Test');
+    this.playText(sample, 'Bilingual Voice Test');
   }
 
   renderPlayer() {
@@ -4045,7 +4132,6 @@ class TTSManager {
         </div>
       `;
 
-      // Set icons cleanly using Obsidian native setIcon
       const iconSpan = el.querySelector('.fk-tts-icon');
       if (typeof setIcon === 'function') setIcon(iconSpan, 'volume-2');
 
