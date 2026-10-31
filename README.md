@@ -1,12 +1,12 @@
 <div align="center">
-<img width="96" height="96" alt="Ultimate Toolkit Logo" src="icon.svg" />
+<img width="112" height="112" alt="Ultimate Toolkit Logo" src="icon.png" style="border-radius: 24px; box-shadow: 0 8px 24px rgba(112, 64, 215, 0.3);" />
 
 # Ultimate Toolkit
 ### (AI Assistant, Encryption & Security, Notes & PDF Reader, Text-to-Speech, Formatting, Callouts, Image Editing, RTL/LTR, Workspace Focus, Folder Customization & More)
 
 **The All-in-One Powerhouse for Obsidian: Privacy, Artificial Intelligence, Smart Reading & Workflow Mastery.**
 
-[![Version](https://img.shields.io/badge/version-2.9.12-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.13-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-6366f1?style=flat-square)](LICENSE)
 [![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support%20Project-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=000000)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
