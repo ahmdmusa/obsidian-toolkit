@@ -1721,3 +1721,75 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   background: rgba(56, 189, 248, 0.15);
   color: #0ea5e9;
 }
+
+
+/* ══════════════════════════════════════════════
+   FLOWKIT TTS MINI-PLAYER BUTTON ICONS FIX
+══════════════════════════════════════════════ */
+.fk-tts-btn-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  background: var(--background-modifier-form-field, rgba(255, 255, 255, 0.08)) !important;
+  border: 1px solid var(--background-modifier-border, rgba(255, 255, 255, 0.12)) !important;
+  color: var(--text-normal, #e2e8f0) !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  transition: all 0.12s ease !important;
+}
+
+.fk-tts-btn-icon .svg-icon,
+.fk-tts-btn-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block !important;
+  color: currentColor !important;
+  stroke: currentColor !important;
+  stroke-width: 2.2px !important;
+}
+
+.fk-tts-btn-icon:hover {
+  background: var(--background-modifier-hover, rgba(255, 255, 255, 0.15)) !important;
+  color: var(--text-accent, #8b5cf6) !important;
+  border-color: var(--text-accent, #8b5cf6) !important;
+  transform: translateY(-1px) !important;
+}
+
+.fk-tts-btn-main {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4) !important;
+  transition: transform 0.12s ease, box-shadow 0.12s ease !important;
+}
+
+.fk-tts-btn-main .svg-icon,
+.fk-tts-btn-main svg {
+  width: 20px !important;
+  height: 20px !important;
+  display: block !important;
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.fk-tts-btn-main:hover {
+  transform: scale(1.06) !important;
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.55) !important;
+}

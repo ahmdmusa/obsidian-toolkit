@@ -1,5 +1,5 @@
 'use strict';
-const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice, TFile, TFolder, EditorSuggest } = require('obsidian');
+const { Plugin, PluginSettingTab, Setting, Modal, MarkdownView, Notice, TFile, TFolder, EditorSuggest, setIcon } = require('obsidian');
 
 /* ══════════════════════════════════════════════
    LANGUAGE DETECTION (English by default, Arabic optional)
@@ -394,8 +394,10 @@ const DEFAULT_SETTINGS = {
   vaultHideInTree:       false,              // hide completely or keep with badge
   /* ── Text-to-Speech (TTS) Engine ── */
   enableTTS:             true,
-  ttsEngine:             'offline',          // 'offline' | 'online'
-  ttsVoice:              '',                 // voice URI / name
+  ttsEngine:             'online',           // 'online' (Natural Salma/Sonia) | 'offline' (System)
+  ttsVoiceArabic:        'Salma',            // Default Salma for Arabic
+  ttsVoiceEnglish:       'Sonia',            // Default Sonia for English
+  ttsVoice:              '',                 // Custom override if set
   ttsRate:               1.0,                // 0.5 - 2.0
   ttsPitch:              1.0,                // 0.5 - 1.5
   ttsShowFloatingPlayer: true,
@@ -3578,6 +3580,7 @@ class TTSManager {
     this.systemVoices = [];
     this._voicesLoaded = false;
     this._dragState = null;
+    this.currentAudio = null;
 
     this._onMouseMove = this._onMouseMove.bind(this);
     this._onMouseUp = this._onMouseUp.bind(this);
@@ -3595,6 +3598,11 @@ class TTSManager {
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = load;
     }
+  }
+
+  isArabic(text) {
+    if (!text) return false;
+    return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(text);
   }
 
   cleanMarkdown(md) {
@@ -3630,11 +3638,25 @@ class TTSManager {
     for (const part of parts) {
       const s = part.trim();
       if (s.length > 0) {
-        if (s.length > 250) {
+        if (s.length > 180) {
           const sub = s.split(/(?<=[,،;])\s+/);
           for (const sp of sub) {
             const tr = sp.trim();
-            if (tr.length > 0) result.push(tr);
+            if (tr.length > 180) {
+              const words = tr.split(/\s+/);
+              let cur = '';
+              for (const w of words) {
+                if ((cur + ' ' + w).length > 150) {
+                  if (cur) result.push(cur.trim());
+                  cur = w;
+                } else {
+                  cur = cur ? cur + ' ' + w : w;
+                }
+              }
+              if (cur) result.push(cur.trim());
+            } else if (tr.length > 0) {
+              result.push(tr);
+            }
           }
         } else {
           result.push(s);
@@ -3695,18 +3717,36 @@ class TTSManager {
     new Notice(t('ttsNoText'));
   }
 
-  playFromCursor() {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) {
+  playFromCursor(editor = null, view = null) {
+    let ed = editor;
+    let file = view?.file;
+    if (!ed) {
+      const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (activeView && activeView.editor) {
+        ed = activeView.editor;
+        file = activeView.file;
+      }
+    }
+    if (!ed) {
       new Notice(t('ttsNoText'));
       return;
     }
-    const editor = view.editor;
-    const cur = editor.getCursor();
-    const lineCount = editor.lineCount();
-    const text = editor.getRange(cur, { line: lineCount - 1, ch: editor.getLine(lineCount - 1).length });
-    const title = (view.file ? view.file.basename : 'Note') + ' (From Cursor)';
-    this.playText(text, title);
+
+    const cur = ed.getCursor();
+    const lineCount = ed.lineCount();
+    // Start strictly from the start of the cursor line so the current sentence is read!
+    const startPos = { line: cur.line, ch: 0 };
+    const lastLine = lineCount - 1;
+    const lastCh = ed.getLine(lastLine).length;
+    const rawText = ed.getRange(startPos, { line: lastLine, ch: lastCh });
+
+    if (!rawText || !rawText.trim()) {
+      new Notice(t('ttsNoText'));
+      return;
+    }
+
+    const title = (file ? file.basename : 'Note') + ` (Line ${cur.line + 1}…)`;
+    this.playText(rawText, title);
   }
 
   playText(rawText, sourceTitle = 'Document', startFromIdx = 0) {
@@ -3750,6 +3790,9 @@ class TTSManager {
   pause() {
     if (!this.isPlaying) return;
     this.isPaused = true;
+    if (this.currentAudio) {
+      try { this.currentAudio.pause(); } catch(e) {}
+    }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.pause();
     }
@@ -3759,16 +3802,33 @@ class TTSManager {
   resume() {
     if (!this.isPlaying) return;
     this.isPaused = false;
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.resume();
+    if (this.currentAudio) {
+      this.currentAudio.play().catch(() => this.speakCurrentSentence());
+    } else if (typeof window !== 'undefined' && window.speechSynthesis) {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      } else {
+        this.speakCurrentSentence();
+      }
     }
     this.updatePlayerUI();
   }
 
-  stop(hidePlayer = true) {
+  cancelSpeech() {
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+      } catch(e) {}
+      this.currentAudio = null;
+    }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
+  }
+
+  stop(hidePlayer = true) {
+    this.cancelSpeech();
     this.isPlaying = false;
     this.isPaused = false;
     this.currentIndex = 0;
@@ -3805,8 +3865,11 @@ class TTSManager {
     const newRate = rates[nextIdx];
     this.plugin.settings.ttsRate = newRate;
     this.plugin.saveSettings();
+    if (this.currentAudio) {
+      this.currentAudio.playbackRate = newRate;
+    }
     this.updatePlayerUI();
-    if (this.isPlaying && !this.isPaused) {
+    if (this.isPlaying && !this.isPaused && !this.currentAudio) {
       this.speakCurrentSentence();
     }
   }
@@ -3822,25 +3885,89 @@ class TTSManager {
     const text = this.sentences[this.currentIndex];
     this.updatePlayerUI();
 
+    const isAr = this.isArabic(text);
+    const engine = this.plugin.settings.ttsEngine || 'online';
+
+    if (engine === 'online') {
+      this.speakOnlineNatural(text, isAr);
+    } else {
+      this.speakOfflineSpeechSynthesis(text, isAr);
+    }
+  }
+
+  speakOnlineNatural(text, isAr) {
+    this.cancelSpeech();
+
+    // Default Natural Salma for Arabic, Sonia for English
+    const langCode = isAr ? 'ar' : 'en-gb';
+    const naturalUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
+
+    const audio = new Audio();
+    audio.src = naturalUrl;
+    audio.playbackRate = this.plugin.settings.ttsRate || 1.0;
+    this.currentAudio = audio;
+
+    audio.onplay = () => {
+      this.isPlaying = true;
+      this.isPaused = false;
+      this.updatePlayerUI();
+    };
+
+    audio.onended = () => {
+      if (this.isPlaying && !this.isPaused) {
+        if (this.currentIndex < this.sentences.length - 1) {
+          this.currentIndex++;
+          this.speakCurrentSentence();
+        } else {
+          new Notice(t('ttsFinished'));
+          this.stop();
+        }
+      }
+    };
+
+    audio.onerror = (e) => {
+      console.warn('FlowKit Natural Online Audio error, fallback to offline speech:', e);
+      this.speakOfflineSpeechSynthesis(text, isAr);
+    };
+
+    audio.play().catch((err) => {
+      console.warn('FlowKit audio.play failed, fallback to offline speech:', err);
+      this.speakOfflineSpeechSynthesis(text, isAr);
+    });
+  }
+
+  speakOfflineSpeechSynthesis(text, isAr) {
+    this.cancelSpeech();
+
     if (typeof window === 'undefined' || !window.speechSynthesis) {
-      new Notice('Speech Synthesis not supported on this platform.');
+      new Notice('Speech Synthesis not supported.');
       this.stop();
       return;
     }
-
-    window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = this.plugin.settings.ttsRate || 1.0;
     utterance.pitch = this.plugin.settings.ttsPitch || 1.0;
 
-    const voiceName = this.plugin.settings.ttsVoice;
-    if (voiceName) {
-      const voices = window.speechSynthesis.getVoices() || [];
-      const found = voices.find(v => v.name === voiceName || v.voiceURI === voiceName);
-      if (found) {
-        utterance.voice = found;
-      }
+    const voices = window.speechSynthesis.getVoices() || [];
+    let matchedVoice = null;
+
+    if (isAr) {
+      const preferred = this.plugin.settings.ttsVoiceArabic || 'Salma';
+      matchedVoice = voices.find(v => v.name.toLowerCase().includes(preferred.toLowerCase()))
+        || voices.find(v => v.name.toLowerCase().includes('salma'))
+        || voices.find(v => v.name.toLowerCase().includes('hoda') || v.name.toLowerCase().includes('naayf'))
+        || voices.find(v => v.lang.startsWith('ar'));
+    } else {
+      const preferred = this.plugin.settings.ttsVoiceEnglish || 'Sonia';
+      matchedVoice = voices.find(v => v.name.toLowerCase().includes(preferred.toLowerCase()))
+        || voices.find(v => v.name.toLowerCase().includes('sonia'))
+        || voices.find(v => v.name.toLowerCase().includes('jenny') || v.name.toLowerCase().includes('hazel'))
+        || voices.find(v => v.lang.startsWith('en'));
+    }
+
+    if (matchedVoice) {
+      utterance.voice = matchedVoice;
     }
 
     utterance.onend = () => {
@@ -3857,7 +3984,7 @@ class TTSManager {
 
     utterance.onerror = (e) => {
       if (e.error !== 'canceled' && e.error !== 'interrupted') {
-        console.warn('FlowKit TTS utterance error:', e);
+        console.warn('FlowKit offline utterance error:', e);
       }
     };
 
@@ -3865,23 +3992,13 @@ class TTSManager {
   }
 
   testVoice(voiceName, engine, rate, pitch) {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
     const isAr = this.plugin.settings.enableArabicUi;
     const sample = isAr
-      ? 'مرحباً بك! القارئ الصوتي في FlowKit يعمل بكفاءة وسلاسة.'
-      : 'Hello! FlowKit Text-to-Speech is working smoothly and naturally.';
+      ? 'مرحباً بك! أنا سلمى، وهذا صوتي الطبيعي في FlowKit.'
+      : 'Hello! I am Sonia, and this is my natural voice in FlowKit.';
 
-    const utt = new SpeechSynthesisUtterance(sample);
-    utt.rate = rate || 1.0;
-    utt.pitch = pitch || 1.0;
-    if (voiceName) {
-      const voices = window.speechSynthesis.getVoices() || [];
-      const v = voices.find(vo => vo.name === voiceName || vo.voiceURI === voiceName);
-      if (v) utt.voice = v;
-    }
     new Notice(t('ttsTestingNotice'));
-    window.speechSynthesis.speak(utt);
+    this.playText(sample, 'Voice Test');
   }
 
   renderPlayer() {
@@ -3900,23 +4017,12 @@ class TTSManager {
       el.innerHTML = `
         <div class="fk-tts-header" title="Drag to reposition">
           <div class="fk-tts-brand">
-            <span class="fk-tts-icon">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-              </svg>
-            </span>
+            <span class="fk-tts-icon"></span>
             <span class="fk-tts-title">${t('ttsPlayerTitle')}</span>
           </div>
           <div class="fk-tts-header-actions">
             <span class="fk-tts-counter">0 / 0</span>
-            <button class="fk-tts-btn-icon fk-tts-close" title="${t('close') || 'Close'}">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
+            <button class="fk-tts-btn-icon fk-tts-close" title="${t('close') || 'Close'}"></button>
           </div>
         </div>
 
@@ -3931,58 +4037,53 @@ class TTSManager {
         </div>
 
         <div class="fk-tts-controls">
-          <button class="fk-tts-btn-icon fk-tts-prev" title="Previous Sentence">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="19 20 9 12 19 4 19 20"/>
-              <line x1="5" y1="19" x2="5" y2="5"/>
-            </svg>
-          </button>
-          <button class="fk-tts-btn-main fk-tts-play-pause" title="Play / Pause">
-            <svg class="fk-tts-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            <svg class="fk-tts-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-              <rect x="6" y="4" width="4" height="16"/>
-              <rect x="14" y="4" width="4" height="16"/>
-            </svg>
-          </button>
-          <button class="fk-tts-btn-icon fk-tts-stop" title="Stop">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="5" y="5" width="14" height="14" rx="2"/>
-            </svg>
-          </button>
-          <button class="fk-tts-btn-icon fk-tts-next" title="Next Sentence">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="5 4 15 12 5 20 5 4"/>
-              <line x1="19" y1="5" x2="19" y2="19"/>
-            </svg>
-          </button>
-          <button class="fk-tts-rate-pill" title="Click to cycle speed">
-            1.0x
-          </button>
+          <button class="fk-tts-btn-icon fk-tts-prev" title="Previous Sentence"></button>
+          <button class="fk-tts-btn-main fk-tts-play-pause" title="Play / Pause"></button>
+          <button class="fk-tts-btn-icon fk-tts-stop" title="Stop"></button>
+          <button class="fk-tts-btn-icon fk-tts-next" title="Next Sentence"></button>
+          <button class="fk-tts-rate-pill" title="Click to cycle speed">1.0x</button>
         </div>
       `;
+
+      // Set icons cleanly using Obsidian native setIcon
+      const iconSpan = el.querySelector('.fk-tts-icon');
+      if (typeof setIcon === 'function') setIcon(iconSpan, 'volume-2');
+
+      const closeBtn = el.querySelector('.fk-tts-close');
+      if (typeof setIcon === 'function') setIcon(closeBtn, 'x');
+
+      const prevBtn = el.querySelector('.fk-tts-prev');
+      if (typeof setIcon === 'function') setIcon(prevBtn, 'skip-back');
+
+      const playBtn = el.querySelector('.fk-tts-play-pause');
+      if (typeof setIcon === 'function') setIcon(playBtn, 'pause');
+
+      const stopBtn = el.querySelector('.fk-tts-stop');
+      if (typeof setIcon === 'function') setIcon(stopBtn, 'square');
+
+      const nextBtn = el.querySelector('.fk-tts-next');
+      if (typeof setIcon === 'function') setIcon(nextBtn, 'skip-forward');
 
       const header = el.querySelector('.fk-tts-header');
       header.addEventListener('mousedown', (e) => this._onHeaderMouseDown(e));
 
-      el.querySelector('.fk-tts-close').addEventListener('click', (e) => {
+      closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.stop(true);
       });
-      el.querySelector('.fk-tts-prev').addEventListener('click', (e) => {
+      prevBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.prevSentence();
       });
-      el.querySelector('.fk-tts-play-pause').addEventListener('click', (e) => {
+      playBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.togglePlay();
       });
-      el.querySelector('.fk-tts-stop').addEventListener('click', (e) => {
+      stopBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.stop(true);
       });
-      el.querySelector('.fk-tts-next').addEventListener('click', (e) => {
+      nextBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.nextSentence();
       });
@@ -4063,16 +4164,9 @@ class TTSManager {
       textEl.textContent = this.sentences[this.currentIndex] || '…';
     }
 
-    const playIcon = this.playerEl.querySelector('.fk-tts-icon-play');
-    const pauseIcon = this.playerEl.querySelector('.fk-tts-icon-pause');
-    if (playIcon && pauseIcon) {
-      if (this.isPlaying && !this.isPaused) {
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'inline-block';
-      } else {
-        playIcon.style.display = 'inline-block';
-        pauseIcon.style.display = 'none';
-      }
+    const playBtn = this.playerEl.querySelector('.fk-tts-play-pause');
+    if (playBtn && typeof setIcon === 'function') {
+      setIcon(playBtn, this.isPlaying && !this.isPaused ? 'pause' : 'play');
     }
 
     const ratePill = this.playerEl.querySelector('.fk-tts-rate-pill');
@@ -4968,7 +5062,7 @@ class ObsidianToolkitPlugin extends Plugin {
       this.addCommand({
         id: 'flowkit-tts-play-from-cursor',
         name: t('ttsCmdReadFromHere'),
-        editorCallback: () => this.ttsMgr.playFromCursor()
+        editorCallback: (editor, view) => this.ttsMgr.playFromCursor(editor, view)
       });
 
       this.addCommand({
@@ -4984,7 +5078,7 @@ class ObsidianToolkitPlugin extends Plugin {
       });
 
       // Context Menu for Editor
-      this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor) => {
+      this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor, view) => {
         const sel = editor.getSelection();
         if (sel && sel.trim()) {
           menu.addItem(item => item
@@ -4995,7 +5089,7 @@ class ObsidianToolkitPlugin extends Plugin {
         menu.addItem(item => item
           .setTitle(t('ttsMenuReadFromHere'))
           .setIcon('volume-1')
-          .onClick(() => this.ttsMgr.playFromCursor()));
+          .onClick(() => this.ttsMgr.playFromCursor(editor, view)));
         menu.addItem(item => item
           .setTitle(t('ttsMenuReadNote'))
           .setIcon('book-open')
