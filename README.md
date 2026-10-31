@@ -7,7 +7,7 @@
   *Encrypted Folder Vaults · Natural Bilingual Text-to-Speech · Live Image HUD · Universal Streaming AI · Adaptive Selection Toolbar*
 
   <p>
-    <a href="https://github.com/ahmdmusa/obsidian-toolkit/releases"><img src="https://img.shields.io/badge/version-2.9.16-6366f1?style=flat-square" alt="Version" /></a>
+    <a href="https://github.com/ahmdmusa/obsidian-toolkit/releases"><img src="https://img.shields.io/badge/version-2.9.17-6366f1?style=flat-square" alt="Version" /></a>
     <a href="https://obsidian.md"><img src="https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian" alt="Obsidian" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-6366f1?style=flat-square" alt="License" /></a>
     <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78"><img src="https://img.shields.io/badge/Support-Buy%20Me%20A%20Coffee-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=000000" alt="Buy Me A Coffee" /></a>
@@ -30,7 +30,7 @@
 
 - **Unified Performance**: Engineered with a strict single-worker model and generational cleanup to ensure flat memory usage (~30MB) and zero process flooding.
 - **Privacy by Design**: Cryptographic operations run locally via the Web Crypto API; encrypted vaults never persist plaintext keys on disk.
-- **Universal Multi-Format Ingestion**: Built-in parsers interact natively with Markdown notes, open PDF documents, embedded PDF canvases, and HTML chapter containers.
+- **Universal Multi-Format Ingestion**: Built-in parsers interact natively with Markdown notes, open PDF documents, embedded PDF previews, and HTML chapter containers.
 - **Bilingual First-Class Citizen**: Complete native support for mixed Arabic and English workflows, automatic RTL/LTR direction toggling, and language-aware text segmentation.
 
 ---
@@ -86,11 +86,11 @@
 - **Underlying Markdown Synchronization**: Updates the image size syntax directly in the document (e.g. `![[figure.png|400]]`) ensuring persistent sizing across sync.
 - **Tools**: Size presets (25%, 50%, 75%, 100%), +/- 50px increments, left/center/right alignment, 90° rotation, and lightbox fullscreen zoom.
 
-### Workspace Focus Mode
+### Workspace Focus Mode & File Tree Customization
 
 - **Distraction-Free Exploration**: Temporarily hides non-relevant directories from the file explorer, isolating the active project folder.
 - **Folder Statistics**: Displays accurate recursive note counts in the breadcrumb bar with full support for Arabic and Unicode path names.
-- **Visual Indentation Guides**: Subtle vertical lines clarifying folder depth in complex vault trees.
+- **Visual Indentation Guides**: Subtle vertical lines clarifying folder depth in complex vault trees alongside custom folder color badges.
 
 ---
 
@@ -107,6 +107,20 @@
 | `Ctrl + Shift + T` | Open AI Template Generator | Editor |
 | `Ctrl + Shift + Z` | Toggle Fullscreen Note Mode | Editor |
 | `/` | Trigger Notion-style Slash Command suggest | Line Start |
+
+---
+
+## Security & Network Disclosures
+
+In accordance with Obsidian Community Plugins developer guidelines, Ultimate Toolkit discloses the following system and network behaviors:
+
+- **External Network Requests**: Outbound requests are initiated strictly when configured and requested by the user:
+  - `generativelanguage.googleapis.com`: Used when using Google Gemini as your configured AI provider.
+  - User-configured custom OpenAI endpoints or local models (Ollama at `localhost:11434`, LM Studio).
+  - No telemetries, analytics, or background tracking requests are ever executed.
+- **Local Process Execution (`child_process`)**: On Windows desktop, the plugin communicates with native Windows speech synthesis (`System.Speech.Synthesis`) via a single, strictly managed background worker to enable offline British and Arabic natural voices.
+- **Clipboard Access**: The plugin writes to the system clipboard exclusively when clicking the "Copy" button in the floating selection toolbar.
+- **Runtime Base64 Encoding (`btoa`/`atob`)**: Used locally for passing UTF-8 strings cleanly to the speech synthesis worker, and for encoding cryptographic salts in the encrypted folder vault.
 
 ---
 
