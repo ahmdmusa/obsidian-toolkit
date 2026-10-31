@@ -19,7 +19,42 @@ const getAppLang = () => {
 ══════════════════════════════════════════════ */
 const TR = {
   en: {
-    ffStatNotes:'notes', ffUnfocusQuick:'Exit Focus Mode', aiTestBtn:'⚡ Test & Fetch Models', aiTestSuccess:'Connected successfully! Found models:', aiTestFail:'Connection failed:',
+    ffStatNotes:'notes',
+    /* ── Text-to-Speech (TTS) ── */
+    stRead:'Read Aloud (TTS)',
+    ttsName:'🔊 Text-to-Speech (TTS)',
+    ttsDesc:'Read notes and open PDFs aloud with offline system natural voices or online cloud speech.',
+    ttsEnable:'Enable Text-to-Speech',
+    ttsEngineName:'Speech Engine',
+    ttsEngineDesc:'Choose between 100% offline system voices (zero network reliance) or online natural voices.',
+    ttsEngineOffline:'Offline System Voices (100% Offline & Fast)',
+    ttsEngineOnline:'Microsoft Edge Natural Voices (Online with Fallback)',
+    ttsVoiceName:'Voice',
+    ttsVoiceDesc:'Select preferred voice for reading.',
+    ttsVoiceDefault:'Default System Voice',
+    ttsRateName:'Speech Speed (Rate)',
+    ttsPitchName:'Voice Pitch',
+    ttsShowPlayerName:'Show Floating Player',
+    ttsShowPlayerDesc:'Display the floating mini-player popup with sentence progress and playback controls.',
+    ttsTestBtn:'🔊 Test Voice',
+    ttsTestingNotice:'Playing voice sample…',
+    ttsNoText:'No readable text found.',
+    ttsFinished:'Finished reading.',
+    ttsPdfNoSelection:'Please select text inside the PDF to read aloud.',
+    ttsFallbackNotice:'Online service unavailable, falling back to system offline voice.',
+    ttsMenuReadSelection:'🔊 Read Selected Text (TTS)',
+    ttsMenuReadFromHere:'📖 Read from Here (TTS)',
+    ttsMenuReadNote:'📄 Read Entire Note (TTS)',
+    ttsCmdToggle:'Toggle Text-to-Speech Play / Pause (Alt+S)',
+    ttsCmdReadNote:'Read Entire Note Aloud',
+    ttsCmdReadSelection:'Read Selected Text Aloud',
+    ttsCmdReadFromHere:'Read Note from Cursor',
+    ttsCmdStop:'Stop Text-to-Speech',
+    ttsCmdShowPlayer:'Show / Reset Floating TTS Player',
+    ttsPlayerTitle:'FlowKit Reader',
+    ttsStatusPlaying:'Reading…',
+    ttsStatusPaused:'Paused',
+    ttsStatusStopped:'Stopped', ffUnfocusQuick:'Exit Focus Mode', aiTestBtn:'⚡ Test & Fetch Models', aiTestSuccess:'Connected successfully! Found models:', aiTestFail:'Connection failed:',
     stSettingName:'Floating Selection Toolbar', stSettingDesc:'Show a Notion-style floating toolbar when selecting text with quick formatting, direction, and AI.', stBold:'Bold (Ctrl+B)', stItalic:'Italic (Ctrl+I)', stHighlight:'Highlight (==)', stStrike:'Strikethrough (~~)', stCode:'Inline Code', stLink:'Link ([[...]])', stCallout:'Wrap in Callout', stRtl:'Toggle RTL / LTR Direction', stAi:'Ask AI with Selection',
     paletteTitle:'Formatting Palette', searchPlaceholder:'Search formats…', noResults:'No results',
     kbNavigate:'navigate', kbInsert:'insert', kbClose:'close',
@@ -159,7 +194,42 @@ const TR = {
     fvSavedNotice:'🔒 Folder protected: ', fvRemovedNotice:'Removed protection from: ',
   },
   ar: {
-    ffStatNotes:'ملاحظة', ffUnfocusQuick:'إنهاء وضع التركيز', aiTestBtn:'⚡ فحص الاتصال وجلب النماذج', aiTestSuccess:'تم الاتصال بنجاح! تم العثور على النماذج:', aiTestFail:'فشل الاتصال:',
+    ffStatNotes:'ملاحظة',
+    /* ── Text-to-Speech (TTS) ── */
+    stRead:'قراءة صوتية (TTS)',
+    ttsName:'🔊 قارئ النصوص والملاحظات (TTS)',
+    ttsDesc:'قراءة الملاحظات وملفات الـ PDF بصوت طبيعي أوفلاين أو أونلاين.',
+    ttsEnable:'تفعيل القارئ الصوتي',
+    ttsEngineName:'محرك الصوت',
+    ttsEngineDesc:'اختر بين الصوت الطبيعي للنظام أوفلاين (بدون إنترنت إطلاقاً) أو الصوت السحابي الطبيعي.',
+    ttsEngineOffline:'أصوات النظام أوفلاين (سريعة وبدون إنترنت)',
+    ttsEngineOnline:'أصوات مايكروسوفت الطبيعية (أونلاين مع تحويل تلقائي لأوفلاين)',
+    ttsVoiceName:'الصوت',
+    ttsVoiceDesc:'اختر الصوت المفضل لقراءة الملاحظات.',
+    ttsVoiceDefault:'الصوت الافتراضي للنظام',
+    ttsRateName:'سرعة القراءة',
+    ttsPitchName:'طبقة الصوت (Pitch)',
+    ttsShowPlayerName:'إظهار المشغل العائم',
+    ttsShowPlayerDesc:'إظهار شريط تحكم عائم في الأسفل مع عداد الجمل وأزرار التنقل.',
+    ttsTestBtn:'🔊 تجربة الصوت',
+    ttsTestingNotice:'جاري تشغيل عينة صوتية…',
+    ttsNoText:'لا يوجد نص قابل للقراءة.',
+    ttsFinished:'تم الانتهاء من قراءة الملاحظة.',
+    ttsPdfNoSelection:'يرجى تحديد النص المراد قراءته داخل ملف الـ PDF.',
+    ttsFallbackNotice:'الخدمة السحابية غير متاحة، تم التحويل تلقائياً لصوت النظام أوفلاين.',
+    ttsMenuReadSelection:'🔊 قراءة النص المحدد (صوتياً)',
+    ttsMenuReadFromHere:'📖 قراءة من مكان المؤشر (صوتياً)',
+    ttsMenuReadNote:'📄 قراءة الملاحظة بالكامل (صوتياً)',
+    ttsCmdToggle:'تشغيل / إيقاف مؤقت للقارئ الصوتي (Alt+S)',
+    ttsCmdReadNote:'قراءة الملاحظة الحالية بالكامل',
+    ttsCmdReadSelection:'قراءة النص المحدد حالياً',
+    ttsCmdReadFromHere:'قراءة من مكان المؤشر لنهاية الملاحظة',
+    ttsCmdStop:'إيقاف القراءة الصوتية',
+    ttsCmdShowPlayer:'إظهار / إعادة ضبط مكان المشغل العائم',
+    ttsPlayerTitle:'قارئ FlowKit',
+    ttsStatusPlaying:'جاري القراءة…',
+    ttsStatusPaused:'متوقف مؤقتاً',
+    ttsStatusStopped:'متوقف', ffUnfocusQuick:'إنهاء وضع التركيز', aiTestBtn:'⚡ فحص الاتصال وجلب النماذج', aiTestSuccess:'تم الاتصال بنجاح! تم العثور على النماذج:', aiTestFail:'فشل الاتصال:',
     stSettingName:'شريط التحديد العائم (Notion-style)', stSettingDesc:'إظهار شريط أدوات عائم للتنسيق السريع، اتجاه الفقرة والذكاء الاصطناعي عند تحديد أي نص.', stBold:'عريض (Bold)', stItalic:'مائل (Italic)', stHighlight:'تمييز (Highlight)', stStrike:'يتوسطه خط (Strikethrough)', stCode:'كود برمجي (Inline Code)', stLink:'رابط داخلي ([[...]])', stCallout:'تحويل لتنبيه (Callout)', stRtl:'تبديل اتجاه الكتابة عربي/إنجليزي', stAi:'معالجة التحديد بالذكاء الاصطناعي',
     paletteTitle:'لوحة التنسيق', searchPlaceholder:'ابحث عن تنسيق…', noResults:'لا توجد نتائج',
     kbNavigate:'تنقل', kbInsert:'إدراج', kbClose:'إغلاق',
@@ -322,6 +392,14 @@ const DEFAULT_SETTINGS = {
   vaultLockOnBlur:       false,              // lock on window blur
   vaultLockOnStartup:    true,               // lock on app launch
   vaultHideInTree:       false,              // hide completely or keep with badge
+  /* ── Text-to-Speech (TTS) Engine ── */
+  enableTTS:             true,
+  ttsEngine:             'offline',          // 'offline' | 'online'
+  ttsVoice:              '',                 // voice URI / name
+  ttsRate:               1.0,                // 0.5 - 2.0
+  ttsPitch:              1.0,                // 0.5 - 1.5
+  ttsShowFloatingPlayer: true,
+  ttsPlayerPos:          null,               // { left, top }
 };
 
 /* ══════════════════════════════════════════════
@@ -1159,6 +1237,16 @@ class SelectionToolbarManager {
 
     // 3. AI Smart Assist with Dropdown Picker!
     addBtn('stAi', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>', (btn) => this.toggleAiPicker(btn), 'fk-st-ai');
+
+    addDivider();
+
+    // 4. Text-to-Speech (TTS)
+    addBtn('stRead', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>', () => {
+      this.closeSubmenus();
+      if (this.plugin.ttsMgr) {
+        this.plugin.ttsMgr.playSelection();
+      }
+    }, 'fk-st-tts');
 
     document.body.appendChild(el);
     this.toolbarEl = el;
@@ -3472,6 +3560,537 @@ class FolderVaultManager {
     delete document.querySelector('.nav-files-container')?.dataset.fvObserved;
   }
 }
+/* ══════════════════════════════════════════════
+   TEXT-TO-SPEECH (TTS) MANAGER
+   Supports Offline System Voices & Online Natural Voices
+   Progressive Sentence Chunking to prevent Chromium 15s freeze
+══════════════════════════════════════════════ */
+class TTSManager {
+  constructor(plugin) {
+    this.plugin = plugin;
+    this.app = plugin.app;
+    this.sentences = [];
+    this.currentIndex = 0;
+    this.isPlaying = false;
+    this.isPaused = false;
+    this.currentSourceTitle = '';
+    this.playerEl = null;
+    this.systemVoices = [];
+    this._voicesLoaded = false;
+    this._dragState = null;
+
+    this._onMouseMove = this._onMouseMove.bind(this);
+    this._onMouseUp = this._onMouseUp.bind(this);
+
+    this.initVoices();
+  }
+
+  initVoices() {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    const load = () => {
+      this.systemVoices = window.speechSynthesis.getVoices() || [];
+      if (this.systemVoices.length > 0) this._voicesLoaded = true;
+    };
+    load();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = load;
+    }
+  }
+
+  cleanMarkdown(md) {
+    if (!md) return '';
+    let text = md;
+    text = text.replace(/^---[\s\S]*?---\n*/m, '');
+    text = text.replace(/```[\s\S]*?```/g, '');
+    text = text.replace(/`([^`]+)`/g, '$1');
+    text = text.replace(/!\[\[[^\]]*\]\]/g, '');
+    text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+    text = text.replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, '$1');
+    text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+    text = text.replace(/^>\s*\[![^\]]+\][^\n]*/gm, '');
+    text = text.replace(/^>\s?/gm, '');
+    text = text.replace(/^#{1,6}\s+/gm, '');
+    text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
+    text = text.replace(/\*([^*]+)\*/g, '$1');
+    text = text.replace(/==([^=]+)==/g, '$1');
+    text = text.replace(/~~([^~]+)~~/g, '$1');
+    text = text.replace(/<[^>]+>/g, '');
+    text = text.replace(/^[-*_]{3,}\s*$/gm, '');
+    text = text.replace(/^[-*+]\s+/gm, '');
+    text = text.replace(/^\d+\.\s+/gm, '');
+    text = text.replace(/https?:\/\/[^\s]+/g, '');
+    text = text.replace(/\n{2,}/g, '\n').trim();
+    return text;
+  }
+
+  splitSentences(text) {
+    if (!text) return [];
+    const parts = text.split(/(?<=[.!?؛؟\n])\s+/);
+    const result = [];
+    for (const part of parts) {
+      const s = part.trim();
+      if (s.length > 0) {
+        if (s.length > 250) {
+          const sub = s.split(/(?<=[,،;])\s+/);
+          for (const sp of sub) {
+            const tr = sp.trim();
+            if (tr.length > 0) result.push(tr);
+          }
+        } else {
+          result.push(s);
+        }
+      }
+    }
+    return result;
+  }
+
+  playActiveNote() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view && view.editor) {
+      const text = view.editor.getValue();
+      const title = view.file ? view.file.basename : 'Note';
+      this.playText(text, title);
+      return;
+    }
+    const activeLeaf = this.app.workspace.activeLeaf;
+    if (activeLeaf && activeLeaf.view && activeLeaf.view.getViewType() === 'pdf') {
+      const winSel = window.getSelection ? window.getSelection().toString() : '';
+      if (winSel && winSel.trim()) {
+        const title = (activeLeaf.view.file ? activeLeaf.view.file.basename : 'PDF') + ' (Selection)';
+        this.playText(winSel, title);
+      } else {
+        new Notice(t('ttsPdfNoSelection'));
+      }
+      return;
+    }
+    new Notice(t('ttsNoText'));
+  }
+
+  playSelection() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (view && view.editor) {
+      const sel = view.editor.getSelection();
+      if (sel && sel.trim()) {
+        const title = (view.file ? view.file.basename : 'Note') + ' (Selection)';
+        this.playText(sel, title);
+        return;
+      }
+    }
+    const winSel = window.getSelection ? window.getSelection().toString() : '';
+    if (winSel && winSel.trim()) {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      const title = (activeLeaf?.view?.file ? activeLeaf.view.file.basename : 'Selection') + ' (Selection)';
+      this.playText(winSel, title);
+      return;
+    }
+    if (view && view.editor) {
+      this.playActiveNote();
+      return;
+    }
+    const activeLeaf = this.app.workspace.activeLeaf;
+    if (activeLeaf && activeLeaf.view && activeLeaf.view.getViewType() === 'pdf') {
+      new Notice(t('ttsPdfNoSelection'));
+      return;
+    }
+    new Notice(t('ttsNoText'));
+  }
+
+  playFromCursor() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.editor) {
+      new Notice(t('ttsNoText'));
+      return;
+    }
+    const editor = view.editor;
+    const cur = editor.getCursor();
+    const lineCount = editor.lineCount();
+    const text = editor.getRange(cur, { line: lineCount - 1, ch: editor.getLine(lineCount - 1).length });
+    const title = (view.file ? view.file.basename : 'Note') + ' (From Cursor)';
+    this.playText(text, title);
+  }
+
+  playText(rawText, sourceTitle = 'Document', startFromIdx = 0) {
+    if (!this.plugin.settings.enableTTS) {
+      new Notice(t('ttsEnable') + ': Disabled');
+      return;
+    }
+    this.stop(false);
+    const cleaned = this.cleanMarkdown(rawText);
+    const sentences = this.splitSentences(cleaned);
+    if (sentences.length === 0) {
+      new Notice(t('ttsNoText'));
+      return;
+    }
+
+    this.sentences = sentences;
+    this.currentIndex = Math.max(0, Math.min(startFromIdx, sentences.length - 1));
+    this.currentSourceTitle = sourceTitle;
+    this.isPlaying = true;
+    this.isPaused = false;
+
+    if (this.plugin.settings.ttsShowFloatingPlayer) {
+      this.renderPlayer();
+    }
+
+    this.speakCurrentSentence();
+  }
+
+  togglePlay() {
+    if (this.isPlaying) {
+      if (this.isPaused) {
+        this.resume();
+      } else {
+        this.pause();
+      }
+    } else {
+      this.playSelection();
+    }
+  }
+
+  pause() {
+    if (!this.isPlaying) return;
+    this.isPaused = true;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.pause();
+    }
+    this.updatePlayerUI();
+  }
+
+  resume() {
+    if (!this.isPlaying) return;
+    this.isPaused = false;
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.resume();
+    }
+    this.updatePlayerUI();
+  }
+
+  stop(hidePlayer = true) {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    this.isPlaying = false;
+    this.isPaused = false;
+    this.currentIndex = 0;
+    if (hidePlayer && this.playerEl) {
+      this.playerEl.classList.remove('is-active');
+    }
+    this.updatePlayerUI();
+  }
+
+  nextSentence() {
+    if (this.currentIndex < this.sentences.length - 1) {
+      this.currentIndex++;
+      this.speakCurrentSentence();
+    } else {
+      new Notice(t('ttsFinished'));
+      this.stop();
+    }
+  }
+
+  prevSentence() {
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+      this.speakCurrentSentence();
+    } else {
+      this.speakCurrentSentence();
+    }
+  }
+
+  cycleRate() {
+    const rates = [0.75, 1.0, 1.25, 1.5, 2.0];
+    const cur = this.plugin.settings.ttsRate || 1.0;
+    let nextIdx = rates.findIndex(r => Math.abs(r - cur) < 0.05) + 1;
+    if (nextIdx >= rates.length || nextIdx < 0) nextIdx = 0;
+    const newRate = rates[nextIdx];
+    this.plugin.settings.ttsRate = newRate;
+    this.plugin.saveSettings();
+    this.updatePlayerUI();
+    if (this.isPlaying && !this.isPaused) {
+      this.speakCurrentSentence();
+    }
+  }
+
+  speakCurrentSentence() {
+    if (!this.isPlaying) return;
+    if (this.currentIndex >= this.sentences.length) {
+      new Notice(t('ttsFinished'));
+      this.stop();
+      return;
+    }
+
+    const text = this.sentences[this.currentIndex];
+    this.updatePlayerUI();
+
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      new Notice('Speech Synthesis not supported on this platform.');
+      this.stop();
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = this.plugin.settings.ttsRate || 1.0;
+    utterance.pitch = this.plugin.settings.ttsPitch || 1.0;
+
+    const voiceName = this.plugin.settings.ttsVoice;
+    if (voiceName) {
+      const voices = window.speechSynthesis.getVoices() || [];
+      const found = voices.find(v => v.name === voiceName || v.voiceURI === voiceName);
+      if (found) {
+        utterance.voice = found;
+      }
+    }
+
+    utterance.onend = () => {
+      if (this.isPlaying && !this.isPaused) {
+        if (this.currentIndex < this.sentences.length - 1) {
+          this.currentIndex++;
+          this.speakCurrentSentence();
+        } else {
+          new Notice(t('ttsFinished'));
+          this.stop();
+        }
+      }
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled' && e.error !== 'interrupted') {
+        console.warn('FlowKit TTS utterance error:', e);
+      }
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  testVoice(voiceName, engine, rate, pitch) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const isAr = this.plugin.settings.enableArabicUi;
+    const sample = isAr
+      ? 'مرحباً بك! القارئ الصوتي في FlowKit يعمل بكفاءة وسلاسة.'
+      : 'Hello! FlowKit Text-to-Speech is working smoothly and naturally.';
+
+    const utt = new SpeechSynthesisUtterance(sample);
+    utt.rate = rate || 1.0;
+    utt.pitch = pitch || 1.0;
+    if (voiceName) {
+      const voices = window.speechSynthesis.getVoices() || [];
+      const v = voices.find(vo => vo.name === voiceName || vo.voiceURI === voiceName);
+      if (v) utt.voice = v;
+    }
+    new Notice(t('ttsTestingNotice'));
+    window.speechSynthesis.speak(utt);
+  }
+
+  renderPlayer() {
+    if (!this.playerEl) {
+      const el = document.createElement('div');
+      el.className = 'fk-tts-player';
+
+      const pos = this.plugin.settings.ttsPlayerPos;
+      if (pos && typeof pos.left === 'number' && typeof pos.top === 'number') {
+        el.style.left = `${pos.left}px`;
+        el.style.top = `${pos.top}px`;
+        el.style.right = 'auto';
+        el.style.bottom = 'auto';
+      }
+
+      el.innerHTML = `
+        <div class="fk-tts-header" title="Drag to reposition">
+          <div class="fk-tts-brand">
+            <span class="fk-tts-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+              </svg>
+            </span>
+            <span class="fk-tts-title">${t('ttsPlayerTitle')}</span>
+          </div>
+          <div class="fk-tts-header-actions">
+            <span class="fk-tts-counter">0 / 0</span>
+            <button class="fk-tts-btn-icon fk-tts-close" title="${t('close') || 'Close'}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="fk-tts-progress-track">
+          <div class="fk-tts-progress-fill"></div>
+        </div>
+
+        <div class="fk-tts-preview">
+          <span class="fk-tts-quote">“</span>
+          <span class="fk-tts-sentence-text">…</span>
+          <span class="fk-tts-quote">”</span>
+        </div>
+
+        <div class="fk-tts-controls">
+          <button class="fk-tts-btn-icon fk-tts-prev" title="Previous Sentence">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="19 20 9 12 19 4 19 20"/>
+              <line x1="5" y1="19" x2="5" y2="5"/>
+            </svg>
+          </button>
+          <button class="fk-tts-btn-main fk-tts-play-pause" title="Play / Pause">
+            <svg class="fk-tts-icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <svg class="fk-tts-icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+              <rect x="6" y="4" width="4" height="16"/>
+              <rect x="14" y="4" width="4" height="16"/>
+            </svg>
+          </button>
+          <button class="fk-tts-btn-icon fk-tts-stop" title="Stop">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="5" y="5" width="14" height="14" rx="2"/>
+            </svg>
+          </button>
+          <button class="fk-tts-btn-icon fk-tts-next" title="Next Sentence">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 4 15 12 5 20 5 4"/>
+              <line x1="19" y1="5" x2="19" y2="19"/>
+            </svg>
+          </button>
+          <button class="fk-tts-rate-pill" title="Click to cycle speed">
+            1.0x
+          </button>
+        </div>
+      `;
+
+      const header = el.querySelector('.fk-tts-header');
+      header.addEventListener('mousedown', (e) => this._onHeaderMouseDown(e));
+
+      el.querySelector('.fk-tts-close').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.stop(true);
+      });
+      el.querySelector('.fk-tts-prev').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.prevSentence();
+      });
+      el.querySelector('.fk-tts-play-pause').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.togglePlay();
+      });
+      el.querySelector('.fk-tts-stop').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.stop(true);
+      });
+      el.querySelector('.fk-tts-next').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.nextSentence();
+      });
+      el.querySelector('.fk-tts-rate-pill').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.cycleRate();
+      });
+
+      document.body.appendChild(el);
+      this.playerEl = el;
+    }
+
+    this.playerEl.classList.add('is-active');
+    this.updatePlayerUI();
+  }
+
+  _onHeaderMouseDown(e) {
+    if (e.target.closest('.fk-tts-close')) return;
+    e.preventDefault();
+    const rect = this.playerEl.getBoundingClientRect();
+    this._dragState = {
+      startX: e.clientX,
+      startY: e.clientY,
+      origLeft: rect.left,
+      origTop: rect.top
+    };
+    document.addEventListener('mousemove', this._onMouseMove);
+    document.addEventListener('mouseup', this._onMouseUp);
+  }
+
+  _onMouseMove(e) {
+    if (!this._dragState || !this.playerEl) return;
+    const dx = e.clientX - this._dragState.startX;
+    const dy = e.clientY - this._dragState.startY;
+    let newLeft = this._dragState.origLeft + dx;
+    let newTop = this._dragState.origTop + dy;
+
+    const maxLeft = window.innerWidth - this.playerEl.offsetWidth - 10;
+    const maxTop = window.innerHeight - this.playerEl.offsetHeight - 10;
+    newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+    newTop = Math.max(10, Math.min(newTop, maxTop));
+
+    this.playerEl.style.left = `${newLeft}px`;
+    this.playerEl.style.top = `${newTop}px`;
+    this.playerEl.style.right = 'auto';
+    this.playerEl.style.bottom = 'auto';
+  }
+
+  _onMouseUp() {
+    if (!this._dragState) return;
+    document.removeEventListener('mousemove', this._onMouseMove);
+    document.removeEventListener('mouseup', this._onMouseUp);
+    if (this.playerEl) {
+      const rect = this.playerEl.getBoundingClientRect();
+      this.plugin.settings.ttsPlayerPos = { left: Math.round(rect.left), top: Math.round(rect.top) };
+      this.plugin.saveSettings();
+    }
+    this._dragState = null;
+  }
+
+  updatePlayerUI() {
+    if (!this.playerEl) return;
+    const total = this.sentences.length;
+    const cur = this.currentIndex + 1;
+    const counterEl = this.playerEl.querySelector('.fk-tts-counter');
+    if (counterEl) {
+      counterEl.textContent = total > 0 ? `${cur} / ${total}` : '0 / 0';
+    }
+
+    const fillEl = this.playerEl.querySelector('.fk-tts-progress-fill');
+    if (fillEl) {
+      const pct = total > 0 ? (cur / total) * 100 : 0;
+      fillEl.style.width = `${pct}%`;
+    }
+
+    const textEl = this.playerEl.querySelector('.fk-tts-sentence-text');
+    if (textEl) {
+      textEl.textContent = this.sentences[this.currentIndex] || '…';
+    }
+
+    const playIcon = this.playerEl.querySelector('.fk-tts-icon-play');
+    const pauseIcon = this.playerEl.querySelector('.fk-tts-icon-pause');
+    if (playIcon && pauseIcon) {
+      if (this.isPlaying && !this.isPaused) {
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'inline-block';
+      } else {
+        playIcon.style.display = 'inline-block';
+        pauseIcon.style.display = 'none';
+      }
+    }
+
+    const ratePill = this.playerEl.querySelector('.fk-tts-rate-pill');
+    if (ratePill) {
+      const r = this.plugin.settings.ttsRate || 1.0;
+      ratePill.textContent = `${r}x`;
+    }
+  }
+
+  destroy() {
+    this.stop(true);
+    if (this.playerEl) {
+      this.playerEl.remove();
+      this.playerEl = null;
+    }
+  }
+}
+
 class ToolkitSettingsTab extends PluginSettingTab {
   constructor(app, plugin) { super(app, plugin); this.plugin=plugin; }
 
@@ -3659,6 +4278,130 @@ class ToolkitSettingsTab extends PluginSettingTab {
         this.plugin.settings.enableFormatting=val; await this.plugin.saveSettings();
         new Notice(val?t('fmtOn'):t('fmtOff'));
       }));
+
+    
+    /* ── 🔊 Text-to-Speech (TTS) ── */
+    new Setting(containerEl).setName(t('ttsName')).setDesc(t('ttsDesc')).setHeading();
+
+    new Setting(containerEl)
+      .setName(t('ttsEnable'))
+      .setDesc(t('ttsDesc'))
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enableTTS)
+        .onChange(async (val) => {
+          this.plugin.settings.enableTTS = val;
+          await this.plugin.saveSettings();
+          this.display();
+        }));
+
+    if (this.plugin.settings.enableTTS) {
+      new Setting(containerEl)
+        .setName(t('ttsEngineName'))
+        .setDesc(t('ttsEngineDesc'))
+        .addDropdown(dd => dd
+          .addOption('offline', t('ttsEngineOffline'))
+          .addOption('online', t('ttsEngineOnline'))
+          .setValue(this.plugin.settings.ttsEngine || 'offline')
+          .onChange(async (val) => {
+            this.plugin.settings.ttsEngine = val;
+            await this.plugin.saveSettings();
+            this.display();
+          }));
+
+      // Voice dropdown
+      const voiceSetting = new Setting(containerEl)
+        .setName(t('ttsVoiceName'))
+        .setDesc(t('ttsVoiceDesc'));
+
+      voiceSetting.addDropdown(dd => {
+        dd.addOption('', t('ttsVoiceDefault') || 'System Default');
+
+        if (typeof window !== 'undefined' && window.speechSynthesis) {
+          const sysVoices = window.speechSynthesis.getVoices() || [];
+          if (sysVoices.length > 0) {
+            sysVoices.forEach(v => {
+              const label = `${v.name} (${v.lang})${v.default ? ' [Default]' : ''}`;
+              dd.addOption(v.name, label);
+            });
+          }
+        }
+
+        const naturalVoices = [
+          { id: 'ar-EG-SalmaNeural', name: 'Microsoft Salma (Arabic - Egypt)' },
+          { id: 'ar-EG-ShakirNeural', name: 'Microsoft Shakir (Arabic - Egypt)' },
+          { id: 'ar-SA-HamedNeural', name: 'Microsoft Hamed (Arabic - Saudi)' },
+          { id: 'ar-SA-ZariyahNeural', name: 'Microsoft Zariyah (Arabic - Saudi)' },
+          { id: 'en-US-JennyNeural', name: 'Microsoft Jenny (English - US)' },
+          { id: 'en-US-GuyNeural', name: 'Microsoft Guy (English - US)' },
+          { id: 'en-GB-SoniaNeural', name: 'Microsoft Sonia (English - UK)' },
+          { id: 'en-GB-RyanNeural', name: 'Microsoft Ryan (English - UK)' },
+        ];
+        if (this.plugin.settings.ttsEngine === 'online') {
+          naturalVoices.forEach(v => {
+            dd.addOption(v.id, `⭐ ${v.name}`);
+          });
+        }
+
+        dd.setValue(this.plugin.settings.ttsVoice || '');
+        dd.onChange(async (val) => {
+          this.plugin.settings.ttsVoice = val;
+          await this.plugin.saveSettings();
+        });
+      });
+
+      // Speed Slider
+      new Setting(containerEl)
+        .setName(t('ttsRateName'))
+        .setDesc(`${this.plugin.settings.ttsRate || 1.0}x`)
+        .addSlider(slider => slider
+          .setLimits(0.5, 2.0, 0.05)
+          .setValue(this.plugin.settings.ttsRate || 1.0)
+          .setDynamicTooltip()
+          .onChange(async (val) => {
+            this.plugin.settings.ttsRate = Math.round(val * 100) / 100;
+            await this.plugin.saveSettings();
+          }));
+
+      // Pitch Slider
+      new Setting(containerEl)
+        .setName(t('ttsPitchName'))
+        .setDesc(`${this.plugin.settings.ttsPitch || 1.0}`)
+        .addSlider(slider => slider
+          .setLimits(0.5, 1.5, 0.05)
+          .setValue(this.plugin.settings.ttsPitch || 1.0)
+          .setDynamicTooltip()
+          .onChange(async (val) => {
+            this.plugin.settings.ttsPitch = Math.round(val * 100) / 100;
+            await this.plugin.saveSettings();
+          }));
+
+      // Show Floating Player
+      new Setting(containerEl)
+        .setName(t('ttsShowPlayerName'))
+        .setDesc(t('ttsShowPlayerDesc'))
+        .addToggle(toggle => toggle
+          .setValue(this.plugin.settings.ttsShowFloatingPlayer)
+          .onChange(async (val) => {
+            this.plugin.settings.ttsShowFloatingPlayer = val;
+            await this.plugin.saveSettings();
+          }));
+
+      // Test Voice
+      new Setting(containerEl)
+        .setName(t('ttsTestBtn'))
+        .setDesc('Play a quick sample sentence to verify voice and volume.')
+        .addButton(btn => btn
+          .setButtonText(t('ttsTestBtn'))
+          .setCta()
+          .onClick(() => {
+            this.plugin.ttsMgr?.testVoice(
+              this.plugin.settings.ttsVoice,
+              this.plugin.settings.ttsEngine,
+              this.plugin.settings.ttsRate,
+              this.plugin.settings.ttsPitch
+            );
+          }));
+    }
 
     new Setting(containerEl).setName(t('imgName')).setDesc(t('imgDesc'))
       .addToggle(tog=>tog.setValue(this.plugin.settings.enableImageControl).onChange(async val=>{
@@ -4197,6 +4940,87 @@ class ObsidianToolkitPlugin extends Plugin {
 
     /* CSS auto-loaded by Obsidian from styles.css */
 
+    this.ttsMgr = new TTSManager(this);
+    if (this.settings.enableTTS) {
+      this.addRibbonIcon('volume-2', 'Read Aloud (Alt+S)', () => {
+        this.ttsMgr.togglePlay();
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-toggle',
+        name: t('ttsCmdToggle'),
+        hotkeys: [{ modifiers: ['Alt'], key: 's' }],
+        callback: () => this.ttsMgr.togglePlay()
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-play-note',
+        name: t('ttsCmdReadNote'),
+        callback: () => this.ttsMgr.playActiveNote()
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-play-selection',
+        name: t('ttsCmdReadSelection'),
+        callback: () => this.ttsMgr.playSelection()
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-play-from-cursor',
+        name: t('ttsCmdReadFromHere'),
+        editorCallback: () => this.ttsMgr.playFromCursor()
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-stop',
+        name: t('ttsCmdStop'),
+        callback: () => this.ttsMgr.stop(true)
+      });
+
+      this.addCommand({
+        id: 'flowkit-tts-show-player',
+        name: t('ttsCmdShowPlayer'),
+        callback: () => this.ttsMgr.renderPlayer()
+      });
+
+      // Context Menu for Editor
+      this.registerEvent(this.app.workspace.on('editor-menu', (menu, editor) => {
+        const sel = editor.getSelection();
+        if (sel && sel.trim()) {
+          menu.addItem(item => item
+            .setTitle(t('ttsMenuReadSelection'))
+            .setIcon('volume-2')
+            .onClick(() => this.ttsMgr.playSelection()));
+        }
+        menu.addItem(item => item
+          .setTitle(t('ttsMenuReadFromHere'))
+          .setIcon('volume-1')
+          .onClick(() => this.ttsMgr.playFromCursor()));
+        menu.addItem(item => item
+          .setTitle(t('ttsMenuReadNote'))
+          .setIcon('book-open')
+          .onClick(() => this.ttsMgr.playActiveNote()));
+      }));
+
+      // Context Menu for Files in Explorer (Markdown & PDF)
+      this.registerEvent(this.app.workspace.on('file-menu', (menu, file) => {
+        if (file instanceof TFile && (file.extension === 'md' || file.extension === 'pdf')) {
+          menu.addItem(item => item
+            .setTitle(t('ttsName'))
+            .setIcon('volume-2')
+            .onClick(async () => {
+              if (file.extension === 'md') {
+                const content = await this.app.vault.read(file);
+                this.ttsMgr.playText(content, file.basename);
+              } else if (file.extension === 'pdf') {
+                this.app.workspace.openLinkText(file.path, '', true);
+                new Notice(t('ttsPdfNoSelection'));
+              }
+            }));
+        }
+      }));
+    }
+
     this.selectionToolbarMgr = new SelectionToolbarManager(this);
     if (this.settings.enableSelectionToolbar) {
       this.selectionToolbarMgr.register();
@@ -4333,6 +5157,7 @@ class ObsidianToolkitPlugin extends Plugin {
   }
 
   onunload() {
+    this.ttsMgr?.destroy();
     this.selectionToolbarMgr?.destroy();
     this.imgMgr?.destroy();
     this.fullscreenMgr?.destroy();

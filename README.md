@@ -5,12 +5,21 @@
 
 **Modular Productivity, Organization, and Security Plugin for Obsidian**
 
-[![Version](https://img.shields.io/badge/version-2.9.4-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.8-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-6366f1?style=flat-square)](LICENSE)
 [![Support](https://img.shields.io/badge/Support-PayPal-00457C?style=flat-square&logo=paypal)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
 
 </div>
+
+### 6. Text-to-Speech (TTS) Engine & Document Reader
+- **Dual-Engine Architecture:** 100% offline system natural voices via Web Speech API (zero server reliance or downtime) plus Microsoft Edge neural cloud voices with seamless automatic offline fallback.
+- **Anti-Freeze Sentence Chunking:** Automatically divides text into natural sentences at punctuation marks (`.`, `!`, `?`, `؛`, `؟`), completely bypassing Chromium's 15-second speech synthesis pause bug.
+- **Markdown & PDF Sanitization:** Strips YAML frontmatter, code blocks, images, link syntax, callouts, and HTML tags for natural pronunciation.
+- **Floating Mini-Player HUD:** Sleek, draggable player with live sentence preview, percentage progress bar, sentence counter (`Sentence X / Y`), Previous/Next sentence jump, Play/Pause, Stop, and a speed cycle pill (`0.75x` to `2.0x`).
+- **Universal Triggers:** Accessible via the left ribbon icon (`volume-2`), floating selection toolbar, editor context menu, file explorer menu, and global hotkey (`Alt+S`).
+
+---
 
 ---
 
@@ -20,6 +29,7 @@ FlowKit is an open-source Obsidian plugin built to solve daily writing, security
 
 | Module | Description | Trigger / Shortcut |
 | :--- | :--- | :--- |
+| **Text-to-Speech (TTS) Reader** | High-fidelity voice narration for Markdown notes and open PDFs. 100% offline system natural voices, online neural cloud speech, draggable floating mini-player, and speed cycling. | `Alt+S` / Ribbon / Selection toolbar |
 | **Folder Vault & Privacy Lock** | Password-protect folders using PBKDF2 key derivation. Excludes files from Quick Switcher and Search. | Right-click folder |
 | **Live Preview Image Toolbar** | Floating controls over images in Live Preview and Reading View. Quick resizing (25% to 100%), alignment, rotation, and markdown synchronization. | Click/hover any image |
 | **Floating Selection Toolbar** | Notion-style floating toolbar on text selection with one-click formatting, 10 callout types, instant RTL toggle, and AI actions. | Select text in editor |
@@ -79,6 +89,7 @@ FlowKit is an open-source Obsidian plugin built to solve daily writing, security
 | `Ctrl + Shift + T` | AI Template Generator |
 | `Ctrl + Shift + Z` | Toggle Fullscreen Note Mode |
 | `Alt + F` | Toggle Folder Focus on current note |
+| `Alt + S` | Toggle Text-to-Speech Play / Pause |
 | `Alt + R` | Toggle RTL / LTR paragraph direction |
 | `Ctrl + Alt + L` | Panic Lock: Lock all folders and close sensitive tabs |
 | `/` | Open Slash Commands popup |
