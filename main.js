@@ -2553,8 +2553,22 @@ class QuickBarManager {
 class FolderFocusManager {
   _getFolderNoteCount(folderPath) {
     if (!folderPath) return 0;
+    const folder = this.plugin.app.vault.getAbstractFileByPath ? this.plugin.app.vault.getAbstractFileByPath(folderPath) : null;
+    if (folder && folder.children) {
+      let count = 0;
+      const stack = [folder];
+      while (stack.length > 0) {
+        const item = stack.pop();
+        if (item.children) {
+          for (const c of item.children) stack.push(c);
+        } else if (item.extension === 'md') {
+          count++;
+        }
+      }
+      return count;
+    }
     const prefix = folderPath.endsWith('/') ? folderPath : folderPath + '/';
-    const files = this.plugin.app.vault.getMarkdownFiles();
+    const files = this.plugin.app.vault.getMarkdownFiles ? this.plugin.app.vault.getMarkdownFiles() : [];
     return files.filter(f => f.path.startsWith(prefix)).length;
   }
 
