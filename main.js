@@ -1484,14 +1484,20 @@ class SelectionToolbarManager {
             if (iSel && iSel.rangeCount > 0 && !iSel.isCollapsed) {
               const text = iSel.toString().trim();
               if (text) {
+                const range = iSel.getRangeAt(0);
+                const container = range.commonAncestorContainer;
+                const elem = container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement;
+                const isPdf = !!(elem?.closest('.pdf-container, .pdf-viewer, .pdf-embed, .textLayer'));
                 return {
                   text,
-                  range: iSel.getRangeAt(0),
+                  range,
                   isIframe: true,
                   iframe,
                   win: iWin,
                   doc: iDoc,
-                  isEditor: false
+                  isEditor: false,
+                  isPdf,
+                  isHtml: !isPdf
                 };
               }
             }
@@ -1500,7 +1506,7 @@ class SelectionToolbarManager {
       }
     } catch(e) {}
 
-    // 2. Check top-level window.getSelection() (Markdown editor, preview, PDF view)
+    // 2. Check top-level window.getSelection() (Markdown editor, preview, PDF view, embedded PDF)
     try {
       if (typeof window !== 'undefined' && window.getSelection) {
         const domSel = window.getSelection();
@@ -1509,11 +1515,14 @@ class SelectionToolbarManager {
           if (text) {
             const range = domSel.getRangeAt(0);
             const container = range.commonAncestorContainer;
-            const editorEl = container.nodeType === Node.ELEMENT_NODE
-              ? container.closest('.cm-editor, .markdown-source-view')
-              : container.parentElement?.closest('.cm-editor, .markdown-source-view');
+            const elem = container.nodeType === Node.ELEMENT_NODE ? container : container.parentElement;
+
+            const isPdf = !!(elem?.closest('.pdf-container, .pdf-viewer, .pdf-embed, .textLayer'));
+            const isEmbed = !!(elem?.closest('.cm-embed-block, .internal-embed, .media-embed, .markdown-rendered'));
+            const isCmContent = !!(elem?.closest('.cm-content'));
+
             const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
-            const isEditor = !!(editorEl && mdView && mdView.editor);
+            const isEditor = !!(isCmContent && !isPdf && !isEmbed && mdView && mdView.editor);
             return {
               text,
               range,
@@ -1522,6 +1531,8 @@ class SelectionToolbarManager {
               win: window,
               doc: document,
               isEditor,
+              isPdf,
+              isEmbed,
               editor: isEditor ? mdView.editor : null,
               view: mdView
             };
@@ -1544,6 +1555,8 @@ class SelectionToolbarManager {
             win: window,
             doc: document,
             isEditor: true,
+            isPdf: false,
+            isEmbed: false,
             editor: mdView.editor,
             view: mdView
           };
@@ -3786,11 +3799,13 @@ class TTSManager {
     // Strip code blocks & inline code
     s = s.replace(/```[\s\S]*?```/g, '');
     s = s.replace(/`([^`]+)`/g, '$1');
-    // Strip image embeds and markdown links
-    s = s.replace(/!\[\[[^\]]*\]\]/g, '');
-    s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
-    s = s.replace(/\[\[(?:[^|\]]*\|)?([^\]]+)\]\]/g, '$1');
-    s = s.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+    // Strip image & file embeds (e.g. ![[file.pdf]], handles nested brackets in filenames)
+    s = s.replace(/!\[\[[\s\S]*?\]\]/g, '');
+    s = s.replace(/!\[[\s\S]*?\]\([\s\S]*?\)/g, '');
+    // Resolve internal wikilinks [[target|alias]] -> alias or target
+    s = s.replace(/\[\[(.*?)(?:\|(.*?))?\]\]/g, (m, target, alias) => alias ? alias : target);
+    // Resolve markdown links [text](url) -> text
+    s = s.replace(/\[([^\]]+)\]\([^\)]*\)/g, '$1');
     // Strip callouts & blockquotes
     s = s.replace(/^>\s*\[![^\]]+\][^\n]*/gm, '');
     s = s.replace(/^>\s?/gm, '');
@@ -3802,6 +3817,11 @@ class TTSManager {
     s = s.replace(/[•◦▪▫■□●○◆◇\*\+]/g, ' ');
     // Strip lone dashes but preserve intra-word hyphens
     s = s.replace(/(^|\s)-+(\s|$)/g, ' ');
+    // Replace TOC leader dots (....) and ellipsis with a space
+    s = s.replace(/\.{2,}/g, ' ');
+    s = s.replace(/…/g, ' ');
+    s = s.replace(/_{2,}/g, ' ');
+    s = s.replace(/-{2,}/g, ' ');
     // Strip bold, italic, highlights, strikethrough syntax
     s = s.replace(/\*\*([^*]+)\*\*/g, '$1');
     s = s.replace(/\*([^*]+)\*/g, '$1');
@@ -3904,7 +3924,10 @@ class TTSManager {
     if (activeSel && activeSel.text) {
       const activeLeaf = this.app.workspace.activeLeaf;
       const file = activeLeaf?.view?.file;
-      const title = (file ? file.basename : 'Document') + ' (Selection)';
+      let title = (file ? file.basename : 'Document');
+      if (activeSel.isPdf) title = 'PDF: ' + title;
+      else if (activeSel.isIframe) title = 'Book: ' + title;
+      title += ' (Selection)';
       this.playText(activeSel.text, title);
       return;
     }
@@ -3913,12 +3936,20 @@ class TTSManager {
     const view = activeLeaf?.view;
     const file = view?.file;
 
-    // 2. Markdown View with Editor
-    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (mdView && mdView.editor) {
-      const text = mdView.editor.getValue();
-      const title = mdView.file ? mdView.file.basename : 'Note';
-      this.playText(text, title);
+    // 2. Direct PDF View
+    if (view?.getViewType?.() === 'pdf' || (file && file.extension === 'pdf')) {
+      const textLayers = view?.containerEl?.querySelectorAll('.textLayer');
+      if (textLayers && textLayers.length > 0) {
+        let pdfText = '';
+        textLayers.forEach(tl => {
+          if (tl.innerText && tl.innerText.trim()) pdfText += tl.innerText + '\n\n';
+        });
+        if (pdfText.trim()) {
+          this.playText(pdfText, (file ? file.basename : 'PDF') + ' (Visible Pages)');
+          return;
+        }
+      }
+      new Notice(t('ttsPdfNoSelection') || 'Please select text in PDF or scroll to loaded pages');
       return;
     }
 
@@ -3954,21 +3985,41 @@ class TTSManager {
       }
     }
 
-    // 4. PDF View
-    if (view?.getViewType?.() === 'pdf' || (file && file.extension === 'pdf')) {
-      const textLayers = view?.containerEl?.querySelectorAll('.textLayer');
-      if (textLayers && textLayers.length > 0) {
-        let pdfText = '';
-        textLayers.forEach(tl => {
-          if (tl.innerText && tl.innerText.trim()) pdfText += tl.innerText + '\n';
-        });
-        if (pdfText.trim()) {
-          this.playText(pdfText, (file ? file.basename : 'PDF') + ' (Visible Pages)');
-          return;
+    // 4. Markdown View with Editor
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (mdView && mdView.editor) {
+      const text = mdView.editor.getValue();
+      const cleaned = this.cleanTextForSpeech(text);
+
+      if (cleaned.length > 0) {
+        const title = mdView.file ? mdView.file.basename : 'Note';
+        this.playText(text, title);
+        return;
+      }
+
+      // If markdown content is empty or only had embed like ![[book.pdf]], check for embedded PDF/HTML in view!
+      const embeddedPdf = view?.containerEl?.querySelector('.pdf-container, .pdf-embed, .textLayer');
+      if (embeddedPdf) {
+        const textLayers = Array.from(embeddedPdf.querySelectorAll('.textLayer'));
+        if (textLayers.length > 0) {
+          const pdfText = textLayers.map(tl => tl.innerText || '').join('\n\n');
+          if (pdfText.trim()) {
+            this.playText(pdfText, (file ? file.basename : 'PDF') + ' (Embedded)');
+            return;
+          }
         }
       }
-      new Notice(t('ttsPdfNoSelection'));
-      return;
+
+      const embeddedIframe = view?.containerEl?.querySelector('iframe');
+      if (embeddedIframe) {
+        try {
+          const iDoc = embeddedIframe.contentDocument || embeddedIframe.contentWindow?.document;
+          if (iDoc && iDoc.body && iDoc.body.innerText?.trim()) {
+            this.playText(iDoc.body.innerText, (file ? file.basename : 'HTML Embed'));
+            return;
+          }
+        } catch(e) {}
+      }
     }
 
     // 5. Any other rendered container
@@ -3988,7 +4039,10 @@ class TTSManager {
     if (activeSel && activeSel.text) {
       const activeLeaf = this.app.workspace.activeLeaf;
       const file = activeLeaf?.view?.file;
-      const title = (file ? file.basename : 'Selection') + ' (Selection)';
+      let title = (file ? file.basename : 'Selection');
+      if (activeSel.isPdf) title = 'PDF: ' + title;
+      else if (activeSel.isIframe) title = 'Book: ' + title;
+      title += ' (Selection)';
       this.playText(activeSel.text, title);
       return;
     }
@@ -3997,15 +4051,100 @@ class TTSManager {
   }
 
   playFromCursor(editor = null, view = null) {
-    let ed = editor;
-    let file = view?.file;
+    const activeSel = this.getActiveSelection();
+    const activeLeaf = this.app.workspace.activeLeaf;
+    const leafFile = activeLeaf?.view?.file;
+    const baseTitle = leafFile ? leafFile.basename : 'Document';
+
+    // 1. If text is selected in an iframe (HTML chapter / obsidian-html-plugin or iframe PDF)
+    if (activeSel && activeSel.isIframe) {
+      const iDoc = activeSel.doc || activeSel.iframe?.contentDocument;
+      if (iDoc && iDoc.body) {
+        const textLayers = Array.from(iDoc.querySelectorAll('.textLayer'));
+        if (textLayers.length > 0) {
+          const startNode = activeSel.range?.startContainer;
+          const startElem = startNode?.nodeType === 1 ? startNode : startNode?.parentElement;
+          const currentLayer = startElem?.closest('.textLayer');
+          const startLayerIdx = currentLayer ? textLayers.indexOf(currentLayer) : 0;
+          const validStartIdx = startLayerIdx !== -1 ? startLayerIdx : 0;
+
+          const firstLayerText = textLayers[validStartIdx].innerText || '';
+          const idx = firstLayerText.indexOf(activeSel.text);
+          const fromFirstLayer = idx !== -1 ? firstLayerText.slice(idx) : (activeSel.text + '\n' + firstLayerText);
+          const subsequentText = textLayers.slice(validStartIdx + 1).map(tl => tl.innerText || '').join('\n\n');
+          const fullText = (fromFirstLayer + '\n\n' + subsequentText).trim();
+          if (fullText) {
+            this.playText(fullText, `${baseTitle} (Book From Here…)`);
+            return;
+          }
+        }
+
+        const fullText = iDoc.body.innerText || iDoc.body.textContent || '';
+        const idx = fullText.indexOf(activeSel.text);
+        if (idx !== -1) {
+          const fromHere = fullText.slice(idx);
+          this.playText(fromHere, `${baseTitle} (From Here…)`);
+          return;
+        }
+      }
+      this.playText(activeSel.text, `${baseTitle} (Selection)`);
+      return;
+    }
+
+    // 2. If text is selected in a PDF (native PDF view or embedded PDF)
+    if (activeSel && activeSel.isPdf) {
+      const startNode = activeSel.range?.startContainer;
+      const startElem = startNode?.nodeType === 1 ? startNode : startNode?.parentElement;
+      const pdfRoot = startElem?.closest('.pdf-container, .pdf-viewer, .pdf-embed') || activeLeaf?.view?.containerEl;
+      const textLayers = pdfRoot ? Array.from(pdfRoot.querySelectorAll('.textLayer')) : [];
+
+      if (textLayers.length > 0) {
+        const currentLayer = startElem?.closest('.textLayer');
+        const startLayerIdx = currentLayer ? textLayers.indexOf(currentLayer) : 0;
+        const validStartIdx = startLayerIdx !== -1 ? startLayerIdx : 0;
+
+        const firstLayerText = textLayers[validStartIdx].innerText || '';
+        const idx = firstLayerText.indexOf(activeSel.text);
+        const fromFirstLayer = idx !== -1 ? firstLayerText.slice(idx) : (activeSel.text + '\n' + firstLayerText);
+
+        const subsequentText = textLayers.slice(validStartIdx + 1).map(tl => tl.innerText || '').join('\n\n');
+        const fullTextFromHere = (fromFirstLayer + '\n\n' + subsequentText).trim();
+
+        if (fullTextFromHere) {
+          this.playText(fullTextFromHere, `${baseTitle} (PDF From Here…)`);
+          return;
+        }
+      }
+
+      this.playText(activeSel.text, `${baseTitle} (PDF Selection)`);
+      return;
+    }
+
+    // 3. If text is selected in a rendered view (Reading view / preview / HTML container)
+    if (activeSel && !activeSel.isEditor) {
+      const root = activeLeaf?.view?.containerEl?.querySelector('.markdown-rendered, .view-content') || activeLeaf?.view?.containerEl;
+      if (root) {
+        const fullText = root.innerText || '';
+        const idx = fullText.indexOf(activeSel.text);
+        if (idx !== -1) {
+          const fromHere = fullText.slice(idx);
+          this.playText(fromHere, `${baseTitle} (From Here…)`);
+          return;
+        }
+      }
+      this.playText(activeSel.text, `${baseTitle} (Selection)`);
+      return;
+    }
+
+    // 4. If in an active Markdown Editor (.cm-content)
+    let ed = editor || (activeSel?.isEditor ? activeSel.editor : null);
     if (!ed) {
       const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
       if (activeView && activeView.editor) {
         ed = activeView.editor;
-        file = activeView.file;
       }
     }
+
     if (ed) {
       let lineIdx = 0;
       try {
@@ -4018,7 +4157,7 @@ class TTSManager {
         }
       } catch(e) {
         const cur = ed.getCursor();
-        lineIdx = cur.line;
+        lineIdx = cur ? cur.line : 0;
       }
 
       const lineCount = ed.lineCount();
@@ -4027,56 +4166,28 @@ class TTSManager {
       const lastCh = ed.getLine(lastLine).length;
       const rawText = ed.getRange(startPos, { line: lastLine, ch: lastCh });
 
-      if (rawText && rawText.trim()) {
-        const title = (file ? file.basename : 'Note') + ` (From Line ${lineIdx + 1}…)`;
+      const cleanedSample = this.cleanTextForSpeech(rawText);
+      if (cleanedSample.length > 0) {
+        const title = `${baseTitle} (From Line ${lineIdx + 1}…)`;
         this.playText(rawText, title);
         return;
       }
-    }
 
-    // In HTML Chapter / iframe
-    const activeSel = this.getActiveSelection();
-    const activeLeaf = this.app.workspace.activeLeaf;
-    const leafFile = activeLeaf?.view?.file;
-    const iframe = activeLeaf?.view?.containerEl?.querySelector('iframe') || document.querySelector('#ohpIframe');
-    if (iframe) {
-      try {
-        const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (iDoc && iDoc.body) {
-          const fullText = iDoc.body.innerText || iDoc.body.textContent || '';
-          if (activeSel && activeSel.text) {
-            const idx = fullText.indexOf(activeSel.text);
-            if (idx !== -1) {
-              const textFromHere = fullText.slice(idx);
-              const title = (leafFile ? leafFile.basename : 'HTML Chapter') + ' (From Here…)';
-              this.playText(textFromHere, title);
-              return;
-            }
-          }
-          if (fullText.trim()) {
-            this.playText(fullText, leafFile ? leafFile.basename : 'HTML Chapter');
+      // If the editor note only has embedded PDF or embed, check if there is an embedded PDF on page!
+      const pdfEmbed = activeLeaf?.view?.containerEl?.querySelector('.pdf-container, .pdf-embed, .textLayer');
+      if (pdfEmbed) {
+        const textLayers = Array.from(pdfEmbed.querySelectorAll('.textLayer'));
+        if (textLayers.length > 0) {
+          const pdfText = textLayers.map(tl => tl.innerText || '').join('\n\n');
+          if (pdfText.trim()) {
+            this.playText(pdfText, `${baseTitle} (PDF Content)`);
             return;
           }
         }
-      } catch(e) {}
-    }
-
-    // In PDF or rendered container with selection
-    if (activeSel && activeSel.text) {
-      const containerText = activeLeaf?.view?.containerEl ? activeLeaf.view.containerEl.innerText : '';
-      if (containerText) {
-        const idx = containerText.indexOf(activeSel.text);
-        if (idx !== -1) {
-          const textFromHere = containerText.slice(idx);
-          const title = (leafFile ? leafFile.basename : 'Document') + ' (From Here…)';
-          this.playText(textFromHere, title);
-          return;
-        }
       }
-      this.playText(activeSel.text, (leafFile ? leafFile.basename : 'Selection') + ' (Selection)');
-      return;
     }
 
+    // 5. Default fallback to playActiveDocument
     this.playActiveDocument();
   }
 
