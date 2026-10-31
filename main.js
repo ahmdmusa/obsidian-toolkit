@@ -3756,60 +3756,79 @@ class FolderVaultManager {
    Direct Native Windows SAPI & Natural Voice Execution (Salma & Sonia)
    Instant Playback, Zero Google Translate Lag, 100% Offline Resilience
 ══════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   WINDOWS SPEECH SYNTHESIS BRIDGE (ROCK-SOLID SINGLE-WORKER ENGINE)
+   - Zero Process Flooding: Maximum 1 PowerShell process at any time
+   - Zero Race Condition: Never calls resolve on process cancel/close
+   - Seamless Sequential Audio: Salma (Arabic) & Sonia (English)
+   - Flat RAM & CPU: Prevents freezing and process accumulation
+══════════════════════════════════════════════ */
 class WindowsSpeechBridge {
   constructor() {
     this.isWin = (typeof process !== 'undefined' && process.platform === 'win32' && typeof require !== 'undefined');
     this.ps = null;
     this.installedVoices = [];
-    this.currentResolver = null;
+    this.pendingResolver = null;
     this.isSpeaking = false;
-    this.spawnWorker();
+    this.generation = 0;
   }
 
   get isAvailable() {
     return this.isWin;
   }
 
-  spawnWorker() {
-    if (!this.isWin) return;
+  ensureWorker() {
+    if (this.ps) return;
+    this.generation++;
+    const currentGen = this.generation;
+
     try {
       const { spawn } = require('child_process');
       this.ps = spawn('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', '-'], {
         stdio: ['pipe', 'pipe', 'pipe']
       });
+
       this.ps.stdin.write('[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;\n');
       this.ps.stdin.write('Add-Type -AssemblyName System.Speech;\n');
       this.ps.stdin.write('$s = New-Object System.Speech.Synthesis.SpeechSynthesizer;\n');
 
       let buffer = '';
       this.ps.stdout.on('data', (data) => {
+        if (this.generation !== currentGen) return; // Stale generation, ignore
         buffer += data.toString('utf8');
         const lines = buffer.split(/\r?\n/);
         buffer = lines.pop();
         for (const line of lines) {
           if (line.trim() === 'DONE:SPAN') {
             this.isSpeaking = false;
-            if (this.currentResolver) {
-              const r = this.currentResolver;
-              this.currentResolver = null;
-              r();
+            if (this.pendingResolver) {
+              const cb = this.pendingResolver;
+              this.pendingResolver = null;
+              cb();
             }
           }
         }
       });
 
-      this.ps.on('error', () => { this.ps = null; });
       this.ps.on('close', () => {
-        this.ps = null;
-        this.isSpeaking = false;
-        if (this.currentResolver) {
-          const r = this.currentResolver;
-          this.currentResolver = null;
-          r();
+        if (this.generation === currentGen) {
+          this.ps = null;
+          this.isSpeaking = false;
+          this.pendingResolver = null; // NEVER resolve on close
+        }
+      });
+
+      this.ps.on('error', () => {
+        if (this.generation === currentGen) {
+          this.ps = null;
+          this.isSpeaking = false;
+          this.pendingResolver = null; // NEVER resolve on error
         }
       });
     } catch (e) {
       this.ps = null;
+      this.isSpeaking = false;
+      this.pendingResolver = null;
     }
   }
 
@@ -3838,13 +3857,9 @@ class WindowsSpeechBridge {
   speak(voiceName, text, rate = 1.0) {
     if (!this.isWin) return Promise.reject(new Error('Not Windows'));
     return new Promise((resolve) => {
-      this.cancel();
-      this.currentResolver = resolve;
+      this.pendingResolver = resolve;
       this.isSpeaking = true;
-
-      if (!this.ps) {
-        this.spawnWorker();
-      }
+      this.ensureWorker();
 
       const sapiRate = Math.max(-10, Math.min(10, Math.round((rate - 1.0) * 8)));
       const b64 = Buffer.from(text, 'utf8').toString('base64');
@@ -3855,33 +3870,24 @@ class WindowsSpeechBridge {
         this.ps.stdin.write(script);
       } catch (e) {
         this.cancel();
-        resolve();
       }
     });
   }
 
   cancel() {
     this.isSpeaking = false;
-    if (this.currentResolver) {
-      const r = this.currentResolver;
-      this.currentResolver = null;
-      r();
-    }
-    if (this.ps) {
-      try { this.ps.kill(); } catch (e) {}
-      this.ps = null;
-    }
-    this.spawnWorker();
-  }
-
-  destroy() {
+    this.pendingResolver = null; // CRITICAL: Never advance queue on cancel
+    this.generation++;
     if (this.ps) {
       try {
-        this.ps.stdin.write('$s.Dispose(); exit;\n');
         this.ps.kill();
       } catch (e) {}
       this.ps = null;
     }
+  }
+
+  destroy() {
+    this.cancel();
   }
 }
 
@@ -4582,7 +4588,6 @@ class TTSManager {
       const resolvedVoice = this.resolveSystemVoice(voiceToUse, isAr);
       const rate = this.plugin.settings.ttsRate || 1.0;
 
-      this.cancelSpeech();
       this.isPlaying = true;
       this.isPaused = false;
       this.updatePlayerUI();

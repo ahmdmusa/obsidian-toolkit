@@ -1,7 +1,7 @@
 {
   "id": "ahmed-toolkit",
   "name": "Ultimate Toolkit (AI Assistant, Encryption & Security, Notes & PDF Reader, Text-to-Speech, Formatting, Callouts, Image Editing, RTL/LTR, Workspace Focus, Folder Customization & More)",
-  "version": "2.9.14",
+  "version": "2.9.15",
   "minAppVersion": "0.15.0",
   "description": "The all-in-one productivity and privacy engine: floating selection toolbar, encrypted folder vault, live preview image controls, universal AI, and folder focus.",
   "author": "Ahmed Moussa",
