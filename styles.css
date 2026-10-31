@@ -1802,3 +1802,18 @@ body.ff-active .nav-folder.ff-ancestor > .nav-folder-children {
   background: rgba(168, 85, 247, 0.15);
   color: #c084fc;
 }
+
+/* Reader Mode: Hide editor-specific formatting buttons when viewing HTML, PDFs, or Reading View */
+.fk-selection-toolbar.fk-reader-mode .fk-st-editor-only {
+  display: none !important;
+}
+
+.fk-st-btn.fk-st-copy {
+  color: var(--text-muted, #94a3b8);
+}
+
+.fk-st-btn.fk-st-copy:hover {
+  background: var(--background-modifier-hover, rgba(255, 255, 255, 0.1));
+  color: var(--text-normal, #f1f5f9);
+}
+

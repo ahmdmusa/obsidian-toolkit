@@ -52,7 +52,7 @@ const TR = {
     ttsCmdReadFromHere:'Read Note from Cursor',
     ttsCmdStop:'Stop Text-to-Speech',
     ttsCmdShowPlayer:'Show / Reset Floating TTS Player',
-    ttsPlayerTitle:'FlowKit Reader',
+    ttsPlayerTitle:'Ultimate Reader',
     ttsStatusPlaying:'Reading…',
     ttsStatusPaused:'Paused',
     ttsStatusStopped:'Stopped', ffUnfocusQuick:'Exit Focus Mode', aiTestBtn:'⚡ Test & Fetch Models', aiTestSuccess:'Connected successfully! Found models:', aiTestFail:'Connection failed:',
@@ -1149,6 +1149,7 @@ class SelectionToolbarManager {
     this.aiPickerEl = null;
     this.visible = false;
     this._debounceTimer = null;
+    this._iframeObserver = null;
 
     this._onSelectionChange = this._onSelectionChange.bind(this);
     this._onMouseDown = this._onMouseDown.bind(this);
@@ -1159,22 +1160,64 @@ class SelectionToolbarManager {
   register() {
     this.createToolbar();
     document.addEventListener('selectionchange', this._onSelectionChange);
+    document.addEventListener('mouseup', this._onSelectionChange);
     document.addEventListener('mousedown', this._onMouseDown);
     document.addEventListener('keydown', this._onKeyDown);
     window.addEventListener('scroll', this._onScroll, true);
+
+    this.scanIframes();
+    try {
+      this._iframeObserver = new MutationObserver(() => this.scanIframes());
+      this._iframeObserver.observe(document.body, { childList: true, subtree: true });
+    } catch(e) {}
   }
 
   destroy() {
     document.removeEventListener('selectionchange', this._onSelectionChange);
+    document.removeEventListener('mouseup', this._onSelectionChange);
     document.removeEventListener('mousedown', this._onMouseDown);
     document.removeEventListener('keydown', this._onKeyDown);
     window.removeEventListener('scroll', this._onScroll, true);
+    if (this._iframeObserver) {
+      this._iframeObserver.disconnect();
+      this._iframeObserver = null;
+    }
     this.closeSubmenus();
     if (this.toolbarEl) {
       this.toolbarEl.remove();
       this.toolbarEl = null;
     }
     this.visible = false;
+  }
+
+  hookIframe(iframe) {
+    if (!iframe || iframe._fkHooked) return;
+    try {
+      const iWin = iframe.contentWindow;
+      const iDoc = iframe.contentDocument || iWin?.document;
+      if (!iDoc) return;
+      iframe._fkHooked = true;
+
+      const onIframeChange = () => {
+        clearTimeout(this._debounceTimer);
+        this._debounceTimer = setTimeout(() => this.update(), 80);
+      };
+
+      iDoc.addEventListener('selectionchange', onIframeChange);
+      iDoc.addEventListener('mouseup', onIframeChange);
+      iDoc.addEventListener('keyup', onIframeChange);
+      iDoc.addEventListener('mousedown', this._onMouseDown);
+      if (iWin) {
+        iWin.addEventListener('scroll', this._onScroll, true);
+      }
+    } catch(e) {}
+  }
+
+  scanIframes() {
+    try {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(f => this.hookIframe(f));
+    } catch(e) {}
   }
 
   closeSubmenus() {
@@ -1199,9 +1242,9 @@ class SelectionToolbarManager {
       e.stopPropagation();
     });
 
-    const addBtn = (titleKey, svgHtml, onClick, cls = '') => {
+    const addBtn = (titleKey, svgHtml, onClick, cls = '', isEditorOnly = false) => {
       const btn = document.createElement('button');
-      btn.className = `fk-st-btn ${cls}`.trim();
+      btn.className = `fk-st-btn ${cls} ${isEditorOnly ? 'fk-st-editor-only' : ''}`.trim();
       btn.setAttribute('aria-label', t(titleKey));
       btn.title = t(titleKey);
       btn.innerHTML = svgHtml;
@@ -1214,37 +1257,38 @@ class SelectionToolbarManager {
       return btn;
     };
 
-    const addDivider = () => {
+    const addDivider = (isEditorOnly = false) => {
       const div = document.createElement('div');
-      div.className = 'fk-st-divider';
+      div.className = `fk-st-divider ${isEditorOnly ? 'fk-st-editor-only' : ''}`.trim();
       el.appendChild(div);
+      return div;
     };
 
-    // 1. Text styles
-    addBtn('stBold', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('**'); });
-    addBtn('stItalic', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('*'); });
-    addBtn('stHighlight', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('=='); });
-    addBtn('stStrike', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('~~'); });
-    addBtn('stCode', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('`'); });
+    // 1. Text styles (Editor only)
+    addBtn('stBold', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('**'); }, '', true);
+    addBtn('stItalic', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('*'); }, '', true);
+    addBtn('stHighlight', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('=='); }, '', true);
+    addBtn('stStrike', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('~~'); }, '', true);
+    addBtn('stCode', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('`'); }, '', true);
 
-    addDivider();
+    addDivider(true);
 
-    // 2. Structural & Direction
-    addBtn('stLink', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('[[', ']]'); });
+    // 2. Structural & Direction (Editor only)
+    addBtn('stLink', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>', () => { this.closeSubmenus(); this.wrapSelection('[[', ']]'); }, '', true);
 
     // Callout Button with Interactive Dropdown Picker!
-    const calloutBtn = addBtn('stCallout', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', (btn) => this.toggleCalloutPicker(btn));
+    const calloutBtn = addBtn('stCallout', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>', (btn) => this.toggleCalloutPicker(btn), '', true);
 
-    addBtn('stRtl', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/><path d="M10 4v16"/></svg>', () => { this.closeSubmenus(); this.applyRtl(); });
+    addBtn('stRtl', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="m14 6 6 6-6 6"/><path d="M10 4v16"/></svg>', () => { this.closeSubmenus(); this.applyRtl(); }, '', true);
 
     addDivider();
 
-    // 3. AI Smart Assist with Dropdown Picker!
+    // 3. AI Smart Assist (Universal: Notes, Books & PDFs)
     addBtn('stAi', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>', (btn) => this.toggleAiPicker(btn), 'fk-st-ai');
 
     addDivider();
 
-    // 4. Text-to-Speech (TTS): Read Selection & Read from Here
+    // 4. Text-to-Speech (TTS): Read Selection & Read from Here (Universal)
     addBtn('stRead', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>', () => {
       this.closeSubmenus();
       if (this.plugin.ttsMgr) {
@@ -1258,6 +1302,16 @@ class SelectionToolbarManager {
         this.plugin.ttsMgr.playFromCursor();
       }
     }, 'fk-st-tts-from-here');
+
+    // 5. Copy Text button (Universal)
+    addBtn('copy', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>', () => {
+      this.closeSubmenus();
+      const sel = this.getActiveSelection();
+      if (sel && sel.text) {
+        navigator.clipboard.writeText(sel.text);
+        new Notice(t('copied') || 'Copied to clipboard');
+      }
+    }, 'fk-st-copy');
 
     document.body.appendChild(el);
     this.toolbarEl = el;
@@ -1417,46 +1471,134 @@ class SelectionToolbarManager {
     }
   }
 
+  getActiveSelection() {
+    // 1. Check all iframes in the document (such as obsidian-html-plugin's #ohpIframe, webviews, embeds)
+    try {
+      const iframes = Array.from(document.querySelectorAll('iframe'));
+      for (const iframe of iframes) {
+        try {
+          const iWin = iframe.contentWindow;
+          const iDoc = iframe.contentDocument || iWin?.document;
+          if (iWin && iWin.getSelection) {
+            const iSel = iWin.getSelection();
+            if (iSel && iSel.rangeCount > 0 && !iSel.isCollapsed) {
+              const text = iSel.toString().trim();
+              if (text) {
+                return {
+                  text,
+                  range: iSel.getRangeAt(0),
+                  isIframe: true,
+                  iframe,
+                  win: iWin,
+                  doc: iDoc,
+                  isEditor: false
+                };
+              }
+            }
+          }
+        } catch(e) {}
+      }
+    } catch(e) {}
+
+    // 2. Check top-level window.getSelection() (Markdown editor, preview, PDF view)
+    try {
+      if (typeof window !== 'undefined' && window.getSelection) {
+        const domSel = window.getSelection();
+        if (domSel && domSel.rangeCount > 0 && !domSel.isCollapsed) {
+          const text = domSel.toString().trim();
+          if (text) {
+            const range = domSel.getRangeAt(0);
+            const container = range.commonAncestorContainer;
+            const editorEl = container.nodeType === Node.ELEMENT_NODE
+              ? container.closest('.cm-editor, .markdown-source-view')
+              : container.parentElement?.closest('.cm-editor, .markdown-source-view');
+            const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            const isEditor = !!(editorEl && mdView && mdView.editor);
+            return {
+              text,
+              range,
+              isIframe: false,
+              iframe: null,
+              win: window,
+              doc: document,
+              isEditor,
+              editor: isEditor ? mdView.editor : null,
+              view: mdView
+            };
+          }
+        }
+      }
+    } catch(e) {}
+
+    // 3. Fallback: Check active Markdown editor selection
+    try {
+      const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+      if (mdView && mdView.editor) {
+        const edSel = mdView.editor.getSelection().trim();
+        if (edSel) {
+          return {
+            text: edSel,
+            range: null,
+            isIframe: false,
+            iframe: null,
+            win: window,
+            doc: document,
+            isEditor: true,
+            editor: mdView.editor,
+            view: mdView
+          };
+        }
+      }
+    } catch(e) {}
+
+    return null;
+  }
+
   update() {
     if (!this.plugin.settings.enableSelectionToolbar) {
       this.hide();
       return;
     }
 
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) {
+    const sel = this.getActiveSelection();
+    if (!sel || !sel.text) {
       this.hide();
       return;
     }
 
-    const editor = view.editor;
-    const selText = editor.getSelection();
-    if (!selText || !selText.trim()) {
+    if (this.toolbarEl && sel.range && this.toolbarEl.contains(sel.range.commonAncestorContainer)) {
+      return;
+    }
+
+    let rect = null;
+    if (sel.range) {
+      const rawRect = sel.range.getBoundingClientRect();
+      if (rawRect && (rawRect.width > 0 || rawRect.height > 0)) {
+        if (sel.isIframe && sel.iframe) {
+          const ifRect = sel.iframe.getBoundingClientRect();
+          rect = {
+            left: ifRect.left + rawRect.left,
+            top: ifRect.top + rawRect.top,
+            right: ifRect.left + rawRect.right,
+            bottom: ifRect.top + rawRect.bottom,
+            width: rawRect.width,
+            height: rawRect.height
+          };
+        } else {
+          rect = rawRect;
+        }
+      }
+    }
+
+    if (!rect || (rect.width === 0 && rect.height === 0)) {
       this.hide();
       return;
     }
 
-    const domSel = window.getSelection();
-    if (!domSel || domSel.rangeCount === 0 || domSel.isCollapsed) {
-      this.hide();
-      return;
-    }
-
-    const range = domSel.getRangeAt(0);
-    const container = range.commonAncestorContainer;
-    const editorEl = container.nodeType === Node.ELEMENT_NODE
-      ? container.closest('.cm-editor, .markdown-source-view')
-      : container.parentElement?.closest('.cm-editor, .markdown-source-view');
-
-    if (!editorEl) {
-      this.hide();
-      return;
-    }
-
-    const rect = range.getBoundingClientRect();
-    if (!rect || rect.width === 0 || rect.height === 0) {
-      this.hide();
-      return;
+    if (sel.isEditor) {
+      this.toolbarEl?.classList.remove('fk-reader-mode');
+    } else {
+      this.toolbarEl?.classList.add('fk-reader-mode');
     }
 
     this.showAt(rect);
@@ -1553,42 +1695,48 @@ class SelectionToolbarManager {
   }
 
   openAiModal() {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) return;
-    const editor = view.editor;
-    const sel = editor.getSelection();
+    const sel = this.getActiveSelection();
+    const selText = sel ? sel.text : '';
+    const editor = sel?.editor || null;
     this.hide();
 
     if (!this.plugin.settings.enableAI) {
       new Notice(t('aiDisabled'));
       return;
     }
-    new AISuggestModal(this.app, this.plugin, editor, sel).open();
+    if (!selText) return;
+    new AISuggestModal(this.app, this.plugin, editor, selText).open();
   }
 
   async executeQuickAi(systemInstruction) {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (!view || !view.editor) return;
-    const editor = view.editor;
-    const sel = editor.getSelection();
+    const sel = this.getActiveSelection();
+    const selText = sel ? sel.text : '';
+    const editor = sel?.editor || null;
     this.hide();
 
     if (!this.plugin.settings.enableAI) {
       new Notice(t('aiDisabled'));
       return;
     }
+
+    if (!selText) return;
 
     const notice = new Notice(t('aiThinking') || 'AI is thinking...', 0);
     try {
       const messages = [
         { role: 'system', content: systemInstruction },
-        { role: 'user', content: sel }
+        { role: 'user', content: selText }
       ];
       const result = stripCodeFences(await callAI(this.plugin, messages));
       notice.hide();
       if (result) {
-        editor.replaceSelection(result);
-        new Notice('✨ ' + (t('aiInsertSuggestion') || 'Done!'));
+        if (editor) {
+          editor.replaceSelection(result);
+          new Notice('✨ ' + (t('aiInsertSuggestion') || 'Done!'));
+        } else {
+          navigator.clipboard.writeText(result);
+          new Notice('✨ ' + (t('copied') || 'AI result copied to clipboard!'));
+        }
       }
     } catch (err) {
       notice.hide();
@@ -3620,6 +3768,19 @@ class TTSManager {
   cleanTextForSpeech(text) {
     if (!text) return '';
     let s = text;
+    // Strip HTML scripts & styles
+    s = s.replace(/<script[\s\S]*?<\/script>/gi, '');
+    s = s.replace(/<style[\s\S]*?<\/style>/gi, '');
+    s = s.replace(/<[^>]+>/g, ' ');
+    // Decode common HTML entities
+    s = s.replace(/&nbsp;/gi, ' ');
+    s = s.replace(/&amp;/gi, ' and ');
+    s = s.replace(/&quot;/gi, '"');
+    s = s.replace(/&#39;/gi, "'");
+    s = s.replace(/&lt;/gi, '<');
+    s = s.replace(/&gt;/gi, '>');
+    // Strip remaining HTML entities like &rarr;, &bull;, etc.
+    s = s.replace(/&[a-zA-Z0-9#]+;/g, ' ');
     // Strip markdown frontmatter
     s = s.replace(/^---[\s\S]*?---\n*/m, '');
     // Strip code blocks & inline code
@@ -3729,55 +3890,110 @@ class TTSManager {
     return result;
   }
 
+  getActiveSelection() {
+    return this.plugin.selectionToolbarMgr?.getActiveSelection() || null;
+  }
+
   playActiveNote() {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (view && view.editor) {
-      const text = view.editor.getValue();
-      const title = view.file ? view.file.basename : 'Note';
+    this.playActiveDocument();
+  }
+
+  playActiveDocument() {
+    // 1. If text is currently selected anywhere (HTML chapter, PDF, note), prioritize reading selection!
+    const activeSel = this.getActiveSelection();
+    if (activeSel && activeSel.text) {
+      const activeLeaf = this.app.workspace.activeLeaf;
+      const file = activeLeaf?.view?.file;
+      const title = (file ? file.basename : 'Document') + ' (Selection)';
+      this.playText(activeSel.text, title);
+      return;
+    }
+
+    const activeLeaf = this.app.workspace.activeLeaf;
+    const view = activeLeaf?.view;
+    const file = view?.file;
+
+    // 2. Markdown View with Editor
+    const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (mdView && mdView.editor) {
+      const text = mdView.editor.getValue();
+      const title = mdView.file ? mdView.file.basename : 'Note';
       this.playText(text, title);
       return;
     }
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view && activeLeaf.view.getViewType() === 'pdf') {
-      const winSel = window.getSelection ? window.getSelection().toString() : '';
-      if (winSel && winSel.trim()) {
-        const title = (activeLeaf.view.file ? activeLeaf.view.file.basename : 'PDF') + ' (Selection)';
-        this.playText(winSel, title);
-      } else {
-        new Notice(t('ttsPdfNoSelection'));
+
+    // 3. HTML View or HTML Chapter file (e.g. obsidian-html-plugin or open .html file)
+    if ((file && (file.extension === 'html' || file.extension === 'htm')) || view?.getViewType?.() === 'html-view') {
+      const iframe = view?.containerEl?.querySelector('iframe') || document.querySelector('#ohpIframe');
+      let text = '';
+      if (iframe) {
+        try {
+          const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iDoc && iDoc.body) {
+            text = iDoc.body.innerText || iDoc.body.textContent || '';
+          }
+        } catch(e) {}
       }
+      if (text && text.trim()) {
+        this.playText(text, file ? file.basename : 'HTML Chapter');
+        return;
+      }
+      if (file) {
+        this.app.vault.read(file).then(rawHtml => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(rawHtml, 'text/html');
+          doc.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+          const clean = doc.body ? doc.body.innerText : '';
+          if (clean && clean.trim()) {
+            this.playText(clean, file.basename);
+          } else {
+            new Notice(t('ttsNoText'));
+          }
+        }).catch(() => new Notice(t('ttsNoText')));
+        return;
+      }
+    }
+
+    // 4. PDF View
+    if (view?.getViewType?.() === 'pdf' || (file && file.extension === 'pdf')) {
+      const textLayers = view?.containerEl?.querySelectorAll('.textLayer');
+      if (textLayers && textLayers.length > 0) {
+        let pdfText = '';
+        textLayers.forEach(tl => {
+          if (tl.innerText && tl.innerText.trim()) pdfText += tl.innerText + '\n';
+        });
+        if (pdfText.trim()) {
+          this.playText(pdfText, (file ? file.basename : 'PDF') + ' (Visible Pages)');
+          return;
+        }
+      }
+      new Notice(t('ttsPdfNoSelection'));
       return;
     }
+
+    // 5. Any other rendered container
+    if (view && view.containerEl) {
+      const text = view.containerEl.innerText;
+      if (text && text.trim()) {
+        this.playText(text, file ? file.basename : 'Document');
+        return;
+      }
+    }
+
     new Notice(t('ttsNoText'));
   }
 
   playSelection() {
-    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (view && view.editor) {
-      const sel = view.editor.getSelection();
-      if (sel && sel.trim()) {
-        const title = (view.file ? view.file.basename : 'Note') + ' (Selection)';
-        this.playText(sel, title);
-        return;
-      }
-    }
-    const winSel = window.getSelection ? window.getSelection().toString() : '';
-    if (winSel && winSel.trim()) {
+    const activeSel = this.getActiveSelection();
+    if (activeSel && activeSel.text) {
       const activeLeaf = this.app.workspace.activeLeaf;
-      const title = (activeLeaf?.view?.file ? activeLeaf.view.file.basename : 'Selection') + ' (Selection)';
-      this.playText(winSel, title);
+      const file = activeLeaf?.view?.file;
+      const title = (file ? file.basename : 'Selection') + ' (Selection)';
+      this.playText(activeSel.text, title);
       return;
     }
-    if (view && view.editor) {
-      this.playActiveNote();
-      return;
-    }
-    const activeLeaf = this.app.workspace.activeLeaf;
-    if (activeLeaf && activeLeaf.view && activeLeaf.view.getViewType() === 'pdf') {
-      new Notice(t('ttsPdfNoSelection'));
-      return;
-    }
-    new Notice(t('ttsNoText'));
+
+    this.playActiveDocument();
   }
 
   playFromCursor(editor = null, view = null) {
@@ -3790,38 +4006,78 @@ class TTSManager {
         file = activeView.file;
       }
     }
-    if (!ed) {
-      new Notice(t('ttsNoText'));
-      return;
-    }
-
-    let lineIdx = 0;
-    try {
-      if (ed.somethingSelected && ed.somethingSelected()) {
-        const from = ed.getCursor('from');
-        lineIdx = from.line;
-      } else {
+    if (ed) {
+      let lineIdx = 0;
+      try {
+        if (ed.somethingSelected && ed.somethingSelected()) {
+          const from = ed.getCursor('from');
+          lineIdx = from.line;
+        } else {
+          const cur = ed.getCursor();
+          lineIdx = cur.line;
+        }
+      } catch(e) {
         const cur = ed.getCursor();
         lineIdx = cur.line;
       }
-    } catch(e) {
-      const cur = ed.getCursor();
-      lineIdx = cur.line;
+
+      const lineCount = ed.lineCount();
+      const startPos = { line: lineIdx, ch: 0 };
+      const lastLine = lineCount - 1;
+      const lastCh = ed.getLine(lastLine).length;
+      const rawText = ed.getRange(startPos, { line: lastLine, ch: lastCh });
+
+      if (rawText && rawText.trim()) {
+        const title = (file ? file.basename : 'Note') + ` (From Line ${lineIdx + 1}…)`;
+        this.playText(rawText, title);
+        return;
+      }
     }
 
-    const lineCount = ed.lineCount();
-    const startPos = { line: lineIdx, ch: 0 };
-    const lastLine = lineCount - 1;
-    const lastCh = ed.getLine(lastLine).length;
-    const rawText = ed.getRange(startPos, { line: lastLine, ch: lastCh });
+    // In HTML Chapter / iframe
+    const activeSel = this.getActiveSelection();
+    const activeLeaf = this.app.workspace.activeLeaf;
+    const leafFile = activeLeaf?.view?.file;
+    const iframe = activeLeaf?.view?.containerEl?.querySelector('iframe') || document.querySelector('#ohpIframe');
+    if (iframe) {
+      try {
+        const iDoc = iframe.contentDocument || iframe.contentWindow?.document;
+        if (iDoc && iDoc.body) {
+          const fullText = iDoc.body.innerText || iDoc.body.textContent || '';
+          if (activeSel && activeSel.text) {
+            const idx = fullText.indexOf(activeSel.text);
+            if (idx !== -1) {
+              const textFromHere = fullText.slice(idx);
+              const title = (leafFile ? leafFile.basename : 'HTML Chapter') + ' (From Here…)';
+              this.playText(textFromHere, title);
+              return;
+            }
+          }
+          if (fullText.trim()) {
+            this.playText(fullText, leafFile ? leafFile.basename : 'HTML Chapter');
+            return;
+          }
+        }
+      } catch(e) {}
+    }
 
-    if (!rawText || !rawText.trim()) {
-      new Notice(t('ttsNoText'));
+    // In PDF or rendered container with selection
+    if (activeSel && activeSel.text) {
+      const containerText = activeLeaf?.view?.containerEl ? activeLeaf.view.containerEl.innerText : '';
+      if (containerText) {
+        const idx = containerText.indexOf(activeSel.text);
+        if (idx !== -1) {
+          const textFromHere = containerText.slice(idx);
+          const title = (leafFile ? leafFile.basename : 'Document') + ' (From Here…)';
+          this.playText(textFromHere, title);
+          return;
+        }
+      }
+      this.playText(activeSel.text, (leafFile ? leafFile.basename : 'Selection') + ' (Selection)');
       return;
     }
 
-    const title = (file ? file.basename : 'Note') + ` (From Line ${lineIdx + 1}…)`;
-    this.playText(rawText, title);
+    this.playActiveDocument();
   }
 
   playText(rawText, sourceTitle = 'Document', startFromIdx = 0) {
@@ -4006,50 +4262,108 @@ class TTSManager {
     }
   }
 
-  speakOnlineSpan(text, isAr) {
-    this.cancelSpeech();
-
-    // Default Natural Salma for Arabic, Sonia for British English
-    const langCode = isAr ? 'ar' : 'en-gb';
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
-
-    const audio = new Audio();
-    audio.src = url;
-    audio.playbackRate = this.plugin.settings.ttsRate || 1.0;
-    this.currentAudio = audio;
-
-    // Zero-latency pre-buffering for next span
-    if (this.currentSpans && this.currentSpanIndex + 1 < this.currentSpans.length) {
-      const nextSpan = this.currentSpans[this.currentSpanIndex + 1];
-      const nextLang = nextSpan.lang === 'ar' ? 'ar' : 'en-gb';
-      const nextAudio = new Audio();
-      nextAudio.preload = 'auto';
-      nextAudio.src = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${nextLang}&client=tw-ob&q=${encodeURIComponent(nextSpan.text)}`;
-      this.preloadedAudio = nextAudio;
+  async fetchNaturalAudio(text, langCode) {
+    if (typeof require !== 'undefined') {
+      try {
+        const https = require('https');
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
+        const buffer = await new Promise((resolve, reject) => {
+          const req = https.get(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+            }
+          }, (res) => {
+            if (res.statusCode !== 200) return reject(new Error('TTS status ' + res.statusCode));
+            const chunks = [];
+            res.on('data', d => chunks.push(d));
+            res.on('end', () => resolve(Buffer.concat(chunks)));
+          });
+          req.on('error', reject);
+          req.setTimeout(5000, () => { req.destroy(); reject(new Error('TTS timeout')); });
+        });
+        if (buffer && buffer.length > 0) {
+          return `data:audio/mpeg;base64,${buffer.toString('base64')}`;
+        }
+      } catch(e) {
+        console.warn('FlowKit Node TTS fetch failed:', e);
+      }
     }
 
-    audio.onplay = () => {
-      this.isPlaying = true;
-      this.isPaused = false;
-      this.updatePlayerUI();
-    };
-
-    audio.onended = () => {
-      if (this.isPlaying && !this.isPaused) {
-        this.currentSpanIndex++;
-        this.speakCurrentSpan();
+    if (typeof requestUrl === 'function') {
+      try {
+        const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(text)}`;
+        const res = await requestUrl({
+          url,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          }
+        });
+        if (res.status === 200 && res.arrayBuffer) {
+          const blob = new Blob([res.arrayBuffer], { type: 'audio/mpeg' });
+          return URL.createObjectURL(blob);
+        }
+      } catch(e) {
+        console.warn('FlowKit requestUrl TTS fetch failed:', e);
       }
-    };
+    }
 
-    audio.onerror = (e) => {
-      console.warn('FlowKit Natural Online audio error, auto-fallback to offline:', e);
-      this.speakOfflineSpan(text, isAr);
-    };
+    return null;
+  }
 
-    audio.play().catch(err => {
-      console.warn('FlowKit audio play error, auto-fallback to offline:', err);
+  async speakOnlineSpan(text, isAr) {
+    this.cancelSpeech();
+
+    const langCode = isAr ? 'ar' : 'en-gb';
+    try {
+      const audioSrc = await this.fetchNaturalAudio(text, langCode);
+      if (!audioSrc) {
+        throw new Error('Online audio source unavailable');
+      }
+
+      if (!this.isPlaying || this.isPaused) return;
+
+      const audio = new Audio();
+      audio.src = audioSrc;
+      audio.playbackRate = this.plugin.settings.ttsRate || 1.0;
+      this.currentAudio = audio;
+
+      // Pre-fetch next span for seamless gapless playback
+      if (this.currentSpans && this.currentSpanIndex + 1 < this.currentSpans.length) {
+        const nextSpan = this.currentSpans[this.currentSpanIndex + 1];
+        const nextLang = nextSpan.lang === 'ar' ? 'ar' : 'en-gb';
+        this.fetchNaturalAudio(nextSpan.text, nextLang).then(src => {
+          if (src) {
+            const nextAudio = new Audio();
+            nextAudio.preload = 'auto';
+            nextAudio.src = src;
+            this.preloadedAudio = nextAudio;
+          }
+        }).catch(() => {});
+      }
+
+      audio.onplay = () => {
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.updatePlayerUI();
+      };
+
+      audio.onended = () => {
+        if (this.isPlaying && !this.isPaused) {
+          this.currentSpanIndex++;
+          this.speakCurrentSpan();
+        }
+      };
+
+      audio.onerror = (e) => {
+        console.warn('FlowKit online audio play error, fallback to offline:', e);
+        this.speakOfflineSpan(text, isAr);
+      };
+
+      await audio.play();
+    } catch(err) {
+      console.warn('FlowKit online natural TTS fallback to offline:', err);
       this.speakOfflineSpan(text, isAr);
-    });
+    }
   }
 
   speakOfflineSpan(text, isAr) {
@@ -4069,12 +4383,24 @@ class TTSManager {
     let matchedVoice = null;
 
     if (isAr) {
-      matchedVoice = voices.find(v => v.name.toLowerCase().includes('salma'))
-        || voices.find(v => v.name.toLowerCase().includes('hoda') || v.name.toLowerCase().includes('naayf'))
+      matchedVoice = voices.find(v => /salma/i.test(v.name))
+        || voices.find(v => /shakir/i.test(v.name))
+        || voices.find(v => /hamed/i.test(v.name))
+        || voices.find(v => /zariyah/i.test(v.name))
+        || voices.find(v => /naayf/i.test(v.name))
+        || voices.find(v => /hoda/i.test(v.name))
         || voices.find(v => v.lang.startsWith('ar'));
     } else {
-      matchedVoice = voices.find(v => v.name.toLowerCase().includes('sonia'))
-        || voices.find(v => v.name.toLowerCase().includes('jenny') || v.name.toLowerCase().includes('hazel'))
+      matchedVoice = voices.find(v => /sonia/i.test(v.name))
+        || voices.find(v => /cori/i.test(v.name))       // Piper - Cori (GB High)
+        || voices.find(v => /piper.*amy/i.test(v.name)) // Piper - Amy
+        || voices.find(v => /piper/i.test(v.name))      // Any Piper voice
+        || voices.find(v => /hazel/i.test(v.name))      // Microsoft Hazel (en-GB)
+        || voices.find(v => /susan/i.test(v.name))      // Microsoft Susan (en-GB)
+        || voices.find(v => /george/i.test(v.name))     // Microsoft George (en-GB)
+        || voices.find(v => /jenny/i.test(v.name))
+        || voices.find(v => /en-gb|en_gb/i.test(v.lang))
+        || voices.find(v => v.lang.startsWith('en') && !/zira|david/i.test(v.name))
         || voices.find(v => v.lang.startsWith('en'));
     }
 
@@ -5035,10 +5361,13 @@ class ToolkitSettingsTab extends PluginSettingTab {
     });
     coffeeBtn.setAttribute('target', '_blank');
     coffeeBtn.setAttribute('rel', 'noopener noreferrer');
-    coffeeBtn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" style="flex-shrink:0;" fill="none">
-      <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.002.508 5.34.221 5.736.221h7.828c3.218 0 5.629.845 6.648 2.302.94 1.343.91 3.251-.087 5.253-.16.32-.34.63-.538.93-.058.09-.12.18-.182.268-1.572 2.217-4.103 3.342-7.319 3.342H9.278c-.463 0-.853.336-.92 0.793l-1.282 8.24z" fill="#003087"/>
-      <path d="M19.087 8.706c-.058.09-.12.18-.182.268-1.572 2.217-4.103 3.342-7.319 3.342H9.278c-.463 0-.853.336-.92.793l-1.547 9.945a.552.552 0 0 0 .546.637h3.984a.641.641 0 0 0 .633-.543l.893-5.659a.641.641 0 0 1 .633-.543h2.187c4.053 0 7.234-1.646 8.156-6.425.385-1.996.027-3.666-1.077-4.815z" fill="#0079C1"/>
-    </svg><span>${t('supportBtn')}</span>`;
+    coffeeBtn.innerHTML = `<svg width="17" height="17" viewBox="0 0 24 24" style="flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 8h1a4 4 0 1 1 0 8h-1"/>
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
+      <line x1="6" x2="6" y1="2" y2="4"/>
+      <line x1="10" x2="10" y1="2" y2="4"/>
+      <line x1="14" x2="14" y1="2" y2="4"/>
+    </svg><span>☕ Buy Me a Coffee</span>`;
 
     // GitHub Issues & Suggestions Button
     const issuesBtn = supActions.createEl('a', {
@@ -5052,7 +5381,7 @@ class ToolkitSettingsTab extends PluginSettingTab {
     // Suggestions & Feedback Email Button
     const emailBtn = supActions.createEl('a', {
       cls: 'tk-btn-email',
-      href: 'mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback%20%26%20Suggestions',
+      href: 'mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=Ultimate%20Toolkit%20Feedback%20%26%20Suggestions',
       text: t('feedbackBtn')
     });
     emailBtn.setAttribute('title', 'ahmedmousa.eng+ObsToolkit@gmail.com');
@@ -5070,7 +5399,7 @@ class ToolkitSettingsTab extends PluginSettingTab {
     const supFooter = supportCard.createEl('div', { cls: 'tk-support-footer' });
     supFooter.createEl('span', { text: t('supportFooter') });
 
-    containerEl.createEl('p', { text:`FlowKit v${this.plugin.manifest.version} — by Ahmed Mousa`, cls:'setting-item-description' });
+    containerEl.createEl('p', { text:`Ultimate Toolkit v${this.plugin.manifest.version} — by Ahmed Mousa`, cls:'setting-item-description' });
   }
 
   async addQuickItem(path, label) {
@@ -5170,7 +5499,7 @@ class ObsidianToolkitPlugin extends Plugin {
       this.addCommand({
         id: 'flowkit-tts-play-from-cursor',
         name: t('ttsCmdReadFromHere'),
-        editorCallback: (editor, view) => this.ttsMgr.playFromCursor(editor, view)
+        callback: () => this.ttsMgr.playFromCursor()
       });
 
       this.addCommand({
@@ -5204,9 +5533,9 @@ class ObsidianToolkitPlugin extends Plugin {
           .onClick(() => this.ttsMgr.playActiveNote()));
       }));
 
-      // Context Menu for Files in Explorer (Markdown & PDF)
+      // Context Menu for Files in Explorer (Markdown, PDF & HTML Books/Chapters)
       this.registerEvent(this.app.workspace.on('file-menu', (menu, file) => {
-        if (file instanceof TFile && (file.extension === 'md' || file.extension === 'pdf')) {
+        if (file instanceof TFile && (file.extension === 'md' || file.extension === 'pdf' || file.extension === 'html' || file.extension === 'htm')) {
           menu.addItem(item => item
             .setTitle(t('ttsName'))
             .setIcon('volume-2')
@@ -5214,6 +5543,13 @@ class ObsidianToolkitPlugin extends Plugin {
               if (file.extension === 'md') {
                 const content = await this.app.vault.read(file);
                 this.ttsMgr.playText(content, file.basename);
+              } else if (file.extension === 'html' || file.extension === 'htm') {
+                const content = await this.app.vault.read(file);
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                doc.querySelectorAll('script, style, noscript').forEach(el => el.remove());
+                const clean = doc.body ? doc.body.innerText : '';
+                this.ttsMgr.playText(clean, file.basename);
               } else if (file.extension === 'pdf') {
                 this.app.workspace.openLinkText(file.path, '', true);
                 new Notice(t('ttsPdfNoSelection'));

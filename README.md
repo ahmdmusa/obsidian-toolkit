@@ -1,182 +1,186 @@
 <div align="center">
-<img width="80" height="80" alt="FlowKit Logo" src="icon.svg" />
+<img width="96" height="96" alt="Ultimate Toolkit Logo" src="icon.svg" />
 
-# FlowKit (formerly My Toolkit)
+# Ultimate Toolkit
+### (AI Assistant, Encryption & Security, Notes & PDF Reader, Text-to-Speech, Formatting, Callouts, Image Editing, RTL/LTR, Workspace Focus, Folder Customization & More)
 
-**Modular Productivity, Organization, and Security Plugin for Obsidian**
+**The All-in-One Powerhouse for Obsidian: Privacy, Artificial Intelligence, Smart Reading & Workflow Mastery.**
 
-[![Version](https://img.shields.io/badge/version-2.9.11-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
+[![Version](https://img.shields.io/badge/version-2.9.12-6366f1?style=flat-square)](https://github.com/ahmdmusa/obsidian-toolkit/releases)
 [![Obsidian](https://img.shields.io/badge/Obsidian-0.15%2B-6366f1?style=flat-square&logo=obsidian)](https://obsidian.md)
 [![License](https://img.shields.io/badge/license-MIT-6366f1?style=flat-square)](LICENSE)
-[![Support](https://img.shields.io/badge/Support-PayPal-00457C?style=flat-square&logo=paypal)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support%20Project-FFDD00?style=flat-square&logo=buy-me-a-coffee&logoColor=000000)](https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78)
+
+<p align="center">
+  <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="46" style="height: 46px !important; border-radius: 8px;" />
+  </a>
+</p>
 
 </div>
 
-### 6. Text-to-Speech (TTS) Engine & Document Reader
-- **Dual-Engine Architecture:** 100% offline system natural voices via Web Speech API (zero server reliance or downtime) plus Microsoft Edge neural cloud voices with seamless automatic offline fallback.
-- **Anti-Freeze Sentence Chunking:** Automatically divides text into natural sentences at punctuation marks (`.`, `!`, `?`, `؛`, `؟`), completely bypassing Chromium's 15-second speech synthesis pause bug.
-- **Markdown & PDF Sanitization:** Strips YAML frontmatter, code blocks, images, link syntax, callouts, and HTML tags for natural pronunciation.
-- **Floating Mini-Player HUD:** Sleek, draggable player with live sentence preview, percentage progress bar, sentence counter (`Sentence X / Y`), Previous/Next sentence jump, Play/Pause, Stop, and a speed cycle pill (`0.75x` to `2.0x`).
-- **Universal Triggers:** Accessible via the left ribbon icon (`volume-2`), floating selection toolbar, editor context menu, file explorer menu, and global hotkey (`Alt+S`).
+---
+
+**Ultimate Toolkit** is a comprehensive, production-grade Obsidian plugin engineered to eliminate friction from daily academic study, knowledge management, and intensive note-taking. Rather than installing dozens of disjointed plugins, Ultimate Toolkit unifies military-grade folder encryption, natural bilingual text-to-speech for books and notes, Live Preview image controls, a universal AI streaming engine, Notion-style selection toolbars, and workspace organization utilities into a single, lightning-fast suite with zero memory leaks.
 
 ---
 
----
+## ⚡ Feature Matrix at a Glance
 
-FlowKit is an open-source Obsidian plugin built to solve daily writing, security, and workspace management friction. It consolidates folder encryption, in-editor formatting tools, Live Preview image controls, a universal AI engine with live streaming, and navigation utilities into a single, high-performance package with zero memory leaks.
-
-## Core Modules
-
-| Module | Description | Trigger / Shortcut |
+| Module | Core Capability | Triggers & Shortcuts |
 | :--- | :--- | :--- |
-| **Text-to-Speech (TTS) Reader** | High-fidelity voice narration for Markdown notes and open PDFs. 100% offline system natural voices, online neural cloud speech, draggable floating mini-player, and speed cycling. | `Alt+S` / Ribbon / Selection toolbar |
-| **Folder Vault & Privacy Lock** | Password-protect folders using PBKDF2 key derivation. Excludes files from Quick Switcher and Search. | Right-click folder |
-| **Live Preview Image Toolbar** | Floating controls over images in Live Preview and Reading View. Quick resizing (25% to 100%), alignment, rotation, and markdown synchronization. | Click/hover any image |
-| **Floating Selection Toolbar** | Notion-style floating toolbar on text selection with one-click formatting, 10 callout types, instant RTL toggle, and AI actions. | Select text in editor |
-| **Universal AI Engine** | Streaming SSE integration with Google Gemini, OpenAI, Ollama (local), LM Studio (local), or any custom OpenAI-compatible endpoint. | `Ctrl+Shift+G` / Selection toolbar |
-| **Folder Focus Mode 2.0+** | Focus on a specific folder in the file tree with folder note statistics, auto-focus active note folder, and quick breadcrumb navigation. | `Alt+F` / Ribbon icon |
-| **Notion-Style Slash Commands** | Type `/` at the start of any line to open a searchable menu for callouts, dividers, and snippets. | `/` in editor |
-| **Formatting Palette** | Over 60 styled callouts, academic layouts, dividers, and bilingual RTL templates. | `Ctrl+Shift+F` |
-| **Instant RTL / LTR Toggle** | Toggle paragraph direction for seamless mixed Arabic and English note-taking. | `Alt+R` |
-| **Panic Lock** | Emergency hotkey to immediately close sensitive leaves and lock all protected folders. | `Ctrl+Alt+L` |
-| **Folder Colors & Icons** | Assign custom accent colors and icons to folders in the sidebar. | Right-click folder |
+| 🗣️ **Universal Natural TTS & Reader** | High-fidelity voice narration for **Markdown notes, HTML book chapters, and PDFs**. Dual-engine (Microsoft Natural Online + Piper/OneCore offline), bilingual segmentation, and floating mini-player. | `Alt+S` / Ribbon icon / Selection toolbar |
+| 🔒 **Encrypted Folder Vault** | Military-grade folder privacy with **PBKDF2-SHA-256** key derivation. Intercepts global search and quick switcher to prevent leaks. Inactivity & blur auto-lock. | Right-click any folder |
+| ✨ **Floating Selection Toolbar 2.0** | Notion-style floating toolbar on text selection. Features **Adaptive Modes**: full formatting & callouts in editor; sleek Reader mode (TTS, AI, Copy) in HTML books, PDFs, and reading view. | Select text in any view |
+| 🤖 **Universal AI Engine** | Real-time SSE word-by-word streaming supporting **Google Gemini, OpenAI, Claude, Ollama (Local), LM Studio, and custom OpenAI endpoints**. Auto model detection. | `Ctrl+Shift+G` / Selection toolbar |
+| 🖼️ **Live Preview Image Controls** | Floating control HUD directly over images in Live Preview & Reading view. Size presets (25%–100%), fine increments (+/- 50px), alignment, rotation, and fullscreen lightbox. | Hover/click any image |
+| 🎯 **Workspace Focus Mode 2.0+** | Isolate active working folders in the file explorer. Displays dynamic note count statistics in breadcrumbs with complete Arabic/Unicode path support. | `Alt+F` / Left ribbon |
+| 📝 **Notion-Style Slash Commands** | Type `/` at the start of any line to instantly insert callouts, dividers, RTL blocks, or custom templates. | Type `/` in editor |
+| 🎨 **Academic Formatting Palette** | Over 60 beautifully styled callouts, dividers, bilingual layouts, and structural tags. | `Ctrl+Shift+F` |
+| 🌐 **Instant RTL / LTR Direction** | Seamless paragraph direction toggling for bilingual notes (Arabic & English mixed). | `Alt+R` |
+| 🚨 **Emergency Panic Lock** | Instant emergency hotkey to immediately close sensitive tabs and lock all protected folders. | `Ctrl+Alt+L` |
+| 📁 **Folder Customization & Guides** | Custom folder icons, badge colors, and Apple Notes-style visual hierarchy lines in the file tree. | Right-click folder |
 
 ---
 
-## Technical Overview
+## 📖 Deep-Dive Module Architecture
 
-### 1. Folder Vault & Cryptography
-- **Key Derivation:** Web Crypto API using PBKDF2 with SHA-256 (100,000 iterations, 16-byte cryptographically secure random salt).
-- **Zero Plaintext Storage:** Passwords and PINs are never saved to disk; only the salt and derived hash are persisted in `data.json`.
-- **Search & Switcher Interception:** Patches internal vault search and switcher methods while locked to guarantee sensitive filenames and contents do not leak in global search (`Ctrl+Shift+F`) or Quick Switcher (`Ctrl+O`).
-- **Auto-Lock Triggers:** Configurable inactivity timeout, window blur (`window.onblur`), and automatic lock upon Obsidian launch.
-
-### 2. Live Preview Image Controls
-- Operates directly inside CodeMirror 6 Live Preview and Reading View.
-- Resizing updates the note's markdown source directly (`![[image.png|400]]` or `![alt|400](url)`).
-- Features size presets (25%, 50%, 75%, 100%, +/- 50px increments), alignment (left, center, right), 90-degree rotation, and fullscreen lightbox zoom with arrow navigation.
-
-### 3. Floating Selection Toolbar
-- Appears above selected text in markdown source view and Live Preview.
-- Includes quick text styling (bold, italic, highlight, strikethrough, inline code, internal links).
-- **Interactive Callout Picker:** Choose from 10 standard callouts (Note, Tip, Info, Warning, Danger, Success, Question, Quote, Example, Summary). If the selected text is already inside a callout, it seamlessly updates the callout type without duplicating text.
-- **Instant AI Actions:** Proofread Arabic/English, summarize into bullets, explain concepts, or translate.
-
-### 4. Universal AI Engine with Streaming
-- **Supported Providers:**
-  - **Google Gemini:** Connects via official `v1beta/openai` endpoint using Gemini API key.
-  - **OpenAI:** Full support for `gpt-4o-mini`, `gpt-4o`, and newer models.
-  - **Ollama (Local):** Connects to `http://localhost:11434/v1` with local privacy.
-  - **LM Studio (Local):** Connects to local server on port 1234.
-  - **Custom Endpoints:** Compatible with Groq, DeepSeek, OpenRouter, Mistral, and self-hosted vLLM.
-- **Server-Sent Events (SSE) Streaming:** Responses stream word-by-word into the interface in real time.
-- **Model Auto-Discovery:** Click `Test & Fetch Models` in settings to ping the provider and populate available models automatically.
-
-### 5. Folder Focus Mode 2.0+
-- Isolates the active working folder in the file tree to eliminate sidebar visual noise.
-- Displays note count statistics directly in the breadcrumb bar (`MSc (14 notes)`).
-- Full Unicode support for Arabic and non-Latin paths without DOM escape failures.
-- Optional setting to automatically focus the folder of the note currently being edited.
+### 1. 🗣️ Universal Natural Text-to-Speech (TTS) & Document Reader
+- **Universal Multi-Format Support:** Reads standard **Markdown notes**, **open PDF books**, **embedded PDF previews** (`![[book.pdf]]`), and **HTML book chapters** (such as converted Razavi textbooks via `obsidian-html-plugin` or webviews).
+- **Dual-Engine Architecture:**
+  - **Online Natural Cloud:** Directly streams high-clarity Microsoft Natural neural audio (Salma for Arabic, Sonia for British English) via Node/requestUrl buffer streaming, completely bypassing Electron renderer CORS/403 blocks.
+  - **Offline Natural Hierarchy:** Automatic fallback when offline to top-tier installed voices: prioritizes **Piper neural voices** (`Piper - Cori`, `Piper - Amy`, `Piper - Ryan`) and high-grade British voices (`Hazel`, `Susan`, `George`), strictly demoting robotic legacy voices (Hoda/Zira).
+- **Bilingual Intertwined Segmentation:** Dynamically splits mixed sentences on language boundaries, narrating English terminology with native English pronunciation and Arabic context with native Arabic fluency.
+- **Comprehensive Text Sanitization:** Strips HTML tags (`<p>`, `<div>`, `<script>`, `<style>`), HTML entities (`&rarr;`, `&nbsp;`, `&amp;`), Markdown headers (`#`), arrows (`→`, `←`), bullet points, and LaTeX formulas before synthesis.
+- **Draggable Floating HUD Player:** Live sentence preview quote, percentage progress bar, sentence counter (`X / Y`), Previous/Next jump, Play/Pause, and speed toggle (`0.75x`, `1.0x`, `1.25x`, `1.5x`, `2.0x`).
+- **Flexible Playback Modes:**
+  - **Read Selection (`stRead`):** Reads currently highlighted text in any view.
+  - **Read from Here (`stReadFromHere`):** Starts at current cursor position or highlighted text and continuously reads to the end of the chapter/document.
+  - **Read Entire Document:** Reads active note, chapter, or visible PDF pages.
 
 ---
 
-## Keyboard Shortcuts
+### 2. 🔒 Military-Grade Folder Vault & Privacy Lock
+- **Cryptographic Security:** Derives 256-bit AES keys using standard **Web Crypto PBKDF2 with SHA-256** (100,000 iterations, 16-byte random salt).
+- **Zero Plaintext Footprint:** Passwords and PINs are never stored in plaintext on disk; only the salt and secure hash are preserved.
+- **Search & Quick Switcher Protection:** Hooks directly into Obsidian's internal search and switcher indexes while locked to ensure private notes and filenames never leak in global search (`Ctrl+Shift+F`) or Quick Switcher (`Ctrl+O`).
+- **Configurable Auto-Lock Triggers:** Configurable idle inactivity timeout, window blur trigger (`window.onblur`), and automatic lock on Obsidian startup.
+- **Panic Hotkey:** Press `Ctrl+Alt+L` at any moment to immediately close sensitive leaves and re-lock all folders.
+
+---
+
+### 3. ✨ Notion-Style Floating Selection Toolbar 2.0
+- **Universal DOM & Iframe Grounding:** Detects selections in Markdown source mode, Live Preview, Reading View, embedded PDFs, and HTML chapter iframes (`#ohpIframe`).
+- **Adaptive Mode Switching:**
+  - **Editor Mode:** Displays full markdown styling tools (bold, italic, highlight, strike, inline code, wikilinks, callout picker, RTL toggle, AI assist, TTS read aloud).
+  - **Reader Mode (HTML Books & PDFs):** Intelligently hides markdown-only formatting and surfaces reader-first controls: `[ 📖 Read Selection ]`, `[ 📄 Read From Here ]`, `[ 🤖 AI Assist ]`, and `[ 📋 Copy ]`.
+- **Interactive Callout Dropdown:** Wrap selections into 10 distinct callout types (Note, Tip, Info, Warning, Danger, Success, Question, Quote, Example, Summary). If already inside a callout, seamlessly updates the callout type without duplicating markdown text.
+
+---
+
+### 4. 🤖 Universal AI Assistant with Word-by-Word Streaming
+- **Broad Provider Compatibility:** Connect seamlessly to **Google Gemini** (using official `v1beta/openai` endpoint), **OpenAI**, **Ollama (local & private)**, **LM Studio**, **DeepSeek**, **Groq**, or any custom OpenAI-compatible server.
+- **Live SSE Streaming:** Responses render in real time without UI locking or freezing.
+- **One-Click Quick Actions:** Proofread Arabic/English, summarize into bullet points, explain complex equations, or translate between languages.
+- **Auto Model Detection:** Single-click "Test & Fetch Models" button in settings verifies your credentials and auto-populates all models hosted on your endpoint.
+
+---
+
+### 5. 🖼️ Live Preview Image Controls
+- Floating interactive controls directly over images in CodeMirror 6 Live Preview and Reading View.
+- **Direct Markdown Sync:** Modifies the underlying markdown (`![[diagram.png|400]]`) so dimensions persist across all devices.
+- Preset size buttons (25%, 50%, 75%, 100%), fine adjustments (+/- 50px), alignment toggles, rotation (90°), and fullscreen lightbox zoom.
+
+---
+
+### 6. 🎯 Workspace Focus Mode 2.0+ & Folder Customization
+- **Declutter Your Workspace:** Hide all unrelated folders in the sidebar to concentrate on the active project or subject.
+- **Note Statistics:** Shows note count in breadcrumb headers (e.g. `MSc (14 notes)`). Full support for Arabic and Unicode folder paths.
+- **Visual Hierarchy:** Clean, Apple Notes-inspired indentation guidelines and custom folder color/icon badging.
+
+---
+
+## ⌨️ Essential Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
-| `Ctrl + Shift + F` | Open Formatting Palette |
+| `Alt + S` | Toggle Text-to-Speech Play / Pause |
 | `Ctrl + Shift + G` | Open AI Assistant |
+| `Ctrl + Shift + F` | Open Formatting Palette |
 | `Ctrl + Shift + T` | AI Template Generator |
 | `Ctrl + Shift + Z` | Toggle Fullscreen Note Mode |
 | `Alt + F` | Toggle Folder Focus on current note |
-| `Alt + S` | Toggle Text-to-Speech Play / Pause |
 | `Alt + R` | Toggle RTL / LTR paragraph direction |
-| `Ctrl + Alt + L` | Panic Lock: Lock all folders and close sensitive tabs |
-| `/` | Open Slash Commands popup |
+| `Ctrl + Alt + L` | Panic Lock: Lock all folders & close sensitive tabs |
+| `/` | Open Notion-Style Slash Commands |
 
 ---
 
-## Installation & Updates
+## ☕ Support & Community
 
-### Option 1: Via BRAT (Recommended for Automatic Updates)
-1. Install the **BRAT** plugin from Obsidian Community Plugins.
-2. In BRAT settings, click **Add Beta plugin**.
-3. Enter repository URL: `ahmdmusa/obsidian-toolkit`.
-4. Enable **Auto-update plugins on start** in BRAT settings. BRAT will automatically check GitHub releases and download new updates on startup without manual intervention.
-
-### Option 2: Manual Installation
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/ahmdmusa/obsidian-toolkit/releases/latest).
-2. Create a folder named `ahmed-toolkit` inside your vault at `.obsidian/plugins/ahmed-toolkit/`.
-3. Copy the three files into that folder and reload Obsidian.
-
----
-
-## Support & Feedback
-
-If FlowKit helps you stay focused and saves you time in Obsidian, you can support its ongoing development:
+If **Ultimate Toolkit** enhances your daily productivity, study sessions, or reading experience, please consider supporting its active development:
 
 <p align="center">
   <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-    <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="180" />
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="48" style="height: 48px !important; border-radius: 8px;" />
   </a>
 </p>
 
-- **Issues & Suggestions:** [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues)
-- **Email:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback)
-- **Repository:** Star the project on [GitHub](https://github.com/ahmdmusa/obsidian-toolkit)
+- 💡 **Suggestions & Bug Reports:** [GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues)
+- ✉️ **Direct Feedback:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=Ultimate%20Toolkit%20Feedback)
+- ⭐ **Star the Repository:** [GitHub - Ultimate Toolkit](https://github.com/ahmdmusa/obsidian-toolkit)
 
 ---
 
-## دليل الاستخدام بالعربية
+## 🌍 دليل الاستخدام الشامل بالعربية
 
-إضافة **FlowKit** (المعروفة سابقاً باسم My Toolkit) هي أداة مفتوحة المصدر طورتها لتوفير الميزات الأساسية التي يحتاجها كل مستخدم يكتب ويدير ملاحظاته بشكل مكثف داخل أوبسيديان، مع تركيز خاص على الأمان المحلي وسلاسة الكتابة باللغة العربية.
+إضافة **Ultimate Toolkit** (المعروفة سابقاً باسم FlowKit / My Toolkit) هي أداة شاملة ومفتوحة المصدر مصممة خصيصاً لتوفير تجربة متكاملة تجمع بين **الأمان التام، الذكاء الاصطناعي، القراءة الصوتية الذكية للكتب والملاحظات، والتحكم الاحترافي في التنسيق والصور** داخل أوبسيديان، مع دعم كامل وفوري للغة العربية والاتجاه من اليمين لليسار.
 
 ### أهم ميزات الإضافة عملياً:
 
-1. **قفل وحماية المجلدات (Folder Vault):**
-   - حماية أي مجلد برقم سري أو كلمة مرور مع تشفير PBKDF2-SHA-256 (100 ألف دورة تشفير).
-   - لا يتم حفظ كلمة السر كنص صريح نهائياً.
-   - حجب تام للملفات المقفلة من البحث العام (`Ctrl+Shift+F`) ومن نافذة التبديل السريع (`Ctrl+O`).
-   - قفل تلقائي عند الخمول أو عند مغادرة نافذة البرنامج.
+1. **القارئ الصوتي الذكي (TTS) للملاحظات والكتب وPDF وHTML:**
+   - قراءة صوتية فائقة الوضوح للملاحظات، ملفات الـ PDF المفتوحة، ملفات الـ PDF المضمنة (`![[book.pdf]]`)، وفصول الكتب بصيغة HTML (مثل فصول كتب Razavi في Analog CMOS).
+   - محرك مزدوج: صوت سحابي طبيعي (صوت سلمى للعربية وصوت سونيا للإنجليزية البريطانية) مع سحب مباشر للبايتات لمنع حظر Electron، وتحويل تلقائي عند انقطاع الإنترنت لأقوى أصوات النظام أوفلاين (أصوات Piper الطبيعية مثل Piper Cori وHazel).
+   - تقسيم ذكي للجمل المختلطة: قراءة المصطلح الإنجليزي بنطق إنجليزي فصيح والنص العربي بنطق عربي طبيعي.
+   - تنظيف تلقائي للرموز والأسهم وأكواد HTML وعلامات الماركداون قبل النطق.
+   - مشغل عائم مصغر أنيق يمكنك تحريكه في أي مكان بالشاشة، مع شريط تقدم ونسب وسرعات مضاعفة (`0.75x` حتى `2.0x`).
 
-2. **التحكم بالصور في Live Preview:**
-   - شريط أدوات عائم يظهر تلقائياً بمجرد النقر على أي صورة أثناء الكتابة.
-   - خيارات تصغير وتكبير بنسب جاهزة (25%, 50%, 75%, 100%) أو أزرار تدريجية.
-   - يقوم الشريط بتحديث كود الملاحظة الماركداون مباشرة (`![[image.png|400]]`) لضمان حفظ المقاس دائماً داخل الملف.
-   - محاذاة لليمين أو الوسط أو اليسار، تدوير، وتكبير بملء الشاشة (Lightbox).
+2. **الخزنة المشفرة لحماية المجلدات (Folder Vault):**
+   - تشفير عسكري لأي مجلد بكلمة مرور أو رقم سري عبر خوارزمية **PBKDF2-SHA-256** (100 ألف دورة تشفير).
+   - حجب تام للملفات المقفلة من البحث العام (`Ctrl+Shift+F`) ومن التبديل السريع (`Ctrl+O`).
+   - قفل تلقائي عند الخمول أو مغادرة النافذة، وزر طوارئ سريع (`Ctrl+Alt+L`).
 
-3. **شريط التحديد العائم (Notion-style):**
-   - بمجرد تحديد أي نص في المحرر، يظهر شريط عائم يتيح لك تنسيق النص، إضافة الروابط، تحويل النص إلى تنبيه Callout مع إمكانية الاختيار من بين 10 أنواع مختلفة، وتبديل اتجاه الكتابة للعربية فورياً (`Alt+R`).
-   - قائمة سريعة لمعالجة النص المحدد بالذكاء الاصطناعي (تدقيق لغوي، تلخيص، شرح، ترجمة).
+3. **شريط التحديد العائم الذكي (Notion-Style 2.0):**
+   - يعمل على الملاحظات، كتب الـ HTML، ملفات الـ PDF، ووضع القراءة.
+   - وضع متكيف: في المحرر يتيح التنسيق الكامل وإدراج 10 أنواع من صناديق التنبيهات (Callouts) وتبديل اتجاه الكتابة؛ وفي وضع قراءة الكتب يظهر خيارات القراءة السريعة (قراءة المحدد، قراءة من هنا لآخر الفصل، الذكاء الاصطناعي، ونسخ النص).
 
-4. **محرك الذكاء الاصطناعي الشامل والبث المباشر:**
-   - دعم مباشر لأي مزود تريده: **Google Gemini**، **OpenAI**، **Ollama (محلي)**، **LM Studio (محلي)**، أو أي سيرفر خارجي يدعم بروتوكول OpenAI.
-   - عرض الردود بنظام البث المباشر (SSE Streaming) كلمة بكلمة دون تجميد الواجهة.
-   - زر داخل الإعدادات لفحص الاتصال واكتشاف النماذج المتاحة وتعبئتها في القائمة تلقائياً.
+4. **محرك الذكاء الاصطناعي الشامل والبث المباشر (Universal AI):**
+   - اتصال فوري بأي مزود: **Google Gemini**, **OpenAI**, **Ollama (محلي 100%)**, **LM Studio**, أو أي سيرفر مخصص.
+   - تدفق حي للكلمات (Streaming) دون تجميد البرنامج.
+   - تدقيق لغوي، تلخيص، وتبسيط المفاهيم الصعبة بنقرة واحدة.
 
-5. **وضع التركيز المطور (Focus Mode 2.0+):**
-   - عزل المجلد الذي تعمل عليه في شجرة الملفات لإلغاء التشتت البصري.
-   - إظهار عدد الملاحظات الموجودة داخل المجلد في شريط المسار العلوي.
-   - خيار لجعل شجرة الملفات تركز تلقائياً على مجلد الملاحظة المفتوحة حالياً.
+5. **التحكم العائم بالصور (Live Preview):**
+   - شريط تحكم عائم فوق أي صورة أثناء الكتابة لتعديل المقاس مباشرة وتحديث كود الملاحظة.
+   - نسب سريعة، محاذاة، تدوير، وعرض مكبر بملء الشاشة.
+
+6. **وضع التركيز وتنظيم مساحة العمل (Focus Mode 2.0+):**
+   - عزل المجلد النشط في شجرة الملفات لإلغاء التشتت البصري.
+   - إحصائيات بعدد الملاحظات في شريط المسار مع دعم كامل للمسارات العربية.
 
 ---
 
-### الدعم والتواصل
+### الدعم والتطوير
 
-إذا كانت الإضافة مفيدة لك وبتوفر وقتك وشغلك، تقدر تدعم استمرار تطويرها:
+إذا كانت الإضافة تفيدك في دراستك وشغلك اليومي، يمكنك دعم استمرار تطويرها عبر:
 
 <p align="center">
   <a href="https://www.paypal.com/ncp/payment/4SWPEP8Q3YF78" target="_blank" rel="noopener noreferrer">
-    <img src="https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png" alt="Donate with PayPal" width="180" />
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="48" style="height: 48px !important; border-radius: 8px;" />
   </a>
 </p>
-
-- **الاقتراحات والمشاكل:** [فتح تذكرة على GitHub Issues](https://github.com/ahmdmusa/obsidian-toolkit/issues)
-- **البريد الإلكتروني:** [ahmedmousa.eng+ObsToolkit@gmail.com](mailto:ahmedmousa.eng+ObsToolkit@gmail.com?subject=FlowKit%20Feedback)
-- **دعم المشروع:** وضع نجمة (Star) للمستودع على [GitHub](https://github.com/ahmdmusa/obsidian-toolkit)
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source under the [MIT License](LICENSE).
